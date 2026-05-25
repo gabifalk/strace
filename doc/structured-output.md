@@ -21,11 +21,11 @@ entry* is lost. In particular:
   `read`, a `sleep`, etc.) produces no output at all until it returns;
   traditional and `jsonl-split` both surface the entry stop immediately.
 - **No interleaving across pids/threads.** Concurrent syscalls in
-  different threads can no longer be observed in the order they entered
-  vs. returned -- they appear sequentially in exit order. The traditional
+  different threads appear sequentially in exit order rather than in the
+  order they entered vs. returned. Traditional output's
   `<unfinished ...>` / `<... resumed>` mechanism and `jsonl-split`'s
-  separate entering/exiting events both preserve this; `jsonl-merged`
-  does not.
+  separate entering/exiting events both preserve this ordering;
+  `jsonl-merged` does not.
 
 **About the JSON examples in this document:** in actual JSONL output
 every event occupies exactly one line -- no embedded newlines, no
@@ -38,8 +38,6 @@ physical line of strace's output.
 - [Overview](#overview)
 - [Invocation](#invocation)
 - [Core Principles](#core-principles)
-- [Naming Conventions](#naming-conventions)
-- [Namespace Convention](#namespace-convention)
 - [Event Types](#event-types)
   - [Header Event](#header-event)
   - [Syscall Event](#syscall-event)
@@ -50,6 +48,7 @@ physical line of strace's output.
   - [Detached Event](#detached-event)
   - [Summary Header Event](#summary-header-event)
   - [Summary Event](#summary-event)
+  - [Summary Total Event](#summary-total-event)
 - [Value Types](#value-types)
   - [decimal](#decimal)
   - [unsigned](#unsigned)
@@ -81,7 +80,6 @@ physical line of strace's output.
   - [ip_addr](#ip_addr)
   - [ifindex](#ifindex)
   - [ioctl_op](#ioctl_op)
-  - [QCMD encoding in flags groups](#qcmd-encoding-in-flags-groups)
   - [uring_restriction_op](#uring_restriction_op)
   - [struct](#struct)
   - [array](#array)
@@ -99,6 +97,18 @@ physical line of strace's output.
   - [return field](#return-field)
   - [errno](#errno)
   - [unavailable](#unavailable)
+- [Syscall Event Details](#syscall-event-details)
+  - [Event-level fields](#event-level-fields)
+  - [In-out arguments and value changes](#in-out-arguments-and-value-changes)
+  - [`split` structs](#split-structs)
+  - [`changed` within `split` structs](#changed-within-split-structs)
+  - [Error return](#error-return)
+  - [No return (process died mid-syscall)](#no-return-process-died-mid-syscall)
+  - [Detached mid-syscall](#detached-mid-syscall)
+  - [Interrupted by signal](#interrupted-by-signal)
+  - [Syscall timing (`--syscall-times`)](#syscall-timing---syscall-times)
+  - [Syscall injection (`-e inject`)](#syscall-injection--e-inject)
+  - [Delayed injection (`-e inject=SET:delay_enter=N`)](#delayed-injection--e-injectsetdelay_entern)
 - [Complete Example: sysinfo](#complete-example-sysinfo)
 - [Special Cases](#special-cases)
   - [dirfd (AT_FDCWD)](#dirfd-at_fdcwd)
@@ -163,60 +173,14 @@ which optional fields the structured output carries -- see
    to preserve exact representation and avoid IEEE 754 precision loss on large
    values.
 
-## Naming Conventions
-
-All field names are bare lowercase identifiers (snake_case).  There are
-two namespaces in which a meta-field can sit:
-
-- **At a value object's top level** -- alongside `type`, `raw`, `sym`,
-  `fields`, etc.  This namespace is entirely schema-controlled, so
-  meta-fields here use short bare names: `split`, `inout`, `changed`,
-  `changed_pair`, `injected`, `style`, `indirect`, `truncated`,
-  `old`, `rest_unreadable`, `fetch_failed_addr`, `extra_data`,
-  `reserved_inline`, `index`, `inverted`, `comm`, `byteorder`,
-  `byteorder_size`, `strace_pid`, `entering_pid`, etc.
-- **Inside a struct value's `fields` dict** -- in the same namespace
-  as kernel-supplied struct field names (e.g., `error`, `flags`,
-  `pid`, ...).  Meta-fields placed here use a `decode_` prefix so
-  they don't collide with real kernel field names: `decode_error`,
-  `decode_note`.
-
-## Namespace Convention
-
-- `"event"` -- top-level field identifying the event kind
-- `"type"` -- field on value objects identifying the value type
-- `"truncated"` -- boolean, indicates the value was truncated
-- `"indirect"` -- boolean, indicates the value was dereferenced from a pointer
-  (traditional strace shows these in `[brackets]`). An indirect argument can
-  also be in-out (see `inout`/`changed` below); the flags can co-occur.
-- `"byteorder"` -- optional field on any value object indicating the value was
-  byte-order swapped for presentation. Value is `"big"` (network byte order).
-  Traditional strace shows these as `htons(value)` or `htonl(value)`.
-  When present, `raw` is the pre-conversion (wire-order) value and `host` is
-  the converted host-order value used for presentation.
-  `"byteorder_size"` is a companion field (string, `"2"`, `"4"`, or `"8"`)
-  that indicates whether the traditional form uses `htons` (size < 4),
-  `htonl` (size >= 4), or `htobe64` (size 8).
-  Example: `{"type": "unsigned", "raw": "2560", "host": "10", "byteorder": "big", "byteorder_size": "2", "sym": "NFNL_SUBSYS_NFTABLES"}`
-- `"old"` -- optional field on a value object carrying the previous value
-  when an in-place change is rendered on a single event (not split across
-  enter/exit). Traditional output: `old_value => new_value`.
-- `"strace_pid"` -- optional integer field on pid-type values (`tid`, `tgid`,
-  `pgid`, `sid`) present when strace runs in a PID namespace. Carries the PID
-  as seen in strace's own namespace. Traditional output:
-  `pid /* pid in strace's PID NS */`.
-- `"comm"` -- optional string field on pid-type values carrying the
-  thread/process name (comm string), present when strace has the information
-  available. Traditional output: the name in angle brackets after the pid
-  value, e.g., `1234<main>`.
-
 ## Event Types
 
 ### Header Event
 
 Emitted as the first line of output. Contains the schema version, strace
-version, and output format. `capabilities` lists optional build features
-reported by `strace --version`.
+version, output format, `capabilities`, and `options`.
+
+`version` is incremented on breaking schema changes.
 
 `format` identifies the output format variant:
 - `"jsonl-split"` -- two events per syscall (entering + exiting)
@@ -225,6 +189,8 @@ reported by `strace --version`.
 Consumers can use `format` to determine how to parse syscall events
 (whether to expect `entering` fields and separate entry/exit events, or
 merged `[entry, exit]` argument arrays).
+
+`capabilities` is a list of optional build features.
 
 `options` contains the rendering-related CLI options that were active
 when the trace was captured:
@@ -260,8 +226,6 @@ when the trace was captured:
   "capabilities": ["stack-trace=libdw", "m32-mpers", "mx32-mpers"]
 }
 ```
-
-`version` is incremented on breaking schema changes.
 
 ### Syscall Event
 
@@ -320,11 +284,7 @@ field. `args` is a JSON array where each element is a two-element array
 - Argument not printed: `[null, null]`
 
 Trailing `[null, null]` pairs are omitted. Top-level in-out arguments are
-naturally represented by the `[old, new]` pair. The `split` mechanism still
-applies to structs whose fields are split across entering and exiting -- the
-entry value in the `[entry, exit]` pair carries `"split": true` and the exit
-value carries the remaining fields, just as in `jsonl-split` mode. The
-logical struct value is the union of fields from both sides of the pair.
+naturally represented by the `[old, new]` pair.
 
 ```json
 {
@@ -339,286 +299,6 @@ logical struct value is the union of fields from both sides of the pair.
   "return": {"type": "fd", "raw": "3", "fd_info": {"type": "dev", "path": "/dev/null", "kind": "char", "major": "1", "minor": "3"}}
 }
 ```
-
-#### Event-level fields
-
-`pid` is present on every event.
-
-`entering_pid` is present on exit events when the PID changed during the
-syscall (execve by a non-leader thread). The entry event was emitted under
-`entering_pid`, but the exit event is under the new `pid`. Consumers use
-this to match entry and exit events across PID changes.
-
-`ip` (instruction pointer) is only present when `-i` is used. It is a hex
-address string showing where the syscall was invoked from in user space.
-Traditional output: `[00007f1234abcdef]` before the syscall name.
-
-`timestamp` is present when `-t`/`-tt`/`-ttt` is used. It is a typed value
-object with `type: "timestamp"` wrapping a `type: "time"` value that carries
-`precision`, `seconds`, and `nanoseconds` fields.
-
-`relative_timestamp` is present when `-r` is used. It is a typed value
-object with `type: "duration"` carrying the elapsed time since the previous
-event, with a `precision` field naming the unit.
-
-#### In-out arguments and value changes
-
-Some arguments are modified by the kernel (e.g. ioctl structs, offset
-pointers). Traditional strace shows this as `old_value => new_value`. In
-structured output, the entry event carries the before-value and the exit
-event carries the after-value. Two metadata flags mark these arguments:
-
-- `"inout": true` on the entry event's argument -- this argument may be
-  written back by the kernel. A forward hint for streaming consumers to hold
-  onto the entry value.
-- `"changed": true` on the exit event's argument -- only present when the
-  value actually differs from the entry value. Absence of `changed` means
-  the value is unchanged (or was not re-read by the kernel).
-
-Entry:
-
-```json
-{"args": [{"arg": "offset", "type": "addr", "raw": "0x100", "inout": true}]}
-```
-
-Exit:
-
-```json
-{"args": [{"arg": "offset", "type": "addr", "raw": "0x200", "changed": true}]}
-```
-
-For struct arguments where individual fields change (e.g. bpf
-`BPF_OBJ_GET_INFO`), `changed` appears on the individual struct field
-values, not the whole argument:
-
-```json
-{"args": [{"arg": "info", "type": "struct", "fields": {
-  "type": {"type": "const", "raw": "1", "sym": "BPF_PROG_TYPE_SOCKET_FILTER"},
-  "jited_prog_len": {"type": "unsigned", "raw": "200", "changed": true}
-}}]}
-```
-
-`changed` thus carries the diff signal: an exit value with
-`_changed: true` differs from the entry value at the same arg index;
-an `inout` argument that arrives on exit without `changed` had its
-value unchanged. (Traditional output renders the diff as
-`old_value => new_value`.)
-
-`inout`/`changed` can co-occur with `indirect` -- an argument may be both
-pointer-dereferenced and kernel-modified (e.g., `[28] => [16]` for addrlen).
-
-For single-event in-place changes (rendered as `old => new` within one event
-rather than split across entry/exit), the `changed_pair` form is used. The
-value object carries `"changed_pair": true` plus `old` and `new` fields:
-
-```json
-{
-  "changed_pair": true,
-  "old": {"type": "flags", "flags": [...]},
-  "new": {"type": "flags", "flags": [...]}
-}
-```
-
-`old` is an alternative inline form used by some printers: the value object
-carries a normal `raw`/`sym`/etc. as the *new* value plus an `old` field
-holding the previous value (a nested value object). Traditional output:
-`old_value => new_value`.
-
-#### `split` structs
-
-Both the entering and exiting halves of a split struct carry
-`"split": true`. Each half is explicitly marked so consumers can identify
-split structs from either event without relying on implicit context.
-
-#### `changed` within `split` structs
-
-When a `split` struct has a field in both the entering and exiting events,
-`_changed: true` on the exit field marks the field's value as having changed
-from the entering value; without `changed`, the two values are identical
-and the exit value is the live one.
-
-Example: `recvmsg` emits `msg_namelen` (the buffer size) in a `split` struct
-on entry, and the full struct on exit. When the kernel returns a different
-length:
-
-Entry:
-
-```json
-{"args": [..., {"arg": "msg", "type": "struct", "split": true, "fields": {
-  "msg_namelen": {"type": "decimal", "raw": "110"}
-}}]}
-```
-
-Exit:
-
-```json
-{"args": [..., {"arg": "msg", "type": "struct", "split": true, "fields": {
-  "msg_namelen": {"type": "decimal", "raw": "36", "changed": true},
-  "msg_name": ..., "msg_iov": ...
-}}]}
-```
-
-Traditional output for the merged value is `msg_namelen=110 => 36`. When
-`msg_namelen` is unchanged (no `changed` flag), the traditional form is
-just `msg_namelen=36`.
-
-#### Error return
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
-  "entering": false,
-  "args": [],
-  "return": {"type": "decimal", "raw": "-1", "errno": {"type": "errno", "raw": "14", "sym": "EFAULT", "strerror": "Bad address"}}
-}
-```
-
-#### No return (process died mid-syscall)
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
-  "entering": false,
-  "args": [],
-  "return": {"type": "unavailable"}
-}
-```
-
-#### Detached mid-syscall
-
-Traditional: `ptrace(PTRACE_TRACEME <detached ...>`.
-
-When strace detaches from a tracee between a syscall's entry stop and its
-exit stop, the entry event is emitted normally (no `return` field), and a
-synthetic exit event is emitted to mark that no real exit will follow.
-The synthetic exit has empty `args` and `"return": {"type": "detached"}`.
-
-Entry:
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "ptrace", "scno": "101"},
-  "entering": true,
-  "args": [{"arg": "request", "type": "const", "raw": "0", "sym": "PTRACE_TRACEME"}]
-}
-```
-
-Synthetic exit:
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "ptrace", "scno": "101"},
-  "entering": false,
-  "args": [],
-  "return": {"type": "detached"}
-}
-```
-
-#### Interrupted by signal
-
-Traditional: `= ? ERESTART_RESTARTBLOCK (Interrupted by signal)`.
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "clock_nanosleep", "scno": "230"},
-  "entering": false,
-  "args": [],
-  "return": {"type": "unavailable", "error": "ERESTART_RESTARTBLOCK", "strerror": "Interrupted by signal"}
-}
-```
-
-#### Syscall timing (`--syscall-times`)
-
-The `time` and `time_unit` fields appear at the top level of exit events (not
-inside `return`). `time` is the duration as a quoted integer in the given
-unit. `time_unit` is one of `"seconds"`, `"milliseconds"`, `"microseconds"`,
-`"nanoseconds"`.
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "nanosleep", "scno": "35"},
-  "entering": false,
-  "args": [null, {"arg": "rem", "type": "addr", "raw": null}],
-  "return": {"type": "unsigned", "raw": "0"},
-  "time": "1000",
-  "time_unit": "milliseconds"
-}
-```
-
-Traditional: `nanosleep({tv_sec=1, tv_nsec=0}, NULL) = 0 <1.000>`
-
-#### Syscall injection (`-e inject`)
-
-When strace injects syscall results, every injected value carries
-`"injected": true` -- on individual arguments and on the return object. This
-lets consumers know exactly which values are synthetic.
-
-Injected return value only (most common, `-e inject=SET:retval=N`):
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
-  "entering": false,
-  "args": [],
-  "return": {"type": "fd", "raw": "7", "injected": true}
-}
-```
-
-Injected arguments and return value (`-e inject=SET:retval=N:syscall=OTHER`):
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "syscall": {"type": "syscall", "name": "openat", "scno": "257", "injected": true, "injected_name": "getpid", "injected_scno": "39"},
-  "entering": false,
-  "args": [
-    {"arg": "dirfd", "type": "const", "raw": "-100", "sym": "AT_FDCWD", "injected": true},
-    {"arg": "pathname", "type": "string", "value": "/dev/null", "injected": true}
-  ],
-  "return": {"type": "fd", "raw": "7", "injected": true}
-}
-```
-
-Traditional output appends `(INJECTED)`, `(INJECTED: args)`, or
-`(INJECTED: args, retval)` after the return value; the structured form
-carries the equivalent information as `_injected: true` on each
-injected value (the return and/or individual args), and no separate
-`inject`/marker field on the return object.
-
-Delayed injection (`-e inject=SET:delay_enter=N`) is signaled at the
-*event level*, not inside `return`: the syscall event gets
-`"delayed": true` (boolean) and, when the configured delay is known,
-`"delayed_by"` (integer-as-string) plus `"delayed_by_unit"` (one of
-`"seconds"`/`"milliseconds"`/`"microseconds"`/`"nanoseconds"`):
-
-```json
-{
-  "event": "syscall",
-  "pid": 1234,
-  "entering": false,
-  "return": {"type": "unsigned", "raw": "0"},
-  "delayed": true,
-  "delayed_by": "1000000",
-  "delayed_by_unit": "microseconds"
-}
-```
-
-Traditional: `(DELAYED)` after the return value.
 
 ### Signal Event
 
@@ -668,7 +348,7 @@ is available, a `signal` event is emitted instead. Traditional output:
 
 Emitted when strace detaches from a process. If a syscall was in progress,
 the syscall event is completed first with `"return": {"type": "detached"}`
-(see above).
+(see [Detached mid-syscall](#detached-mid-syscall)).
 
 ```json
 {"event": "detached", "pid": 1234}
@@ -686,18 +366,13 @@ a human-readable message identifying the personality.
 ### Summary Event
 
 Emitted by `-c` (count only) and `-C` (count + trace) modes, one event per
-syscall row plus one totals row. All stats fields are always present
-regardless of `-U` column selection. The `columns` array tells consumers
-which columns to display and in what order.
+syscall row. All stats fields are always present regardless of `-U` column
+selection. The `columns` array tells consumers which columns to display
+and in what order.  The aggregate totals are emitted as a separate
+[Summary Total Event](#summary-total-event) (always last).
 
-Per-syscall row:
 ```json
 {"event": "summary", "columns": ["calls", "syscall"], "syscall": "read", "calls": "5", "errors": "0", "time_percent": "45.23", "total_time": "0.001234", "avg_time": "246", "min_time": "0.000100", "max_time": "0.000500"}
-```
-
-Totals row (always last, `syscall` = `"total"`):
-```json
-{"event": "summary", "columns": ["calls", "syscall"], "syscall": "total", "calls": "11", "errors": "2", "time_percent": "100.00", "total_time": "0.002728", "avg_time": "248", "min_time": "0.000050", "max_time": "0.001000"}
 ```
 
 Column name mapping (CSC enum -> JSON field):
@@ -708,7 +383,19 @@ Column name mapping (CSC enum -> JSON field):
 - `CSC_TIME_AVG` -> `"avg_time"` -- average microseconds (integer)
 - `CSC_CALLS` -> `"calls"` -- call count
 - `CSC_ERRORS` -> `"errors"` -- error count
-- `CSC_SC_NAME` -> `"syscall"` -- syscall name or `"total"`
+- `CSC_SC_NAME` -> `"syscall"` -- syscall name
+
+### Summary Total Event
+
+Emitted once after all `summary` events, carrying the aggregate totals
+across all syscalls.  Same field set as `summary` minus the `syscall`
+field (the row represents all syscalls, not one of them).  The
+`columns` array is included so the totals row can be rendered with the
+same column selection as the per-syscall rows.
+
+```json
+{"event": "summary_total", "columns": ["calls", "syscall"], "calls": "11", "errors": "2", "time_percent": "100.00", "total_time": "0.002728", "avg_time": "248", "min_time": "0.000050", "max_time": "0.001000"}
+```
 
 ## Value Types
 
@@ -796,10 +483,6 @@ Each element in `elems` is one of these kinds:
 
 - **`const`** -- a matched symbolic constant:
   `{"type": "const", "raw": "0x80000", "sym": "O_CLOEXEC"}`
-- **`remainder`** -- unmatched bits:
-  `{"type": "remainder", "raw": "0x1", "sym": "O_???"}`.
-  The `sym` field carries the xlat table hint (e.g., `"CLOSE_RANGE_???"`)
-  and is only present when the table is known and no bits from it matched.
 - **shift expression** -- a plain string for shift-encoded values:
   `"21<<MAP_HUGE_SHIFT"`
 - **`mode`** -- a mode fragment for composite arguments that combine
@@ -807,6 +490,10 @@ Each element in `elems` is one of these kinds:
 - **`quota_type`** -- a quota type fragment for composite arguments (e.g.,
   `USRQUOTA`, `GRPQUOTA`, `PRJQUOTA`), encoded as a typed value:
   `{"type": "quota_type", "raw": "0", "sym": "USRQUOTA"}`.
+- **`remainder`** -- unmatched bits:
+  `{"type": "remainder", "raw": "0x1", "sym": "O_???"}`.
+  The `sym` field carries the xlat table hint (e.g., `"CLOSE_RANGE_???"`)
+  and is only present when the table is known and no bits from it matched.
 
 When all bits matched and there is no remainder, no `remainder` element
 appears. When some bits are unmatched but the xlat table hint has already
@@ -876,6 +563,39 @@ element:
 ```json
 {"type": "flags", "flags": [{"raw": "0x2", "elems": [{"type": "const", "raw": "0x2", "sym": "MAP_PRIVATE"}]}, {"raw": "0x40000", "elems": [{"type": "const", "raw": "0x40000", "sym": "MAP_HUGETLB"}]}, {"raw": "0x540000", "elems": ["21<<MAP_HUGE_SHIFT"]}]}
 ```
+
+#### QCMD encoding
+
+The first argument of `quotactl` and `quotactl_fd` (a `QCMD`) is a
+two-group flags value: one group for the command, one for the quota type
+(a `quota_type` element).
+
+Known command:
+
+```json
+{
+  "type": "flags",
+  "flags": [
+    {"raw": "0x800002", "elems": [{"type": "const", "raw": "0x800002", "sym": "Q_QUOTAOFF", "style": "abbrev"}]},
+    {"raw": "0x0", "elems": [{"type": "quota_type", "raw": "0", "sym": "USRQUOTA", "style": "abbrev"}]}
+  ]
+}
+```
+
+Unknown command:
+
+```json
+{
+  "type": "flags",
+  "flags": [
+    {"raw": "0xbadc0d", "elems": [{"type": "const", "raw": "0xbadc0d", "sym": "Q_???", "style": "abbrev"}]},
+    {"raw": "0xed", "elems": [{"type": "quota_type", "raw": "0xed", "sym": "???QUOTA", "style": "abbrev"}]}
+  ]
+}
+```
+
+Traditional output: `QCMD(cmd, quota_type)`, with `cmd` taken from the
+command group and `quota_type` from the quota_type group.
 
 #### Bitset values
 
@@ -1060,8 +780,14 @@ group ID, process group ID, or session ID.
 {"type": "sid", "raw": "1000"}
 ```
 
-Pid-type values may carry the optional `strace_pid` (integer) and `comm`
-(string) fields described in [Namespace Convention](#namespace-convention).
+Pid-type values may carry two optional fields:
+
+- `"strace_pid"` (integer) -- present when strace runs in a PID namespace;
+  carries the PID as seen in strace's own namespace. Traditional output:
+  `pid /* pid in strace's PID NS */`.
+- `"comm"` (string) -- the thread/process name (comm string), present when
+  strace has the information available. Traditional output: the name in angle
+  brackets after the pid value, e.g., `1234<main>`.
 
 ### uid, gid
 
@@ -1093,7 +819,7 @@ Binary data. Always displayed with `\xHH` hex escaping in traditional output
 crypto keys, UUIDs, etc.
 
 ```json
-{"type": "bytes", "value": "Þ­¾ï"}
+{"type": "bytes", "value": "\\xde\\xad\\xbe\\xef"}
 ```
 
 ### path
@@ -1206,9 +932,9 @@ Traditional: `{tv_sec=3735928559, tv_nsec=4207869677}`
 
 With timestamp formatting:
 ```json
-{"type": "timespec_t", "tv_sec": 1739900000, "tv_nsec": 123456789, "formatted": "2025-02-18T..."}
+{"type": "timespec_t", "tv_sec": 1739900000, "tv_nsec": 123456789, "formatted": "2025-02-18T16:53:20.123456789+0000"}
 ```
-Traditional: `{tv_sec=1739900000, tv_nsec=123456789} /* 2025-02-18T... */`
+Traditional: `{tv_sec=1739900000, tv_nsec=123456789} /* 2025-02-18T16:53:20.123456789+0000 */`
 
 UTIME_NOW:
 ```json
@@ -1236,7 +962,7 @@ Traditional output: `{tv_sec=1739900000, tv_usec=123456}`
 
 With timestamp formatting:
 ```json
-{"type": "timeval_t", "tv_sec": 1739900000, "tv_usec": 123456, "formatted": "2025-02-18T..."}
+{"type": "timeval_t", "tv_sec": 1739900000, "tv_usec": 123456, "formatted": "2025-02-18T16:53:20.123456+0000"}
 ```
 
 ### sockaddr
@@ -1353,39 +1079,6 @@ is not guaranteed to be 0 on all architectures.
 Traditional output: symbolic name if `sym.elems` has one entry; entries
 joined with ` or ` if `sym.elems` has multiple entries;
 `_IOC(dir_str, ioc_type, ioc_nr, size)` when `sym` is absent.
-
-### QCMD encoding in flags groups
-
-Quotactl command operation (`QCMD`) is represented using `type: "flags"`
-with two groups: one for command and one for quota type. This applies to the
-first argument of `quotactl` and `quotactl_fd`.
-
-Known command:
-
-```json
-{
-  "type": "flags",
-  "flags": [
-    {"raw": "0x800002", "elems": [{"type": "const", "raw": "0x800002", "sym": "Q_QUOTAOFF", "style": "abbrev"}]},
-    {"raw": "0x0", "elems": [{"type": "quota_type", "raw": "0", "sym": "USRQUOTA", "style": "abbrev"}]}
-  ]
-}
-```
-
-Unknown command:
-
-```json
-{
-  "type": "flags",
-  "flags": [
-    {"raw": "0xbadc0d", "elems": [{"type": "const", "raw": "0xbadc0d", "sym": "Q_???", "style": "abbrev"}]},
-    {"raw": "0xed", "elems": [{"type": "quota_type", "raw": "0xed", "sym": "???QUOTA", "style": "abbrev"}]}
-  ]
-}
-```
-
-Traditional output: `QCMD(cmd, quota_type)`, with `cmd` taken from the
-command group and `quota_type` from the quota_type group.
 
 ### uring_restriction_op
 
@@ -1775,6 +1468,305 @@ Unavailable with restart error (traditional:
 ```json
 {"type": "unavailable", "error": "ERESTART_RESTARTBLOCK", "strerror": "Interrupted by signal"}
 ```
+
+## Syscall Event Details
+
+This section covers the deeper mechanics of the syscall event: per-event
+fields, how in-out arguments and mid-syscall changes are represented,
+split-struct mechanics, error and detached returns, syscall timing, and
+syscall injection.
+
+### Event-level fields
+
+`pid` is present on every event.
+
+`entering_pid` is present on the exit event when the PID changed during the
+syscall (execve by a non-leader thread). The event's `pid` is the new PID;
+`entering_pid` carries the PID the syscall was entered under. In
+`jsonl-split` mode, consumers use this to match the entry event (emitted
+under `entering_pid`) with the exit event. In `jsonl-merged` mode, where
+there is only one event per syscall, it just records the original PID.
+
+`ip` (instruction pointer) is only present when `-i` is used. It is a hex
+address string showing where the syscall was invoked from in user space.
+Traditional output: `[00007f1234abcdef]` before the syscall name.
+
+`timestamp` is present when `-t`/`-tt`/`-ttt` is used. It is a typed value
+object with `type: "timestamp"` wrapping a `type: "time"` value that carries
+`precision`, `seconds`, and `nanoseconds` fields.
+
+`relative_timestamp` is present when `-r` is used. It is a typed value
+object with `type: "duration"` carrying the elapsed time since the previous
+event, with a `precision` field naming the unit.
+
+### In-out arguments and value changes
+
+Some arguments are modified by the kernel during a syscall. Traditional
+strace renders these changes in two different shapes depending on whether
+the whole argument changed or only a field inside a struct argument:
+
+- **Whole-argument change** -- the argument value is rendered before and
+  after, joined by `=>`. For a scalar: `0x100 => 0x200`. For a struct, the
+  whole struct is repeated: `{x=0, y=0} => {x=0, y=1}`.
+- **Field-level change inside a struct** -- the struct is rendered once,
+  and only the changed fields get inline `=>`: `{x=0, y=0 => 1}`.
+
+#### Whole-argument change
+
+The entry event carries the before-value; the exit event carries the
+after-value at the same arg index. Two metadata flags mark these arguments:
+
+- `"inout": true` on the entry event's argument -- this argument may be
+  written back by the kernel. A forward hint for streaming consumers to hold
+  onto the entry value.
+- `"changed": true` on the exit event's argument -- only present when the
+  value actually differs from the entry value. Absence of `changed` means
+  the value is unchanged (or was not re-read by the kernel).
+
+Entry:
+
+```json
+{"args": [{"arg": "offset", "type": "addr", "raw": "0x100", "inout": true}]}
+```
+
+Exit:
+
+```json
+{"args": [{"arg": "offset", "type": "addr", "raw": "0x200", "changed": true}]}
+```
+
+`inout`/`changed` can co-occur with `indirect` -- an argument may be both
+pointer-dereferenced and kernel-modified (e.g., `[28] => [16]` for addrlen).
+
+#### Field-level change inside a struct
+
+The struct itself appears in both the entry and exit events as a
+[`split` struct](#split-structs). The struct as a whole does not carry
+`changed`; instead the converter detects fields that appear in both
+halves with differing values and renders them as `field=OLD => NEW`
+inline within the merged struct. See
+[`changed` within `split` structs](#changed-within-split-structs) below
+for the full mechanism and example.
+
+### `split` structs
+
+Some structs have their fields delivered partly on entry and partly on exit
+(e.g. `recvmsg`'s `msghdr`, where `msg_namelen` is supplied on entry and
+the rest on exit). Both halves carry `"split": true`. Each half is
+explicitly marked so consumers can identify split structs from either side
+without relying on implicit context.
+
+In `jsonl-split` mode, the two halves arrive as separate events. In
+`jsonl-merged` mode, they appear as the two elements of the `[entry, exit]`
+arg pair. Either way, the logical struct value is the union of fields from
+both halves.
+
+### `changed` within `split` structs
+
+When a `split` struct has a field in both the entering and exiting events,
+`_changed: true` on the exit field marks the field's value as having changed
+from the entering value; without `changed`, the two values are expected
+to be identical and the exit value is the live one.
+
+Example: `recvmsg` emits `msg_namelen` (the buffer size) in a `split` struct
+on entry, and the full struct on exit. When the kernel returns a different
+length:
+
+Entry:
+
+```json
+{"args": [..., {"arg": "msg", "type": "struct", "split": true, "fields": {
+  "msg_namelen": {"type": "decimal", "raw": "110"}
+}}]}
+```
+
+Exit:
+
+```json
+{"args": [..., {"arg": "msg", "type": "struct", "split": true, "fields": {
+  "msg_namelen": {"type": "decimal", "raw": "36", "changed": true},
+  "msg_name": ..., "msg_iov": ...
+}}]}
+```
+
+Traditional output for the merged value is `msg_namelen=110 => 36`. When
+`msg_namelen` is unchanged (no `changed` flag), the traditional form is
+just `msg_namelen=36`.
+
+### Error return
+
+Traditional: `openat(AT_FDCWD, NULL, O_RDONLY) = -1 EFAULT (Bad address)`.
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
+  "entering": false,
+  "args": [],
+  "return": {"type": "decimal", "raw": "-1", "errno": {"type": "errno", "raw": "14", "sym": "EFAULT", "strerror": "Bad address"}}
+}
+```
+
+### No return (process died mid-syscall)
+
+Traditional: `openat(AT_FDCWD, "/dev/null", O_RDONLY) = ?`.
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
+  "entering": false,
+  "args": [],
+  "return": {"type": "unavailable"}
+}
+```
+
+### Detached mid-syscall
+
+Traditional: `ptrace(PTRACE_TRACEME <detached ...>`.
+
+When strace detaches from a tracee between a syscall's entry stop and its
+exit stop, the entry event is emitted normally (no `return` field), and a
+synthetic exit event is emitted to mark that no real exit will follow.
+The synthetic exit has empty `args` and `"return": {"type": "detached"}`.
+
+The synthetic exit is the per-syscall signal: it tells streaming consumers
+to finalize the pending syscall (otherwise the entry event would have no
+matching exit) and carries the marker the converter needs to render trad's
+`<detached ...>` suffix.  A separate
+[`detached` event](#detached-event) follows for the process as a whole.
+Both are kept so the syscall-level and process-level signals are explicit
+and locally complete, rather than requiring consumers to correlate.
+
+Entry:
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "ptrace", "scno": "101"},
+  "entering": true,
+  "args": [{"arg": "request", "type": "const", "raw": "0", "sym": "PTRACE_TRACEME"}]
+}
+```
+
+Synthetic exit:
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "ptrace", "scno": "101"},
+  "entering": false,
+  "args": [],
+  "return": {"type": "detached"}
+}
+```
+
+### Interrupted by signal
+
+Traditional: `= ? ERESTART_RESTARTBLOCK (Interrupted by signal)`.
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "clock_nanosleep", "scno": "230"},
+  "entering": false,
+  "args": [],
+  "return": {"type": "unavailable", "error": "ERESTART_RESTARTBLOCK", "strerror": "Interrupted by signal"}
+}
+```
+
+### Syscall timing (`--syscall-times`)
+
+Traditional: `nanosleep({tv_sec=1, tv_nsec=0}, NULL) = 0 <1.000>`.
+
+The `time` and `time_unit` fields appear at the top level of exit events (not
+inside `return`). `time` is the duration as a quoted integer in the given
+unit. `time_unit` is one of `"seconds"`, `"milliseconds"`, `"microseconds"`,
+`"nanoseconds"`.
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "nanosleep", "scno": "35"},
+  "entering": false,
+  "args": [null, {"arg": "rem", "type": "addr", "raw": null}],
+  "return": {"type": "unsigned", "raw": "0"},
+  "time": "1000",
+  "time_unit": "milliseconds"
+}
+```
+
+### Syscall injection (`-e inject`)
+
+When strace injects syscall results, every injected value carries
+`"injected": true` -- on individual arguments and on the return object. This
+lets consumers know exactly which values are synthetic.
+
+Injected return value only (most common, `-e inject=SET:retval=N`).
+Traditional: `openat(AT_FDCWD, "/dev/null", O_RDONLY) = 7 (INJECTED)`.
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
+  "entering": false,
+  "args": [],
+  "return": {"type": "fd", "raw": "7", "injected": true}
+}
+```
+
+Injected arguments and return value (`-e inject=SET:retval=N:syscall=OTHER`).
+Traditional:
+`openat(AT_FDCWD, "/dev/null", O_RDONLY) = 7 (INJECTED: args, retval)`.
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "syscall": {"type": "syscall", "name": "openat", "scno": "257", "injected": true, "injected_name": "getpid", "injected_scno": "39"},
+  "entering": false,
+  "args": [
+    {"arg": "dirfd", "type": "const", "raw": "-100", "sym": "AT_FDCWD", "injected": true},
+    {"arg": "pathname", "type": "string", "value": "/dev/null", "injected": true}
+  ],
+  "return": {"type": "fd", "raw": "7", "injected": true}
+}
+```
+
+Traditional output appends `(INJECTED)`, `(INJECTED: args)`, or
+`(INJECTED: args, retval)` after the return value; the structured form
+carries the equivalent information as `_injected: true` on each
+injected value (the return and/or individual args), and no separate
+`inject`/marker field on the return object.
+
+### Delayed injection (`-e inject=SET:delay_enter=N`)
+
+Traditional: `(DELAYED)` after the return value.
+
+Signaled at the *event level*, not inside `return`: the syscall event
+gets `"delayed": true` (boolean) and, when the configured delay is
+known, `"delayed_by"` (integer-as-string) plus `"delayed_by_unit"` (one
+of `"seconds"`/`"milliseconds"`/`"microseconds"`/`"nanoseconds"`).
+
+```json
+{
+  "event": "syscall",
+  "pid": 1234,
+  "entering": false,
+  "return": {"type": "unsigned", "raw": "0"},
+  "delayed": true,
+  "delayed_by": "1000000",
+  "delayed_by_unit": "microseconds"
+}
+```
+
 ## Complete Example: sysinfo
 
 Traditional output:
