@@ -356,12 +356,18 @@ the syscall event is completed first with `"return": {"type": "detached"}`
 
 ### Summary Header Event
 
-Emitted before summary rows when multiple personalities are present. Contains
-a human-readable message identifying the personality.
+Emitted before summary rows when multiple personalities are present.
+Identifies the personality of the upcoming summary block.
+
+- `personality` (integer) -- personality index (0 = native, 1 = second
+  personality, etc.)
+- `name` (string) -- personality name (e.g., `"32 bit"`, `"x32"`)
 
 ```json
-{"event": "summary_header", "message": "System call usage summary for 32 bit mode:"}
+{"event": "summary_header", "personality": 1, "name": "32 bit"}
 ```
+
+Traditional: `System call usage summary for 32 bit mode:`
 
 ### Summary Event
 
