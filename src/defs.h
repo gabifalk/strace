@@ -792,6 +792,17 @@ umoven_to_uint64_or_printaddr(struct tcb *tcp, const kernel_ulong_t addr,
 	return umoven_to_uint64_or_printaddr64(tcp, addr, len, laddr);
 }
 
+extern bool
+umoven_to_uint64_64(struct tcb *, uint64_t addr,
+		    unsigned int len, uint64_t *laddr);
+
+static inline bool
+umoven_to_uint64(struct tcb *tcp, const kernel_ulong_t addr,
+		 unsigned int len, uint64_t *laddr)
+{
+	return umoven_to_uint64_64(tcp, addr, len, laddr);
+}
+
 /**
  * @return 0 on success, -1 on error (and print addr).
  */
