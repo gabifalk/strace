@@ -1,0 +1,13 @@
+name: cross
+
+# Cross-architecture testing of strace on rarely-tested CPU architectures,
+# provided by https://github.com/gabifalk/strace-github-cross-testing
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross:
+    uses: gabifalk/strace-github-cross-testing/.github/workflows/cross.yml@v1
