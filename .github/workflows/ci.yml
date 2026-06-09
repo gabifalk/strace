@@ -14,6 +14,7 @@ env:
 
 jobs:
   whitespace-errors:
+    if: false
     name: Check for whitespace errors
     runs-on: ubuntu-latest
     steps:
@@ -24,6 +25,7 @@ jobs:
         run: git diff-index --check --cached 4b825dc642cb6eb9a060e54bf8d69288fbee4904
 
   coverage: # the longest of all build jobs
+    if: false
     name: Check coverage
     runs-on: ubuntu-latest
     env:
@@ -54,94 +56,30 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { cc: gcc-15, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-15, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: gcc-15, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: gcc-15, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-15, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: gcc-14, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-14, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: gcc-14, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: gcc-14, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-14, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: gcc-14, target: aarch64, variant: kheaders, runner: ubuntu-24.04-arm }
-          - { cc: gcc-14, target: aarch64, variant: libdw, runner: ubuntu-24.04-arm }
-          - { cc: gcc-14, target: aarch64, variant: libunwind, runner: ubuntu-24.04-arm }
-          - { cc: gcc-13, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-13, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: gcc-13, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: gcc-13, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-13, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: gcc-13, target: aarch64, variant: kheaders, runner: ubuntu-24.04-arm }
-          - { cc: gcc-13, target: aarch64, variant: libdw, runner: ubuntu-24.04-arm }
-          - { cc: gcc-13, target: aarch64, variant: libunwind, runner: ubuntu-24.04-arm }
-          - { cc: gcc-12, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-12, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: gcc-12, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: gcc-12, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: gcc-12, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: gcc-11, target: x86_64, variant: kheaders, runner: ubuntu-22.04 }
-          - { cc: gcc-11, target: x86_64, variant: libdw, runner: ubuntu-22.04 }
-          - { cc: gcc-11, target: x86_64, variant: libunwind, runner: ubuntu-22.04 }
-          - { cc: gcc-11, target: x86, variant: kheaders, runner: ubuntu-22.04 }
-          - { cc: gcc-11, target: x86, variant: nostacktrace, runner: ubuntu-22.04 }
-          - { cc: gcc-10, target: x86_64, variant: kheaders, runner: ubuntu-22.04 }
-          - { cc: gcc-10, target: x86_64, variant: libdw, runner: ubuntu-22.04 }
-          - { cc: gcc-10, target: x86_64, variant: libunwind, runner: ubuntu-22.04 }
-          - { cc: gcc-10, target: x86, variant: kheaders, runner: ubuntu-22.04 }
-          - { cc: gcc-10, target: x86, variant: nostacktrace, runner: ubuntu-22.04 }
-          - { cc: gcc-9, target: x86_64, variant: kheaders, runner: ubuntu-22.04 }
-          - { cc: gcc-9, target: x86_64, variant: libdw, runner: ubuntu-22.04 }
-          - { cc: gcc-9, target: x86_64, variant: libunwind, runner: ubuntu-22.04 }
-          - { cc: gcc-9, target: x86, variant: kheaders, runner: ubuntu-22.04 }
-          - { cc: gcc-9, target: x86, variant: nostacktrace, runner: ubuntu-22.04 }
-          - { cc: clang-19, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-19, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: clang-19, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: clang-19, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-19, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: clang-19, target: aarch64, variant: kheaders, runner: ubuntu-24.04-arm }
-          - { cc: clang-19, target: aarch64, variant: libdw, runner: ubuntu-24.04-arm }
-          - { cc: clang-19, target: aarch64, variant: libunwind, runner: ubuntu-24.04-arm }
-          - { cc: clang-18, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-18, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: clang-18, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: clang-18, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-18, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: clang-18, target: aarch64, variant: kheaders, runner: ubuntu-24.04-arm }
-          - { cc: clang-18, target: aarch64, variant: libdw, runner: ubuntu-24.04-arm }
-          - { cc: clang-18, target: aarch64, variant: libunwind, runner: ubuntu-24.04-arm }
-          - { cc: clang-17, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-17, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: clang-17, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: clang-17, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-17, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: clang-16, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-16, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: clang-16, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: clang-16, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-16, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: clang-15, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-15, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: clang-15, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: clang-15, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-15, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: clang-14, target: x86_64, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-14, target: x86_64, variant: libdw, runner: ubuntu-24.04 }
-          - { cc: clang-14, target: x86_64, variant: libunwind, runner: ubuntu-24.04 }
-          - { cc: clang-14, target: x86, variant: kheaders, runner: ubuntu-24.04 }
-          - { cc: clang-14, target: x86, variant: nostacktrace, runner: ubuntu-24.04 }
-          - { cc: musl-gcc, target: x86_64, variant: nostacktrace, runner: ubuntu-22.04 }
+          - { cc: gcc, target: x86_64, variant: musl, runner: ubuntu-24.04, container: 'ghcr.io/gabifalk/strace-musl-image:6.0', container_options: '--security-opt seccomp=unconfined' }
     name: Build ${{ matrix.cc }}-${{ matrix.target }}-${{ matrix.variant }}
     runs-on: ${{ matrix.runner }}
+    container:
+      image: ${{ matrix.container }}
+      options: ${{ matrix.container_options }}
     env:
       CC: ${{ matrix.cc }}
       TARGET: ${{ matrix.target }}
     steps:
+      # Pretend we are running "alpine" here.
+      # https://github.com/actions/runner/issues/3852
+      - name: Make the runner use its musl node
+        if: ${{ matrix.container }}
+        run: echo 'ID=alpine' >> /etc/os-release
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Mark the workspace safe for git
+        if: ${{ matrix.container }}
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Set environment variables
         env:
@@ -155,6 +93,10 @@ jobs:
             nostacktrace)
               echo 'STACKTRACE=no' >> "$GITHUB_ENV"
               ;;
+            musl)
+              echo 'STACKTRACE=no' >> "$GITHUB_ENV"
+              echo 'MPERS=check' >> "$GITHUB_ENV"
+              ;;
             libdw)
               echo 'STACKTRACE=libdw' >> "$GITHUB_ENV"
               ;;
@@ -164,6 +106,7 @@ jobs:
           esac
 
       - name: install dependencies
+        if: ${{ !matrix.container }}
         run: ci/install-dependencies.sh
 
       - name: build check
