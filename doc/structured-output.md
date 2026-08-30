@@ -405,7 +405,7 @@ return-value shapes are under [The return field](#the-return-field).
 | Detached mid-syscall | — | synthetic exit; `"return": {"type":"detached"}` | `<detached ...>` |
 | Timing | `--syscall-times` | top-level `time` (a `duration`) | `<1.000>` |
 | Injected return | `-e inject=SET:retval=N` | `injected: true` on `return` | `(INJECTED)` |
-| Injected args + syscall | `-e inject=SET:...:syscall=X` | `injected: true` on args; `injected_name`/`injected_scno` on the syscall value | `(INJECTED: args, retval)` |
+| Injected args + syscall | `-e inject=SET:...:syscall=X` | `injected: true` on args; sibling `injected_syscall` field (the [`syscall`](#syscall) actually run) | `(INJECTED: args, retval)` |
 | Delayed | `-e inject=SET:delay_enter=N` | top-level `delayed` (+ `delayed_by`, a `duration`) | `(DELAYED)` |
 
 **Detached mid-syscall.** When strace detaches between a syscall's entry and
@@ -428,15 +428,17 @@ whole.
 ```
 
 **Injection.** Each injected value carries `injected: true` individually. When
-a `:syscall=X` clause also rewrites the call to a "pure" syscall, the
-[`syscall`](#syscall) value additionally carries `injected`, `injected_name`,
-and `injected_scno` (plain retval/error injection sets neither):
+a `:syscall=X` clause also rewrites the call to a "pure" syscall, the event
+gains a sibling `injected_syscall` field -- itself a [`syscall`](#syscall) value
+naming the call the kernel actually runs (plain retval/error injection adds no
+such field):
 
 ```json
 {
   "event": "syscall",
   "pid": 1234,
-  "syscall": {"type": "syscall", "name": "openat", "scno": "257", "injected": true, "injected_name": "getpid", "injected_scno": "39"},
+  "syscall": {"type": "syscall", "name": "openat", "scno": "257"},
+  "injected_syscall": {"type": "syscall", "name": "getpid", "scno": "39"},
   "entering": false,
   "args": [
     {"arg": "dirfd", "type": "const", "raw": "-100", "sym": "AT_FDCWD", "injected": true},
@@ -626,7 +628,7 @@ value are listed under [Meta-fields](#meta-fields).
 | `octal` | Octal integer | `{"type":"octal","raw":"0755"}` |
 | `addr` | Pointer; `raw` is `null` for NULL | `{"type":"addr","raw":"0x7fff1234"}` |
 | `const` | Named constant. `sym` is the resolved name; when the value is unresolved, `sym` is absent and `table` names the xlat table (e.g. `"PROT"`); both are absent when there is no table at all | `{"type":"const","raw":"-100","sym":"AT_FDCWD"}` |
-| `alternatives` | Several equally valid representations (trad joins with ` or `); `elems` are strings or value objects | `{"type":"alternatives","elems":[{"type":"addr","raw":"0xffffffff00000000"},{"type":"string","value":"/dev/null"}]}` |
+| `alternatives` | Several equally valid representations (trad joins with ` or `); `elems` are strings or value objects | `{"type":"alternatives","elems":[{"type":"addr","raw":"0xffffffff00000000"},{"type":"string","value":"/dev/null"}]}` (trad `0xffffffff00000000 or "/dev/null"`) |
 | `signal` | Signal number and name | `{"type":"signal","raw":"9","sym":"SIGKILL"}` |
 | `uid`, `gid` | User / group ID (`-1` shown as `-1`) | `{"type":"uid","raw":"1000"}` |
 | `tid`, `tgid`, `pgid`, `sid` | Task / thread-group / process-group / session ID. Pid types may add `strace_pid` and `comm` | `{"type":"tid","raw":"4567"}` |
@@ -653,20 +655,6 @@ value are listed under [Meta-fields](#meta-fields).
 | `unavailable` | Value could not be obtained; optional nested `errno` for ERESTART | `{"type":"unavailable"}` |
 | `detached` | Placeholder marking detach mid-syscall | `{"type":"detached"}` |
 
-A few edge shapes that don't fit a single row:
-
-- **`const`** unresolved but with a known table omits `sym` and names the
-  `table`: `{"type":"const","raw":"32","table":"PROT"}`. With no table at all,
-  both are omitted: `{"type":"const","raw":"32"}`.
-- **`alternatives`** elements may be heterogeneous value objects -- e.g. a
-  64-bit pointer too large for the tracee's `kernel_long_t`, shown alongside
-  its decoded form:
-  `{"type":"alternatives","elems":[{"type":"addr","raw":"0xffffffff00000000"},{"type":"string","value":"/dev/null"}]}`
-  (trad `0xffffffff00000000 or "/dev/null"`).
-- **`sun_path`** abstract form: `{"type":"sun_path","abstract":true,"value":"hidden"}`.
-- **`unavailable`** after an interrupting signal:
-  `{"type":"unavailable","errno":{"type":"errno","sym":"ERESTART_RESTARTBLOCK","strerror":"Interrupted by signal"}}`.
-
 ### Meta-fields
 
 These bookkeeping fields (plain scalars, no leading underscore) can accompany a
@@ -680,7 +668,7 @@ descriptions.
 | `changed` | bool | Value differs from the entry value | exit args, split-struct fields |
 | `indirect` | bool | Value was read through a pointer (trad `[value]`) | any value |
 | `split` | bool | Struct delivered across entry and exit (see [Split structs](#split-structs)) | struct |
-| `injected` | bool | Value is synthetic (`-e inject`) | args, `return`, syscall |
+| `injected` | bool | Value is synthetic (`-e inject`) | args, `return` |
 | `index` | value | Explicit array index (trad `[idx]=value`) | array elements |
 | `truncated` | bool | Output abbreviated (e.g. `-s` limit) | string, struct, array |
 | `rest_unreadable` | bool | Remaining struct bytes unreadable (trad `{..., ???}`) | struct |
@@ -1026,23 +1014,11 @@ Syscall identifier. `name`/`scno` are the user-written syscall strace displays;
 ```
 
 When `-e inject=...:syscall=X` rewrites the call to a different "pure" syscall,
-the value adds `injected: true` plus `injected_name`/`injected_scno` for the
-syscall the kernel actually runs:
-
-```json
-{
-  "type": "syscall",
-  "name": "openat",
-  "scno": "257",
-  "injected": true,
-  "injected_name": "getpid",
-  "injected_scno": "39"
-}
-```
-
-Plain retval/error injection (no `:syscall=` clause) does *not* set these on the
-syscall value -- only the [return value](#the-return-field) carries
-`injected`.
+the event carries a separate top-level
+[`injected_syscall`](#return-timing-and-injection) value -- another `syscall`
+value -- for the call the kernel actually runs; this value is unchanged. Plain
+retval/error injection (no `:syscall=` clause) adds no `injected_syscall` field
+-- only the [return value](#the-return-field) carries `injected`.
 
 ### wait_status
 
