@@ -49,6 +49,7 @@ value types, and the options that shape them.
   - [syscall](#syscall)
   - [wait_status](#wait_status)
   - [ioctl_op](#ioctl_op)
+  - [ioctl_cmd](#ioctl_cmd)
   - [uring_restriction_op](#uring_restriction_op)
   - [The return field](#the-return-field)
   - [Stack traces](#stack-traces)
@@ -687,9 +688,15 @@ descriptions.
 Bitwise OR of constants. `raw` is the full combined value (hex string). The
 `groups` array holds one or more groups, each a logical partition of that value
 (e.g. an enum field vs. bitflags extracted from the same integer). A group is
-`{raw, elems}`: `raw` is the value this group contributes (hex string), `elems`
-its typed elements. In the common single-group case the group `raw` equals the
-top-level `raw`.
+`{raw, group_type, elems}`: `raw` is the value this group contributes (hex
+string), `elems` its typed elements, and `group_type` a hint at the kind of
+partition -- `flags` (the default, symbolic flag bits), `shift` (a shift-encoded
+value such as `ticks<<16`), `mode` (mode bits), or `prio` (a raw priority value
+carried in `raw` with empty `elems`). In the common single-group case the group
+`raw` equals the top-level `raw`. A group may also carry `"dflt_null": "true"`,
+marking a group that renders as nothing (traditional `printflags` with a `NULL`
+default prints nothing for a zero value) rather than as `0`. The examples below
+elide the default `group_type` of `flags` for brevity.
 
 Each element of `elems` is one of:
 
@@ -995,13 +1002,18 @@ authoritative per-family list) and add their own fields under the same pattern.
 | `AF_INET` | `addr` (dotted string), `port` |
 | `AF_INET6` | `addr` (string), `port`, `flowinfo`, `scope_id` |
 | `AF_UNIX` | `path` (a [`sun_path`](#simple-value-types) value) |
-| `AF_NETLINK` | `pid`, `groups` |
+| `AF_NETLINK` | `pid`, `groups`; optional `nl_pad` when non-zero |
+
+For `AF_INET6`, `scope_id` is a plain number, except for a link-local address,
+where it is an [`ifindex`](#simple-value-types) value carrying the interface
+name. A too-short address that cannot be decoded as its family falls back to a
+single `sa_data` field (the raw bytes), like trad output.
 
 ```json
-{"type": "sockaddr", "family": {"type": "const", "raw": "2", "sym": "AF_INET"}, "addr": "127.0.0.1", "port": "8080"}
-{"type": "sockaddr", "family": {"type": "const", "raw": "10", "sym": "AF_INET6"}, "addr": "::1", "port": "8080", "flowinfo": "0", "scope_id": "0"}
-{"type": "sockaddr", "family": {"type": "const", "raw": "1", "sym": "AF_UNIX"}, "path": {"type": "sun_path", "value": "/tmp/s.sock"}}
-{"type": "sockaddr", "family": {"type": "const", "raw": "16", "sym": "AF_NETLINK"}, "pid": "0", "groups": "0x1"}
+{"type": "sockaddr", "family": {"type": "const", "raw": "0x2", "sym": "AF_INET"}, "addr": "127.0.0.1", "port": "8080"}
+{"type": "sockaddr", "family": {"type": "const", "raw": "0xa", "sym": "AF_INET6"}, "addr": "::1", "port": "8080", "flowinfo": "0", "scope_id": "0"}
+{"type": "sockaddr", "family": {"type": "const", "raw": "0x1", "sym": "AF_UNIX"}, "path": {"type": "sun_path", "value": "/tmp/s.sock"}}
+{"type": "sockaddr", "family": {"type": "const", "raw": "0x10", "sym": "AF_NETLINK"}, "pid": "0", "groups": "0x1"}
 ```
 
 ### syscall
@@ -1038,14 +1050,15 @@ Wait status from `wait4`/`waitpid`/`waitid`. `raw` is the packed status;
 
 ### ioctl_op
 
-Ioctl command number, carrying symbolic name(s) plus the full `_IOC`
-decomposition. Because different subsystems reuse command numbers, `syms` (when
-present) lists the synonymous names as an array of strings.
+Ioctl command number, carrying symbolic command name(s) plus the full `_IOC`
+decomposition. Because different subsystems reuse command numbers, `cmds` (when
+present) lists the synonymous commands as an array of
+[`ioctl_cmd`](#ioctl_cmd) values.
 
 | Field | Description |
 |-------|-------------|
 | `raw` | Full 32-bit ioctl number (hex) |
-| `syms` | Optional; array of symbolic synonym strings |
+| `cmds` | Optional; array of [`ioctl_cmd`](#ioctl_cmd) identifiers |
 | `dir` | Direction bits as a `flags` value (`_IOC_NONE`/`_IOC_READ`/`_IOC_WRITE`); always present |
 | `ioc_type`, `ioc_nr`, `ioc_size` | The `_IOC` type byte, number, and size (hex) |
 
@@ -1053,17 +1066,32 @@ The decomposition is always present, even for known ioctls, so type byte and
 direction are usable without parsing the name. `dir` names `_IOC_NONE`
 explicitly rather than omitting it, since `_IOC_NONE` is not guaranteed 0 on
 all architectures. Traditional: the symbolic name (or names joined with ` or `), or
-`_IOC(dir, type, nr, size)` when `syms` is absent.
+`_IOC(dir, type, nr, size)` when `cmds` is absent.
 
 ```json
 {
   "type": "ioctl_op",
   "raw": "0xc0086409",
-  "syms": ["DRM_IOCTL_GET_CAP"],
+  "cmds": [{"type": "ioctl_cmd", "name": "DRM_IOCTL_GET_CAP"}],
   "dir": {"type": "flags", "raw": "0x3", "groups": [{"raw": "0x3", "elems": [{"type": "const", "raw": "0x1", "sym": "_IOC_WRITE"}, {"type": "const", "raw": "0x2", "sym": "_IOC_READ"}]}]},
   "ioc_type": "0x64", "ioc_nr": "0x09", "ioc_size": "0x8"
 }
 ```
+
+### ioctl_cmd
+
+A single resolved ioctl command identifier, used as an element of an
+[`ioctl_op`](#ioctl_op)'s `cmds` array. `name` is the command's symbolic name.
+A parametric command -- one whose traditional rendering embeds decoded
+arguments, e.g. `EVIOCGBIT(EV_KEY, 8)` -- additionally carries `args`, an array
+of typed value objects; a plain command carries only `name`.
+
+```json
+{"type": "ioctl_cmd", "name": "DRM_IOCTL_GET_CAP"}
+{"type": "ioctl_cmd", "name": "EVIOCGBIT", "args": [{"type": "const", "raw": "0x1", "sym": "EV_KEY"}, {"type": "unsigned", "raw": "8"}]}
+```
+
+Traditional output renders `name`, or `name(args)` for the parametric form.
 
 ### uring_restriction_op
 
@@ -1107,7 +1135,7 @@ same object.
 In order above: success; fd return; error (the [`errno`](#simple-value-types)
 rides as a sibling); injected value; a symbolic annotation on the value itself
 (trad `= 5 (TIME_INS)`, e.g. `adjtimex`); no value available; and detach
-mid-syscall. Some not-yet-converted decoders still emit a legacy `retstr`
+mid-syscall. Some not-yet-converted decoders still emit a legacy `auxstr`
 sibling instead of a typed value -- see the [appendix](#appendix-non-normative-notes).
 
 ### Stack traces
@@ -1116,16 +1144,12 @@ With `-k` (frame symbols) or `-kk` (frames + source lines), an event carries an
 optional `stack` field when the unwinder produced at least one frame or error.
 `stack` appears on:
 
-- **Syscall exit events** (the common case). The stack is captured at syscall
-  *entry* -- so it reflects the invocation point, unaffected by mapping changes
-  the syscall makes -- and attached to the exit event (the `"entering": false`
-  event in split mode; the single event in merged mode).
-- **Syscall entering events** in split mode, only for syscalls with no later
-  event to carry it: `execve`/`execveat` (address space replaced by exit) and
-  `exit`/`exit_group` (no exit event). This keeps frames visible even when the
-  syscall never reaches exit. In merged mode there is no entering event, so
-  such frames ride the merged event -- and if the syscall never reaches exit,
-  no event is emitted for it at all.
+- **Syscall events.** strace always captures the stack at syscall *entry*
+  (general strace behaviour, not specific to structured output), so it reflects
+  the invocation point. In split mode the `stack` field rides the exit event
+  (the `"entering": false` event); the exceptions are `execve`/`execveat` and
+  `exit`/`exit_group`, which have no exit event, so their stack rides the
+  entering event. In merged mode the single event carries it.
 - **Signal events** and **stopped events**.
 
 No other events carry stack data.
@@ -1310,7 +1334,7 @@ here so the reference above stays free of "will change" caveats.
   {"type": "fd", "raw": "3", "fd_info": {"type": "socket_netlink", "protocol": "NETLINK", "nl_protocol": "ROUTE", "portid": "0"}}
   ```
 
-- **Legacy `retstr`.** Some decoders still emit a `retstr` field as a sibling
+- **Legacy `auxstr`.** Some decoders still emit an `auxstr` field as a sibling
   on the return object instead of a properly typed return value. This is a
   transitional shape to be removed as those decoders are converted.
 - **Future value types.** Additional value types may be added as needed,
