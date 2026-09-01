@@ -233,6 +233,10 @@ strerror(int err_no)
 
 #endif /* HAVE_STERRROR */
 
+#if ENABLE_STRUCTURED_OUTPUT
+struct structured_output_data structured_output_data;
+#endif
+
 static void
 print_version(unsigned int verbosity)
 {
@@ -412,6 +416,12 @@ Output format:\n\
   -i, --instruction-pointer\n\
                  print instruction pointer at time of syscall\n\
 "
+#if ENABLE_STRUCTURED_OUTPUT
+"\
+  -J, --jsonl\n\
+                 output events as JSONL (JSON Lines)\n\
+"
+#endif
 #ifdef ENABLE_STACKTRACE
 "\
   -k, --stack-trace[=symbol]\n\
@@ -895,7 +905,8 @@ printleader(struct tcb *tcp)
 	set_current_tcp(tcp);
 	current_tcp->curcol = 0;
 
-	if (print_pid_pfx || (nprocs > 1 && !outfname)) {
+	if (!structured_output &&
+	    (print_pid_pfx || (nprocs > 1 && !outfname))) {
 		size_t len = is_number_in_set(DECODE_PID_COMM, decode_pid_set)
 			     ? strlen(tcp->comm) : 0;
 
@@ -918,7 +929,7 @@ printleader(struct tcb *tcp)
 
 	selinux_printpidcon(tcp);
 
-	if (tflag_format) {
+	if (!structured_output && tflag_format) {
 		struct timespec ts;
 		clock_gettime(CLOCK_REALTIME, &ts);
 
@@ -937,7 +948,7 @@ printleader(struct tcb *tcp)
 			tprintf_string("%s ", str);
 	}
 
-	if (rflag) {
+	if (!structured_output && rflag) {
 		struct timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 
@@ -958,10 +969,10 @@ printleader(struct tcb *tcp)
 		tprints_string(tflag_format ? ") " : " ");
 	}
 
-	if (nflag)
+	if (!structured_output && nflag)
 		print_syscall_number(tcp);
 
-	if (iflag)
+	if (!structured_output && iflag)
 		print_instruction_pointer(tcp);
 }
 
@@ -2431,7 +2442,7 @@ init(int argc, char *argv[])
 #endif
 
 	static const char optstring[] =
-		"+a:Ab:cCdDe:E:fFhiI:knNo:O:p:P:qrs:S:tTu:U:vVwxX:yYzZ";
+		"+a:Ab:cCdDe:E:fFhiI:JknNo:O:p:P:qrs:S:tTu:U:vVwxX:yYzZ";
 
 	enum {
 		GETOPT_SECCOMP = 0x100,
@@ -2483,6 +2494,7 @@ init(int argc, char *argv[])
 			GETOPT_OUTPUT_SEPARATELY },
 		{ "help",		no_argument,	   0, 'h' },
 		{ "instruction-pointer", no_argument,      0, 'i' },
+		{ "jsonl",		no_argument,	   0, 'J' },
 		{ "interruptible",	required_argument, 0, 'I' },
 		{ "kill-on-exit",	no_argument,	   0, GETOPT_KILL_ON_EXIT },
 		{ "stack-trace" ,	optional_argument, 0, GETOPT_STACK },
@@ -2625,6 +2637,13 @@ init(int argc, char *argv[])
 			if (opt_intr <= 0)
 				error_opt_arg(c, lopt, optarg);
 			break;
+#if ENABLE_STRUCTURED_OUTPUT
+		case 'J':
+			memset(&structured_output_data, 0,
+			       sizeof(structured_output_data));
+			structured_output = &structured_output_data;
+			break;
+#endif
 		case 'k':
 #ifdef ENABLE_STACKTRACE
 			switch (stack_trace_mode) {
@@ -3584,6 +3603,9 @@ print_signalled(struct tcb *tcp, const int pid, int status)
 		strace_child = 0;
 	}
 
+	if (structured_output)
+		return;
+
 	if (cflag != CFLAG_ONLY_STATS
 	    && is_number_in_set(WTERMSIG(status), signal_set)) {
 		printleader(tcp);
@@ -3602,6 +3624,9 @@ print_exited(struct tcb *tcp, const int pid, int status)
 		exit_code = WEXITSTATUS(status);
 		strace_child = 0;
 	}
+
+	if (structured_output)
+		return;
 
 	if (cflag != CFLAG_ONLY_STATS &&
 	    !is_number_in_set(QUIET_EXIT, quiet_set)) {
