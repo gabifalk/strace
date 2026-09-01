@@ -13,6 +13,7 @@
 # include "static_assert.h"
 # include <stdarg.h>
 # include <stdbool.h>
+# include <stdint.h>
 # include <string.h>
 
 # define JSON_STACK_MAX 64
@@ -114,6 +115,11 @@ extern void tprint_object_field_end(void);
 extern void json_print_object_field_end(void);
 extern void tprints_object_field_string(const char *field, const char *s);
 extern void json_prints_object_field_string(const char *field, const char *s);
+extern void tprintv_object_field_int(const char *name, const char *fmt,
+				     va_list args)
+	ATTRIBUTE_FORMAT((printf, 2, 0));
+extern void tprintf_object_field_int(const char *name, const char *fmt, ...)
+	ATTRIBUTE_FORMAT((printf, 2, 3));
 extern void tprint_object_end(void);
 extern void json_print_object_end(void);
 extern void tprint_struct_begin(void);
@@ -250,20 +256,21 @@ tprint_sysret_pseudo_rval(void)
 }
 
 # define PRINT_VAL_D(val_)	\
-	STRACE_PRINTF("%lld", sign_extend_unsigned_to_ll(val_))
+	tprintf_object_field_int("decimal", "%lld", sign_extend_unsigned_to_ll(val_))
 
 # define PRINT_VAL_U(val_)	\
-	STRACE_PRINTF("%llu", zero_extend_signed_to_ull(val_))
+	tprintf_object_field_int("unsigned", "%llu", zero_extend_signed_to_ull(val_))
 
 # define PRINT_VAL_X(val_)	\
-	STRACE_PRINTF("%#llx", zero_extend_signed_to_ull(val_))
+	tprintf_object_field_int("hex", "%#llx", zero_extend_signed_to_ull(val_))
 
 # define PRINT_VAL_03O(val_)	\
-	STRACE_PRINTF("%#03llo", zero_extend_signed_to_ull(val_))
+	tprintf_object_field_int("octal", "%#03llo", zero_extend_signed_to_ull(val_))
 
 # define PRINT_VAL_0X(val_)						\
-	STRACE_PRINTF("%#0*llx", (int) sizeof(val_) * 2,		\
-		      zero_extend_signed_to_ull(val_))
+	tprintf_object_field_int("hex", "%#0*llx",			\
+		(int) sizeof(val_) * 2,					\
+		zero_extend_signed_to_ull(val_))
 
 # define PRINT_VAL_ID(val_)						\
 	do {								\
@@ -282,7 +289,9 @@ tprint_sysret_pseudo_rval(void)
 # define PRINT_FIELD_U(where_, field_)					\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_print_object_begin();				\
 		PRINT_VAL_U((where_).field_);				\
+		json_print_object_end();					\
 	} while (0)
 
 # define PRINT_FIELD_U_CAST(where_, field_, type_)			\

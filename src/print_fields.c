@@ -230,6 +230,34 @@ json_prints_object_field_string(const char *field, const char *s)
 	tprints_object_field_string(field, s);
 }
 
+ATTRIBUTE_FORMAT((printf, 2, 0))
+void
+tprintv_object_field_int(const char *name, const char *fmt, va_list args)
+{
+	if (structured_output) {
+		tprints_object_field_begin("type");
+		STRACE_PRINTF("\"%s\"", name);
+		tprint_object_field_end();
+		tprints_object_field_begin("raw");
+		STRACE_PRINTS("\"");
+	}
+	STRACE_PRINTV(fmt, args);
+	if (structured_output) {
+		STRACE_PRINTS("\"");
+		tprint_object_field_end();
+	}
+}
+
+ATTRIBUTE_FORMAT((printf, 2, 3))
+void
+tprintf_object_field_int(const char *name, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	tprintv_object_field_int(name, fmt, args);
+	va_end(args);
+}
+
 void
 tprint_object_end(void)
 {

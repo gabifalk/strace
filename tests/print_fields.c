@@ -6,12 +6,31 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+#include <stdarg.h>
 #include "print_fields.h"
 
 void
 tprints_field_name(const char *name)
 {
 	STRACE_PRINTF("%s=", name);
+}
+
+ATTRIBUTE_FORMAT((printf, 2, 0))
+void
+tprintv_object_field_int(const char *name, const char *fmt, va_list args)
+{
+	(void) name;
+	STRACE_PRINTV(fmt, args);
+}
+
+ATTRIBUTE_FORMAT((printf, 2, 3))
+void
+tprintf_object_field_int(const char *name, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	tprintv_object_field_int(name, fmt, args);
+	va_end(args);
 }
 
 void
