@@ -25,6 +25,14 @@
  */
 #  define STRACE_PRINTF tprintf_string
 
+struct structured_output_data;
+
+#  if ENABLE_STRUCTURED_OUTPUT
+extern struct structured_output_data *structured_output;
+#  else
+#   define structured_output 0
+#  endif
+
 # else /* !IN_STRACE */
 
 #  include <stdio.h>

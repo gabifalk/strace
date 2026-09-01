@@ -337,6 +337,18 @@ esac
 AC_DEFINE_UNQUOTED([ENABLE_ARM_OABI], [$enable_arm_oabi],
 		   [Define to 1 if you want OABI support on ARM EABI.])
 
+AC_ARG_ENABLE([structured-output],
+	      [AS_HELP_STRING([--enable-structured-output],
+			      [enable EXPERIMENTAL structured (JSONL) output support])],
+	      [], [enable_structured_output=no])
+case "$enable_structured_output" in
+	yes) enable_structured_output=1 ;;
+	no) enable_structured_output=0 ;;
+	*) AC_MSG_ERROR([bad value $enable_structured_output for structured-output option]) ;;
+esac
+AC_DEFINE_UNQUOTED([ENABLE_STRUCTURED_OUTPUT], [$enable_structured_output],
+		   [Define to 1 to enable EXPERIMENTAL structured (JSONL) output.])
+
 st_WARN_CFLAGS
 st_DEBUG_CFLAGS
 AX_PROG_CC_FOR_BUILD
