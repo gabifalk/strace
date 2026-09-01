@@ -752,8 +752,7 @@ outf_perror(const struct tcb * const tcp)
 		perror_msg("%s", outfname);
 }
 
-ATTRIBUTE_FORMAT((printf, 1, 0))
-static void
+void
 tvprintf(const char *const fmt, va_list args)
 {
 	if (current_tcp) {

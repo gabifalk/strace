@@ -14,6 +14,57 @@ struct structured_output_data *structured_output = NULL;
 #endif
 
 void
+json_print_quoted_string_begin(void)
+{
+	if (!structured_output)
+		return;
+
+	STRACE_PRINTS("\"");
+}
+
+void
+json_print_quoted_string_end(void)
+{
+	if (!structured_output)
+		return;
+
+	STRACE_PRINTS("\"");
+}
+
+void
+tprints_string_value(const char *str)
+{
+	if (structured_output) {
+		json_print_quoted_string_begin();
+		print_quoted_string_ex(str, strlen(str),
+				       QUOTE_OMIT_LEADING_TRAILING_QUOTES,
+				       NULL);
+		json_print_quoted_string_end();
+	} else {
+		STRACE_PRINTS(str);
+	}
+}
+
+ATTRIBUTE_FORMAT((printf, 1, 0))
+void
+tprintv_string_value(const char *fmt, va_list args)
+{
+	json_print_quoted_string_begin();
+	STRACE_PRINTV(fmt, args);
+	json_print_quoted_string_end();
+}
+
+ATTRIBUTE_FORMAT((printf, 1, 2))
+void
+tprintf_string_value(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	tprintv_string_value(fmt, args);
+	va_end(args);
+}
+
+void
 tprint_struct_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);

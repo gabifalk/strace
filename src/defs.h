@@ -28,6 +28,7 @@
  * generalized libc interface. We don't *want* to do non-ASCII anyway.
  */
 /* #include <ctype.h> */
+# include <stdarg.h>
 # include <string.h>
 # include <errno.h>
 # include <time.h>
@@ -1791,6 +1792,8 @@ extern struct tcb *printing_tcp;
 extern void printleader(struct tcb *);
 extern void line_ended(void);
 extern void tabto(void);
+extern void tvprintf(const char *const fmt, va_list args)
+	ATTRIBUTE_FORMAT((printf, 1, 0));
 extern void tprintf_string(const char *fmt, ...) ATTRIBUTE_FORMAT((printf, 1, 2));
 extern void tprints_string(const char *str);
 extern bool tprints_string_uncol(const char *str);

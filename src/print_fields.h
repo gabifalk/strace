@@ -9,7 +9,9 @@
 #ifndef STRACE_PRINT_FIELDS_H
 # define STRACE_PRINT_FIELDS_H
 
+# include "gcc_compat.h"
 # include "static_assert.h"
+# include <stdarg.h>
 # include <stdbool.h>
 # include <string.h>
 
@@ -46,6 +48,7 @@ struct json_stack {
 
 #  define STRACE_PRINTS(s_) tprints_string(s_)
 #  define STRACE_PRINT_COLOR_SEQ(kind_) tprint_color_seq(kind_)
+#  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
 
 /*
  * The printf-like function to use in header files
@@ -68,6 +71,7 @@ extern struct structured_output_data *structured_output;
 #  include <stdio.h>
 
 #  define STRACE_PRINTS(s_) fputs((s_), stdout)
+#  define STRACE_PRINTV(fmt_, args_) vprintf(fmt_, args_)
 
 /*
  * The printf-like function to use in header files
@@ -95,6 +99,14 @@ extern struct structured_output_data *structured_output;
 
 # endif /* !IN_STRACE */
 
+
+extern void json_print_quoted_string_begin(void);
+extern void json_print_quoted_string_end(void);
+extern void tprints_string_value(const char *str);
+extern void tprintv_string_value(const char *fmt, va_list args)
+	ATTRIBUTE_FORMAT((printf, 1, 0));
+extern void tprintf_string_value(const char *fmt, ...)
+	ATTRIBUTE_FORMAT((printf, 1, 2));
 
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
