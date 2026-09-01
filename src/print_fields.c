@@ -107,6 +107,15 @@ json_stack_needs_sep(enum json_container_type type)
 	return state->stack[state->depth - 1].needs_sep;
 }
 
+static void
+json_stack_reset(void)
+{
+	if (!structured_output)
+		return;
+
+	structured_output->state.depth = 0;
+}
+
 void
 json_print_quoted_string_begin(void)
 {
@@ -473,19 +482,83 @@ tprint_array_index_equal(void)
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
 }
 
-void
-tprints_arg_begin(const char *name)
+static void
+emit_syscall_event_start(const char *name, kernel_ulong_t scno, int entry,
+			 int pid, const char *comm)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_SYSCALL);
-	STRACE_PRINTF("%s", name);
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("(");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	tprintf_event_start("syscall");
+	json_prints_object_field_begin("pid");
+	STRACE_PRINTF("%d", pid);
+	json_print_object_field_end();
+	if (comm && *comm)
+		tprints_object_field_string("comm", comm);
+	tprints_object_field_begin("syscall");
+	tprint_object_begin();
+	tprints_object_field_string("type", "syscall");
+	tprints_object_field_begin("name");
+	tprintf_string_value("%s", name);
+	tprint_object_field_end();
+	if (scno != (kernel_ulong_t) -1) {
+		json_prints_object_field_begin("scno");
+		tprintf_string_value("%llu",
+				      (unsigned long long) scno);
+		json_print_object_field_end();
+	}
+	tprint_object_end();
+	tprint_object_field_end();
+	tprints_object_field_begin("entering");
+	STRACE_PRINTS(entry ? JSON_TRUE : JSON_FALSE);
+	tprint_object_field_end();
+	tprints_object_field_begin("args");
+	json_print_array_begin();
+	if (entry)
+		structured_output->arg_index = 0;
+	structured_output->arg_open = false;
+	structured_output->arg_emitted_index = -1;
+}
+
+void
+tprints_arg_begin(const char *name, unsigned long long scno, bool entering,
+		  int pid, const char *comm)
+{
+	if (structured_output) {
+		emit_syscall_event_start(name, scno, entering, pid, comm);
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_SYSCALL);
+		STRACE_PRINTF("%s", name);
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("(");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+static void
+close_arg(void)
+{
+	if (!structured_output)
+		return;
+
+	if (!structured_output->arg_open)
+		return;
+	structured_output->arg_open = false;
+
+	while (structured_output->state.depth
+	       > structured_output->arg_open_depth) {
+		tprint_object_end();
+	}
+
+	tprint_object_end();
+	tprint_array_element_end();
 }
 
 void
 tprint_arg_next(void)
 {
+	if (structured_output) {
+		close_arg();
+		return;
+	}
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS(", ");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -494,19 +567,47 @@ tprint_arg_next(void)
 void
 tprint_arg_end(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS(")");
-	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+	if (structured_output) {
+		close_arg();
+		json_print_array_end();
+		json_print_object_field_end();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS(")");
+		STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+	}
 }
 
 void
 tprints_arg_name_unconditionally(const char *name)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGNAME);
-	STRACE_PRINTF("%s", name);
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("=");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	unsigned int index =
+		structured_output ? structured_output->arg_index++ : 0;
+	if (structured_output) {
+		close_arg();
+
+		for (int i = structured_output->arg_emitted_index + 1;
+		     i < (int) index; i++) {
+			tprint_array_element_begin();
+			STRACE_PRINTS(JSON_NULL);
+			tprint_array_element_end();
+		}
+		structured_output->arg_emitted_index = (int) index;
+		tprint_array_element_begin();
+		tprint_object_begin();
+		tprints_object_field_begin("arg");
+		tprintf_string_value("%s", name);
+		tprint_object_field_end();
+		structured_output->arg_open = true;
+		structured_output->arg_open_depth =
+			structured_output->state.depth;
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGNAME);
+		STRACE_PRINTF("%s", name);
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("=");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
@@ -519,7 +620,7 @@ tprints_arg_next_name_unconditionally(const char *name)
 void
 tprints_arg_name(const char *name)
 {
-	if (Nflag)
+	if (Nflag || structured_output)
 		tprints_arg_name_unconditionally(name);
 }
 
@@ -799,4 +900,34 @@ tprint_sysret_end(void)
 	}
 
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+}
+
+void
+trad_prints(const char *s)
+{
+	if (!structured_output)
+		STRACE_PRINTS(s);
+}
+
+void
+tprintf_event_start(const char *type)
+{
+	if (!structured_output)
+		return;
+
+	json_stack_reset();
+	tprint_object_begin();
+	tprints_object_field_begin("event");
+	tprintf_string_value("%s", type);
+	tprint_object_field_end();
+}
+
+void
+tprint_event_end(void)
+{
+	if (!structured_output)
+		return;
+
+	STRACE_PRINTS(JSON_OBJ_END);
+	json_stack_pop();
 }

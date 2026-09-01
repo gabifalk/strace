@@ -59,6 +59,10 @@ struct json_stack {
 
 struct structured_output_data {
 	struct json_stack state;
+	bool arg_open;
+	unsigned int arg_open_depth;
+	unsigned int arg_index;
+	int arg_emitted_index;
 };
 
 #  if ENABLE_STRUCTURED_OUTPUT
@@ -141,7 +145,8 @@ extern void tprint_array_value_begin(void);
 extern void tprint_array_value_end(void);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);
-extern void tprints_arg_begin(const char *name);
+extern void tprints_arg_begin(const char *name, unsigned long long scno,
+			      bool entering, int pid, const char *comm);
 extern void tprint_arg_next(void);
 extern void tprint_arg_end(void);
 extern void tprints_arg_name_unconditionally(const char *name);
@@ -173,6 +178,10 @@ extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);
 extern void tprint_sysret_end(void);
+extern void trad_prints(const char *s);
+
+extern void tprintf_event_start(const char *type);
+extern void tprint_event_end(void);
 
 static inline void
 tprint_array_index_end(void)

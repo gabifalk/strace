@@ -1394,7 +1394,13 @@ printpathn(struct tcb *const tcp, const kernel_ulong_t addr, unsigned int n)
 	if (nul_seen < 0)
 		printaddr(addr);
 	else {
+		if (structured_output) {
+			json_prints_object_field_string("type", "string");
+			json_prints_object_field_begin("value");
+		}
 		print_quoted_cstring(path, (unsigned int) nul_seen ?: n);
+		if (structured_output)
+			json_print_object_field_end();
 
 		if (nul_seen)
 			selinux_printfilecon(tcp, path);
@@ -1476,6 +1482,9 @@ printstr_ex(struct tcb *const tcp, const kernel_ulong_t addr,
 		--size;
 	}
 
+	if (structured_output)
+		style |= QUOTE_OMIT_LEADING_TRAILING_QUOTES;
+
 	/* If string_quote didn't see NUL and (it was supposed to be ASCIZ str
 	 * or we were requested to print more than -s NUM chars)...
 	 */
@@ -1484,9 +1493,18 @@ printstr_ex(struct tcb *const tcp, const kernel_ulong_t addr,
 		   && ((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
 		       || len > max_strlen);
 
-	tprints_string(outstr);
-	if (ellipsis)
-		tprint_more_data_follows();
+	if (structured_output) {
+		json_prints_object_field_string("type", "string");
+		json_prints_object_field_begin("value");
+		json_print_quoted_string_begin();
+		tprints_string(outstr);
+		json_print_quoted_string_end();
+		json_print_object_field_end();
+	} else {
+		tprints_string(outstr);
+		if (ellipsis)
+			tprint_more_data_follows();
+	}
 
 	return rc;
 }

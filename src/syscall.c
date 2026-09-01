@@ -570,6 +570,13 @@ tamper_with_syscall_exiting(struct tcb *tcp)
 	return 0;
 }
 
+static void
+syscall_arg_begin(struct tcb *tcp)
+{
+	tprints_arg_begin(tcp_sysent(tcp)->sys_name, tcp->true_scno,
+			  entering(tcp), tcp->pid, tcp->comm);
+}
+
 /*
  * Returns:
  * 0: "ignore this ptrace stop", bail out silently.
@@ -586,7 +593,7 @@ syscall_entering_decode(struct tcb *tcp)
 		return res;
 	if (res != 1 || (res = get_syscall_args(tcp)) != 1) {
 		printleader(tcp);
-		tprints_arg_begin(tcp_sysent(tcp)->sys_name);
+		syscall_arg_begin(tcp);
 		/*
 		 * " <unavailable>" will be added later by the code which
 		 * detects ptrace errors.
@@ -667,7 +674,7 @@ syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 		strace_open_memstream(tcp);
 
 	printleader(tcp);
-	tprints_arg_begin(tcp_sysent(tcp)->sys_name);
+	syscall_arg_begin(tcp);
 	int res = raw(tcp) ? printargs(tcp) : tcp_sysent(tcp)->sys_func(tcp);
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
 	fflush(tcp->outf);
