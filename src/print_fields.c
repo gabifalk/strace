@@ -9,6 +9,10 @@
 #include "defs.h"
 #include "print_fields.h"
 
+#if ENABLE_STRUCTURED_OUTPUT
+struct structured_output_data *structured_output = NULL;
+#endif
+
 void
 tprint_struct_begin(void)
 {

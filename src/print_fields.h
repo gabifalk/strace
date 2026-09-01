@@ -10,7 +10,35 @@
 # define STRACE_PRINT_FIELDS_H
 
 # include "static_assert.h"
+# include <stdbool.h>
 # include <string.h>
+
+# define JSON_STACK_MAX 64
+
+enum json_container_type {
+	JSON_CONTAINER_OBJECT = 0,
+	JSON_CONTAINER_ARRAY,
+};
+
+struct json_stack_frame {
+	enum json_container_type type;
+	bool needs_sep;
+};
+
+struct json_stack {
+	unsigned int depth;
+	struct json_stack_frame stack[JSON_STACK_MAX];
+};
+
+# define JSON_OBJ_BEGIN "{"
+# define JSON_OBJ_END "}"
+# define JSON_ARR_BEGIN "["
+# define JSON_ARR_END "]"
+# define JSON_SEP ", "
+# define JSON_FIELD_SEP ": "
+# define JSON_NULL "null"
+# define JSON_TRUE "true"
+# define JSON_FALSE "false"
 
 # ifdef IN_STRACE
 
@@ -25,12 +53,14 @@
  */
 #  define STRACE_PRINTF tprintf_string
 
-struct structured_output_data;
+struct structured_output_data {
+	struct json_stack state;
+};
 
 #  if ENABLE_STRUCTURED_OUTPUT
 extern struct structured_output_data *structured_output;
 #  else
-#   define structured_output 0
+#   define structured_output ((struct structured_output_data *) 0)
 #  endif
 
 # else /* !IN_STRACE */
@@ -44,6 +74,8 @@ extern struct structured_output_data *structured_output;
  * shared between strace and its tests.
  */
 #  define STRACE_PRINTF printf
+
+#  define structured_output 0
 
 #  define COLOR_ARGNAME 0
 #  define COLOR_ARGVAL 0
