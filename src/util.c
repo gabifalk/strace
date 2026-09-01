@@ -1905,10 +1905,10 @@ print_array_ex(struct tcb *const tcp,
 	}
 
 	if (!nmemb) {
-		tprint_array_begin();
+		tprint_array_value_begin();
 		if (flags & PAF_ARRAY_TRUNCATED)
 			tprint_more_data_follows();
-		tprint_array_end();
+		tprint_array_value_end();
 		return false;
 	}
 
@@ -1930,16 +1930,17 @@ print_array_ex(struct tcb *const tcp,
 	kernel_ulong_t idx = 0;
 	enum xlat_style xlat_style = flags & XLAT_STYLE_MASK;
 	bool truncated = false;
+	bool started = false;
+	bool first = true;
 
 	for (cur = start_addr; cur < end_addr; cur += elem_size, idx++) {
-		if (cur != start_addr)
-			tprint_array_next();
-
 		if (tfetch_mem_func) {
 			if (!tfetch_mem_func(tcp, cur, elem_size, elem_buf)) {
-				if (cur == start_addr)
+				if (cur == start_addr) {
 					printaddr(cur);
-				else {
+				} else {
+					if (started && !structured_output)
+						tprint_array_next();
 					tprint_more_data_follows();
 					printaddr_comment(cur);
 					truncated = true;
@@ -1950,8 +1951,13 @@ print_array_ex(struct tcb *const tcp,
 			elem_buf = (void *) (uintptr_t) cur;
 		}
 
-		if (cur == start_addr)
-			tprint_array_begin();
+		if (cur == start_addr) {
+			started = true;
+			tprint_array_value_begin();
+		}
+
+		if (!first && (!structured_output || cur < abbrev_end))
+			tprint_array_next();
 
 		if (cur >= abbrev_end) {
 			tprint_more_data_follows();
@@ -1960,7 +1966,7 @@ print_array_ex(struct tcb *const tcp,
 			break;
 		}
 
-		if (flags & PAF_PRINT_INDICES) {
+		if ((flags & PAF_PRINT_INDICES) && !structured_output) {
 			tprint_array_index_begin();
 
 			if (!index_xlat) {
@@ -1973,27 +1979,47 @@ print_array_ex(struct tcb *const tcp,
 			tprint_array_index_equal();
 		}
 
+		json_print_object_begin();
+
+		if ((flags & PAF_PRINT_INDICES) && structured_output) {
+			json_prints_object_field_begin("index");
+			json_print_object_begin();
+			if (!index_xlat) {
+				print_xlat_ex(idx, NULL, xlat_style);
+			} else {
+				printxval_ex(index_xlat, idx, index_dflt,
+					     xlat_style);
+			}
+			json_print_object_end();
+			json_print_object_field_end();
+		}
+
 		bool break_needed =
 			!print_func(tcp, elem_buf, elem_size, opaque_data);
 
-		if (flags & PAF_PRINT_INDICES)
+		json_print_object_end();
+
+		if ((flags & PAF_PRINT_INDICES) && !structured_output)
 			tprint_array_index_end();
 
 		if (break_needed) {
 			cur = end_addr;
 			break;
 		}
+
+		first = false;
 	}
 
 	if ((cur != start_addr) || !tfetch_mem_func) {
 		if ((flags & PAF_ARRAY_TRUNCATED) && !truncated) {
-			if (cur != start_addr)
+			if (cur != start_addr && !structured_output)
 				tprint_array_next();
 
 			tprint_more_data_follows();
 		}
 
-		tprint_array_end();
+		if (started)
+			tprint_array_value_end();
 	}
 
 	return cur >= end_addr;

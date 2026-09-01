@@ -99,7 +99,6 @@ extern struct structured_output_data *structured_output;
 
 # endif /* !IN_STRACE */
 
-
 extern void json_print_quoted_string_begin(void);
 extern void json_print_quoted_string_end(void);
 extern void tprints_string_value(const char *str);
@@ -107,7 +106,16 @@ extern void tprintv_string_value(const char *fmt, va_list args)
 	ATTRIBUTE_FORMAT((printf, 1, 0));
 extern void tprintf_string_value(const char *fmt, ...)
 	ATTRIBUTE_FORMAT((printf, 1, 2));
-
+extern void tprint_object_begin(void);
+extern void json_print_object_begin(void);
+extern void tprints_object_field_begin(const char *field);
+extern void json_prints_object_field_begin(const char *field);
+extern void tprint_object_field_end(void);
+extern void json_print_object_field_end(void);
+extern void tprints_object_field_string(const char *field, const char *s);
+extern void json_prints_object_field_string(const char *field, const char *s);
+extern void tprint_object_end(void);
+extern void json_print_object_end(void);
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
@@ -115,8 +123,16 @@ extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
 extern void tprint_union_end(void);
 extern void tprint_array_begin(void);
+extern void json_print_array_begin(void);
+extern void tprint_array_element_begin(void);
+extern void tprint_array_element_end(void);
+extern void json_print_array_element_begin(void);
+extern void json_print_array_element_end(void);
 extern void tprint_array_next(void);
 extern void tprint_array_end(void);
+extern void json_print_array_end(void);
+extern void tprint_array_value_begin(void);
+extern void tprint_array_value_end(void);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);
 extern void tprints_arg_begin(const char *name);
@@ -176,11 +192,22 @@ tprint_shift(void)
 static inline void
 tprint_flags_begin(void)
 {
+	if (!structured_output)
+		return;
+
+	json_prints_object_field_string("type", "flags");
+	json_prints_object_field_begin("flags");
+	json_print_array_begin();
 }
 
 static inline void
 tprint_flags_end(void)
 {
+	if (!structured_output)
+		return;
+
+	json_print_array_end();
+	json_print_object_field_end();
 }
 
 static inline void
@@ -192,18 +219,33 @@ tprint_plus(void)
 static inline void
 tprint_space(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINTS(" ");
 }
 
 static inline void
 tprint_null(void)
 {
-	STRACE_PRINTS("NULL");
+	if (structured_output) {
+		tprints_object_field_begin("type");
+		tprintf_string_value("%s", "addr");
+		tprint_object_field_end();
+		tprints_object_field_begin("raw");
+		STRACE_PRINTS(JSON_NULL);
+		tprint_object_field_end();
+	} else
+		STRACE_PRINTS("NULL");
 }
 
 static inline void
 tprint_sysret_pseudo_rval(void)
 {
+	if (structured_output) {
+		json_prints_object_field_string("type", "unavailable");
+		return;
+	}
 	STRACE_PRINTS("?");
 }
 
@@ -463,9 +505,14 @@ tprint_sysret_pseudo_rval(void)
 # define PRINT_FIELD_CSTRING(where_, field_)				\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_print_object_begin();				\
+		json_prints_object_field_string("type", "string");	\
+		json_prints_object_field_begin("value");			\
 		print_quoted_cstring((const char *) (where_).field_,	\
 				     sizeof((where_).field_) +		\
 				     MUST_BE_ARRAY((where_).field_));	\
+		json_print_object_field_end();				\
+		json_print_object_end();					\
 	} while (0)
 
 # define PRINT_FIELD_CSTRING_SZ(where_, field_, size_)			\
@@ -478,8 +525,10 @@ tprint_sysret_pseudo_rval(void)
 # define PRINT_FIELD_ARRAY(where_, field_, tcp_, print_func_)		\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_print_object_begin();				\
 		print_local_array((tcp_), (where_).field_,		\
 				  (print_func_));			\
+		json_print_object_end();					\
 	} while (0)
 
 # define PRINT_FIELD_ARRAY_INDEXED(where_, field_, tcp_, print_func_,	\

@@ -15,6 +15,34 @@ tprints_field_name(const char *name)
 }
 
 void
+json_print_object_begin(void)
+{
+}
+
+void
+json_print_object_end(void)
+{
+}
+
+void
+json_prints_object_field_begin(const char *field)
+{
+	(void) field;
+}
+
+void
+json_prints_object_field_string(const char *field, const char *s)
+{
+	(void) field;
+	(void) s;
+}
+
+void
+json_print_object_field_end(void)
+{
+}
+
+void
 tprint_array_begin(void)
 {
 	STRACE_PRINTS("[");
