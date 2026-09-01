@@ -176,7 +176,8 @@ extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
-extern void tprints_sysret_string(const char *name, const char *str);
+extern void tprints_sysret_string(const char *name, const char *str,
+				  bool parentheses);
 extern void tprint_sysret_end(void);
 extern void trad_prints(const char *s);
 

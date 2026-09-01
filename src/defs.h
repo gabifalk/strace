@@ -596,6 +596,7 @@ extern void print_syscall_number(struct tcb *);
 
 extern void print_syscall_resume(struct tcb *tcp);
 
+extern void syscall_arg_begin(struct tcb *);
 extern int syscall_entering_decode(struct tcb *);
 extern int syscall_entering_trace(struct tcb *, unsigned int *);
 extern void syscall_entering_finish(struct tcb *, int);

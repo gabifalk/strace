@@ -440,7 +440,7 @@ print_err_ret(kernel_ulong_t ret, unsigned long u_error)
 	if (u_error_str) {
 		tprints_sysret_next("error");
 		tprints_string(u_error_str);
-		tprints_sysret_string("strerror", strerror(u_error));
+		tprints_sysret_string("strerror", strerror(u_error), true);
 	} else {
 		tprints_sysret_next("strerror");
 		tprintf_string("(errno %lu)", u_error);
@@ -570,7 +570,7 @@ tamper_with_syscall_exiting(struct tcb *tcp)
 	return 0;
 }
 
-static void
+void
 syscall_arg_begin(struct tcb *tcp)
 {
 	tprints_arg_begin(tcp_sysent(tcp)->sys_name, tcp->true_scno,
@@ -764,9 +764,12 @@ print_syscall_resume(struct tcb *tcp)
 	 * "strace -ff -oLOG test/threaded_execve" corner case.
 	 * It's the only case when -ff mode needs reprinting.
 	 */
-	if ((!output_separately && printing_tcp != tcp && !tcp->staged_output_data)
-	    || (tcp->flags & TCB_REPRINT)) {
-		tcp->flags &= ~TCB_REPRINT;
+	bool reprint = tcp->flags & TCB_REPRINT;
+	tcp->flags &= ~TCB_REPRINT;
+
+	if ((!output_separately && !structured_output
+	     && printing_tcp != tcp && !tcp->staged_output_data)
+	    || (reprint && !structured_output)) {
 		printleader(tcp);
 		tprintf_string("<... %s resumed>", tcp_sysent(tcp)->sys_name);
 	}
@@ -777,13 +780,13 @@ static void
 print_injected_note(struct tcb *tcp)
 {
 	if (syscall_tampered(tcp) && syscall_tampered_poked(tcp))
-		tprints_sysret_string("inject", "INJECTED: args, retval");
+		tprints_sysret_string("inject", "INJECTED: args, retval", true);
 	else if (syscall_tampered_poked(tcp))
-		tprints_sysret_string("inject", "INJECTED: args");
+		tprints_sysret_string("inject", "INJECTED: args", true);
 	else if (syscall_tampered(tcp))
-		tprints_sysret_string("inject", "INJECTED");
+		tprints_sysret_string("inject", "INJECTED", true);
 	if (syscall_tampered_delayed(tcp))
-		tprints_sysret_string("delay", "DELAYED");
+		tprints_sysret_string("delay", "DELAYED", true);
 }
 
 static void
@@ -791,9 +794,8 @@ print_erestart(const char *err_short, const char *err_long)
 {
 	tprints_sysret_next("retval");
 	tprint_sysret_pseudo_rval();
-	tprints_sysret_next("error");
-	tprints_string(err_short);
-	tprints_sysret_string("strerror", err_long);
+	tprints_sysret_string("error", err_short, false);
+	tprints_sysret_string("strerror", err_long, true);
 }
 
 int
@@ -828,8 +830,9 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			tprints_sysret_next("retval");
 			tprint_sysret_pseudo_rval();
 			tprints_sysret_next("return");
-			tprints_string("<unavailable>");
+			trad_prints("<unavailable>");
 			tprint_sysret_end();
+			tprint_event_end();
 			tprint_newline();
 			if (status_filtering)
 				strace_close_memstream(tcp, publish);
@@ -842,6 +845,11 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		return res;
 	}
 	tcp->s_prev_ent = prev_ent;
+
+	if (structured_output && cflag != CFLAG_ONLY_STATS) {
+		printleader(tcp);
+		syscall_arg_begin(tcp);
+	}
 
 	int sys_res = 0;
 	if (cflag != CFLAG_ONLY_STATS) {
@@ -1022,21 +1030,27 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			}
 		}
 	}
-	if ((sys_res & RVAL_STR) && tcp->auxstr)
-		tprints_sysret_string("retstr", tcp->auxstr);
-	print_injected_note(tcp);
-	if (Tflag) {
-		tprints_sysret_next("time");
-		tprint_associated_info_begin();
-		ts_sub(ts, ts, &tcp->etime);
-		PRINT_VAL_D(ts->tv_sec);
-		if (Tflag_width) {
-			tprintf_string(".%0*ld", Tflag_width,
-				       (long) ts->tv_nsec / Tflag_scale);
+	if (structured_output) {
+		tprint_sysret_end();
+		print_injected_note(tcp);
+	} else {
+		if ((sys_res & RVAL_STR) && tcp->auxstr)
+			tprints_sysret_string("retstr", tcp->auxstr, true);
+		print_injected_note(tcp);
+		if (Tflag) {
+			tprints_sysret_next("time");
+			tprint_associated_info_begin();
+			ts_sub(ts, ts, &tcp->etime);
+			PRINT_VAL_D(ts->tv_sec);
+			if (Tflag_width) {
+				tprintf_string(".%0*ld", Tflag_width,
+					       (long) ts->tv_nsec / Tflag_scale);
+			}
+			tprint_associated_info_end();
 		}
-		tprint_associated_info_end();
+		tprint_sysret_end();
 	}
-	tprint_sysret_end();
+	tprint_event_end();
 	tprint_newline();
 	dumpio(tcp);
 	line_ended();

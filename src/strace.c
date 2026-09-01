@@ -3702,7 +3702,8 @@ print_event_exit(struct tcb *tcp)
 		return;
 	}
 
-	if (!output_separately && printing_tcp && printing_tcp != tcp
+	if (!output_separately
+	    && printing_tcp && printing_tcp != tcp
 	    && printing_tcp->curcol != 0 && !printing_tcp->staged_output_data) {
 		set_current_tcp(printing_tcp);
 		tprint_space();
@@ -3713,15 +3714,20 @@ print_event_exit(struct tcb *tcp)
 		set_current_tcp(tcp);
 	}
 
-	print_syscall_resume(tcp);
+	if (structured_output) {
+		printleader(tcp);
+		syscall_arg_begin(tcp);
+	} else {
+		print_syscall_resume(tcp);
 
-	if (!(tcp->sys_func_rval & RVAL_DECODED)) {
-		/*
-		 * The decoder has probably decided to print something
-		 * on exiting syscall which is not going to happen.
-		 */
-		tprint_space();
-		tprints_string("<unfinished ...>");
+		if (!(tcp->sys_func_rval & RVAL_DECODED)) {
+			/*
+			 * The decoder has probably decided to print something
+			 * on exiting syscall which is not going to happen.
+			 */
+			tprint_space();
+			tprints_string("<unfinished ...>");
+		}
 	}
 
 	tprint_arg_end();
@@ -3731,6 +3737,7 @@ print_event_exit(struct tcb *tcp)
 	tprints_sysret_next("retval");
 	tprint_sysret_pseudo_rval();
 	tprint_sysret_end();
+	tprint_event_end();
 	tprint_newline();
 	if (!is_complete_set(status_set, NUMBER_OF_STATUSES)) {
 		bool publish = is_number_in_set(STATUS_UNFINISHED, status_set);

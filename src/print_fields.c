@@ -884,10 +884,19 @@ tprints_sysret_next(const char *name)
 }
 
 void
-tprints_sysret_string(const char *name, const char *str)
+tprints_sysret_string(const char *name, const char *str, bool parentheses)
 {
 	tprints_sysret_next(name);
-	STRACE_PRINTF("(%s)", str);
+
+	if (structured_output) {
+		tprints_object_field_string(name, str);
+		return;
+	}
+
+	if (parentheses)
+		STRACE_PRINTF("(%s)", str);
+	else
+		STRACE_PRINTS(str);
 }
 
 void
