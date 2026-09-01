@@ -677,6 +677,12 @@ syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 	syscall_arg_begin(tcp);
 	int res = raw(tcp) ? printargs(tcp) : tcp_sysent(tcp)->sys_func(tcp);
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+	if (structured_output) {
+		tprint_arg_end();
+		tprint_event_end();
+		tprint_newline();
+		line_ended();
+	}
 	fflush(tcp->outf);
 	return res;
 }
