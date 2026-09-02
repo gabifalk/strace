@@ -262,6 +262,23 @@ struct inject_opts {
 
 # define MAX_ERRNO_VALUE			4095
 
+# if ENABLE_STRUCTURED_OUTPUT
+/*
+ * Per-tracee state for capturing each syscall argument's jsonl-merged
+ * rendering.
+ */
+struct arg_capture {
+	char *entry_buf[MAX_ARGS];	/* buffered entry argument JSON */
+	size_t entry_len[MAX_ARGS];	/* length of each entry argument buffer */
+	char *exit_buf[MAX_ARGS];	/* buffered exit argument JSON */
+	size_t exit_len[MAX_ARGS];	/* length of each exit argument buffer */
+	FILE *memstream;		/* current per-argument memstream */
+	FILE *saved_outf;		/* outf saved while capturing an argument */
+	FILE **outfp;			/* where to redirect output while capturing */
+	bool exiting;			/* fill exit_buf rather than entry_buf */
+};
+# endif
+
 /* Trace Control Block */
 struct tcb {
 	int flags;		/* See below for TCB_ values */
@@ -327,6 +344,12 @@ struct tcb {
 # ifdef ENABLE_STACKTRACE
 	void *unwind_ctx;
 	struct unwind_queue_t *unwind_queue;
+# endif
+
+# if ENABLE_STRUCTURED_OUTPUT
+	/* Per-argument JSONL renderings captured for jsonl-merged mode. */
+	struct arg_capture arg_capture;
+	unsigned int entry_arg_next;	/* arg_index after the entry decoder ran */
 # endif
 
 # define PROC_COMM_LEN 16

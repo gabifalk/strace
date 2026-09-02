@@ -1166,6 +1166,15 @@ droptcb(struct tcb *tcp)
 	for (int p = 0; p < SUPPORTED_PERSONALITIES; ++p)
 		free(tcp->inject_vec[p]);
 
+#if ENABLE_STRUCTURED_OUTPUT
+	/* Release any jsonl-merged captures for a syscall that never exited. */
+	if (structured_output)
+		for (unsigned int i = 0; i < MAX_ARGS; i++) {
+			free(tcp->arg_capture.entry_buf[i]);
+			free(tcp->arg_capture.exit_buf[i]);
+		}
+#endif
+
 	free_tcb_priv_data(tcp);
 
 #ifdef ENABLE_STACKTRACE
