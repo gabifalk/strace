@@ -580,6 +580,7 @@ endif
 
 if ENABLE_STRUCTURED_OUTPUT
 check_PROGRAMS += \
+	getresuid-jsonl \
 	sysinfo-jsonl \
 	# end of structured-output check_PROGRAMS
 endif
@@ -901,6 +902,7 @@ EXTRA_DIST = \
 	gen_tests.in \
 	gen_tests.sh \
 	getresugid.c \
+	getresuid-jsonl.c \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
 	jsonl.h \
