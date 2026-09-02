@@ -578,6 +578,12 @@ STACKTRACE_TESTS =
 STACKTRACE_XFAIL_TESTS =
 endif
 
+if ENABLE_STRUCTURED_OUTPUT
+check_PROGRAMS += \
+	sysinfo-jsonl \
+	# end of structured-output check_PROGRAMS
+endif
+
 DECODER_TESTS = \
 	bpf-success-long-y.test \
 	brk.test \
@@ -897,6 +903,8 @@ EXTRA_DIST = \
 	getresugid.c \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
+	jsonl.h \
+	jsonl.sh \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \
 	kill-on-exit.sh \
@@ -921,6 +929,7 @@ EXTRA_DIST = \
 	sockaddr_xlat.c \
 	sockname.c \
 	stack-fcall.h \
+	sysinfo-jsonl.c \
 	test_fs_xflags.h \
 	time_enjoyment.h \
 	umode_t.c \

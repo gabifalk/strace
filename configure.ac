@@ -348,6 +348,8 @@ case "$enable_structured_output" in
 esac
 AC_DEFINE_UNQUOTED([ENABLE_STRUCTURED_OUTPUT], [$enable_structured_output],
 		   [Define to 1 to enable EXPERIMENTAL structured (JSONL) output.])
+AM_CONDITIONAL([ENABLE_STRUCTURED_OUTPUT],
+	       [test "$enable_structured_output" = 1])
 
 st_WARN_CFLAGS
 st_DEBUG_CFLAGS

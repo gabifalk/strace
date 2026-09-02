@@ -693,8 +693,9 @@ filter_vdso_calls()
 # Usage: run_strace_match_diff [args to run_strace]
 run_strace_match_diff()
 {
-	local sed_cmd prog_args
-	prog_args="../$NAME"
+	local sed_cmd prog prog_args
+	prog="../$NAME"
+	prog_args="$prog"
 	sed_cmd='p'
 
 	args="$*"
@@ -718,8 +719,13 @@ run_strace_match_diff()
 			sed_cmd="/$(sed_slash_escape "$str")/,\$p"
 			continue
 			;;
+		QUIRK:PROG:*)
+			prog="../${arg#QUIRK:PROG:}"
+			prog_args="$prog"
+			continue
+			;;
 		QUIRK:PROG-ARGS:*)
-			prog_args="../$NAME ${arg#QUIRK:PROG-ARGS:}"
+			prog_args="$prog ${arg#QUIRK:PROG-ARGS:}"
 			continue
 			;;
 		END_OF_ARGUMENTS)
@@ -733,7 +739,7 @@ run_strace_match_diff()
 	run_prog $prog_args > /dev/null
 	run_strace "$@" $args > "$EXP"
 	sed -n "$sed_cmd" < "$LOG" > "$OUT"
-	filter_vdso_calls "../$NAME" "$OUT" "$EXP"
+	filter_vdso_calls "$prog" "$OUT" "$EXP"
 	match_diff "$OUT" "$EXP"
 }
 

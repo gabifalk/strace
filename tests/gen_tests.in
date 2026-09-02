@@ -538,6 +538,8 @@ ipc_shm	+ipc.sh -a26
 ipc_shm-Xabbrev	+ipc.sh -Xabbrev -a26
 ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
+jsonl-split-sysinfo	-e trace=sysinfo
+jsonl-split-uname	-e trace=uname
 kcmp	-a22
 kcmp-y	-a22 -y -e trace=kcmp
 kcmp-y--pidns-translation	test_pidns -a22 -y -e trace=kcmp
