@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Check the JSONL header event emitted by strace --jsonl=merged.
+#
+# Copyright (c) 2026 The strace developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+. "${srcdir=.}/init.sh"
+
+[ -n "$(get_config_option ENABLE_STRUCTURED_OUTPUT 1)" ] ||
+	skip_ 'structured output is not compiled in'
+
+# Build the expected "capabilities" array from the same optional-feature
+# list that --version reports, translating each token into an object.
+features="$($STRACE --version | sed -n 's/^Optional features enabled: //p')"
+[ "$features" = '(none)' ] && features=
+
+caps=
+for tok in $features; do
+	case "$tok" in
+	no-*)	obj="{\"name\": \"${tok#no-}\", \"disabled\": true}" ;;
+	*=*)	obj="{\"name\": \"${tok%%=*}\", \"value\": \"${tok#*=}\"}" ;;
+	*)	obj="{\"name\": \"$tok\"}" ;;
+	esac
+	caps="${caps:+$caps, }$obj"
+done
+
+ver="$(get_config_str PACKAGE_VERSION)"
+
+cat > "$EXP" <<__EOF__
+{"event": "header", "version": 1, "strace_version": "$ver", "format": "jsonl-merged", "capabilities": [$caps]}
+__EOF__
+
+run_strace --jsonl=merged -e trace=sysinfo ../sysinfo-jsonl > /dev/null
+head -n 1 < "$LOG" > "$OUT"
+
+match_diff "$OUT" "$EXP"

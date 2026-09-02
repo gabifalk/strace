@@ -538,6 +538,8 @@ ipc_shm	+ipc.sh -a26
 ipc_shm-Xabbrev	+ipc.sh -Xabbrev -a26
 ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
+jsonl-merged-getresuid	-e trace=getresuid
+jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-sysinfo	-e trace=sysinfo
 kcmp	-a22

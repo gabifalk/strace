@@ -584,6 +584,7 @@ check_PROGRAMS += \
 	sysinfo-jsonl \
 	# end of structured-output check_PROGRAMS
 JSONL_TESTS = \
+	strace-J-header-merged.test \
 	strace-J-header-split.test \
 	# end of JSONL_TESTS
 else

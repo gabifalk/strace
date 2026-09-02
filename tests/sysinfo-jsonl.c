@@ -12,6 +12,7 @@
 #include "scno.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/sysinfo.h>
 #include <unistd.h>
 
@@ -47,12 +48,21 @@ jsonl_sysinfo_struct(const struct sysinfo *si)
 }
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	TAIL_ALLOC_OBJECT_CONST_PTR(struct sysinfo, si);
 
 	if (syscall(__NR_sysinfo, si))
 		perror_msg_and_skip("sysinfo");
+
+	if (argc > 1 && !strcmp(argv[1], "merged")) {
+		jsonl_syscall_merged_open("sysinfo", __NR_sysinfo);
+		printf("[null, ");
+		jsonl_sysinfo_struct(si);
+		printf("]], \"return\": {\"type\": \"unsigned\","
+		       " \"raw\": \"0\"}}\n");
+		return 0;
+	}
 
 	jsonl_syscall_open("sysinfo", __NR_sysinfo, true);
 	printf("]}\n");
