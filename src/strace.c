@@ -436,8 +436,8 @@ Output format:\n\
 "
 #if ENABLE_STRUCTURED_OUTPUT
 "\
-  -J, --jsonl\n\
-                 output events as JSONL (JSON Lines)\n\
+  -J, --jsonl[=split|merged]\n\
+                 output events as JSONL (JSON Lines), split by default\n\
 "
 #endif
 #ifdef ENABLE_STACKTRACE
@@ -2512,7 +2512,7 @@ init(int argc, char *argv[])
 			GETOPT_OUTPUT_SEPARATELY },
 		{ "help",		no_argument,	   0, 'h' },
 		{ "instruction-pointer", no_argument,      0, 'i' },
-		{ "jsonl",		no_argument,	   0, 'J' },
+		{ "jsonl",		optional_argument, 0, 'J' },
 		{ "interruptible",	required_argument, 0, 'I' },
 		{ "kill-on-exit",	no_argument,	   0, GETOPT_KILL_ON_EXIT },
 		{ "stack-trace" ,	optional_argument, 0, GETOPT_STACK },
@@ -2660,6 +2660,12 @@ init(int argc, char *argv[])
 			memset(&structured_output_data, 0,
 			       sizeof(structured_output_data));
 			structured_output = &structured_output_data;
+			if (!optarg || !strcmp(optarg, "split"))
+				structured_output->merged = false;
+			else if (!strcmp(optarg, "merged"))
+				structured_output->merged = true;
+			else
+				error_opt_arg(c, lopt, optarg);
 			break;
 #endif
 		case 'k':
@@ -4457,7 +4463,9 @@ main(int argc, char *argv[])
 		STRACE_PRINTS("1");
 		tprint_object_field_end();
 		tprints_object_field_string("strace_version", PACKAGE_VERSION);
-		tprints_object_field_string("format", "jsonl-split");
+		tprints_object_field_string("format",
+					    structured_output->merged
+					    ? "jsonl-merged" : "jsonl-split");
 
 		tprints_object_field_begin("capabilities");
 		tprint_array_begin();

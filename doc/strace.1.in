@@ -59,7 +59,7 @@ strace \- trace system calls and signals
 .OP \-\-seccomp\-bpf
 .if '@ENABLE_STACKTRACE_FALSE@'#' .OP \-\-stack\-trace\-frame\-limit\fR=\fIlimit\fR
 .OP \-\-syscall\-limit=\fIlimit\fR
-.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .OP \-\-jsonl
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .OP \-\-jsonl\fR[=\fIformat\fR]
 .if '@ENABLE_SECONTEXT_FALSE@'#' .OP \-\-secontext\fR[=\fIformat\fR]
 .OP \-\-tips\fR[=\fIformat\fR]
 .BR "" {
@@ -1055,10 +1055,22 @@ Prints the instruction pointer at the time of the system call.
 .if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .TP
 .if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .B \-J
 .if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .TQ
-.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .B \-\-jsonl
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .BR \-\-jsonl\fR[=\fIformat\fR]
 .if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' Outputs trace events in the JSON Lines format
 .if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' (one JSON object per line).
 .if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' This is an experimental feature.
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' The
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .I format
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' argument is one of the following:
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .RS
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .TP 8
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .B split
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' Emits a separate event for each system call entry and exit.
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' This is the default.
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .TQ
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .B merged
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' Emits a single event per system call.
+.if '@ENABLE_STRUCTURED_OUTPUT_FALSE@'#' .RE
 .TP
 .B \-n
 .TQ

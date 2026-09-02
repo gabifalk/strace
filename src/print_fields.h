@@ -63,6 +63,8 @@ struct structured_output_data {
 	unsigned int arg_open_depth;
 	unsigned int arg_index;
 	int arg_emitted_index;
+
+	bool merged;
 };
 
 #  if ENABLE_STRUCTURED_OUTPUT

@@ -4,10 +4,13 @@ Noteworthy changes in release ?.? (????-??-??)
 * Improvements
   * Added initial, highly experimental and incomplete support for the
     long-awaited structured output of trace events in the JSON Lines
-    format, enabled with the -J/--jsonl option in builds configured with
-    --enable-structured-output.  Only a small subset of syscalls is
-    covered so far, and both the range of decoded events and the output
-    format are expected to change substantially in future releases.
+    format, either as split events (a separate event for each system
+    call entry and exit, the default) or merged events (a single event
+    per system call), enabled with the -J/--jsonl option in builds
+    configured with --enable-structured-output.  Only a small subset of
+    syscalls is covered so far, and both the range of decoded events and
+    the output format are expected to change substantially in future
+    releases.
 
 Noteworthy changes in release 7.2 (2026-08-18)
 ==============================================
