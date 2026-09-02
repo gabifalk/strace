@@ -517,11 +517,13 @@ emit_syscall_event_start(const char *name, kernel_ulong_t scno, int entry,
 	}
 	tprint_object_end();
 	tprint_object_field_end();
-	tprints_object_field_begin("entering");
-	STRACE_PRINTS(entry ? JSON_TRUE : JSON_FALSE);
-	tprint_object_field_end();
-	tprints_object_field_begin("args");
-	json_print_array_begin();
+	if (!structured_output->merged) {
+		tprints_object_field_begin("entering");
+		STRACE_PRINTS(entry ? JSON_TRUE : JSON_FALSE);
+		tprint_object_field_end();
+		tprints_object_field_begin("args");
+		json_print_array_begin();
+	}
 	if (entry)
 		structured_output->arg_index = 0;
 	structured_output->arg_open = false;

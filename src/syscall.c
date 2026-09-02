@@ -624,6 +624,66 @@ syscall_entering_decode(struct tcb *tcp)
 	return 1;
 }
 
+#if ENABLE_STRUCTURED_OUTPUT
+static void
+free_merged_arg_bufs(struct tcb *tcp)
+{
+	for (unsigned int i = 0; i < MAX_ARGS; i++) {
+		free(tcp->arg_capture.entry_buf[i]);
+		tcp->arg_capture.entry_buf[i] = NULL;
+		tcp->arg_capture.entry_len[i] = 0;
+		free(tcp->arg_capture.exit_buf[i]);
+		tcp->arg_capture.exit_buf[i] = NULL;
+		tcp->arg_capture.exit_len[i] = 0;
+	}
+}
+
+/*
+ * Emit the "args" field of a jsonl-merged event: one [entry, exit] pair
+ * per argument, with an absent half rendered as null and trailing
+ * [null, null] pairs omitted.
+ */
+static void
+emit_merged_args(struct tcb *tcp)
+{
+	tprints_object_field_begin("args");
+	json_print_array_begin();
+
+	int last = -1;
+	for (int i = MAX_ARGS - 1; i >= 0; i--) {
+		if (tcp->arg_capture.entry_buf[i] || tcp->arg_capture.exit_buf[i]) {
+			last = i;
+			break;
+		}
+	}
+
+	for (int i = 0; i <= last; i++) {
+		tprint_array_element_begin();
+		tprint_array_begin();
+
+		tprint_array_element_begin();
+		if (tcp->arg_capture.entry_buf[i])
+			fputs_unlocked(tcp->arg_capture.entry_buf[i], tcp->outf);
+		else
+			tprints_string(JSON_NULL);
+		tprint_array_element_end();
+
+		tprint_array_element_begin();
+		if (tcp->arg_capture.exit_buf[i])
+			fputs_unlocked(tcp->arg_capture.exit_buf[i], tcp->outf);
+		else
+			tprints_string(JSON_NULL);
+		tprint_array_element_end();
+
+		tprint_array_end();
+		tprint_array_element_end();
+	}
+
+	json_print_array_end();
+	tprint_object_field_end();
+}
+#endif /* ENABLE_STRUCTURED_OUTPUT */
+
 int
 syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 {
@@ -668,6 +728,28 @@ syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 #ifdef ENABLE_STACKTRACE
 	if (stack_trace_mode && !check_exec_syscall(tcp))
 		unwind_tcb_capture(tcp);
+#endif
+
+#if ENABLE_STRUCTURED_OUTPUT
+	if (structured_output && structured_output->merged) {
+		tcp->arg_capture.outfp = &tcp->outf;
+		tcp->arg_capture.exiting = false;
+		structured_capture_begin(&tcp->arg_capture, 0);
+		int res = raw(tcp) ? printargs(tcp)
+				   : tcp_sysent(tcp)->sys_func(tcp);
+		tprint_arg_end();
+		tcp->entry_arg_next = structured_output->arg_index;
+		structured_capture_end();
+		/*
+		 * The decoder bumped curcol while writing to the per-argument
+		 * memory streams, but nothing reached the real output; reset
+		 * it so printleader() on exit does not emit a spurious
+		 * "unfinished" fragment.
+		 */
+		tcp->curcol = 0;
+		fflush(tcp->outf);
+		return res;
+	}
 #endif
 
 	if (!is_complete_set(status_set, NUMBER_OF_STATUSES))
@@ -823,7 +905,16 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		if (cflag && publish)
 			count_syscall(tcp, ts);
 		if (cflag != CFLAG_ONLY_STATS) {
-			tprint_arg_end();
+#if ENABLE_STRUCTURED_OUTPUT
+			if (structured_output && structured_output->merged) {
+				tcp->curcol = 0;
+				printleader(tcp);
+				syscall_arg_begin(tcp);
+				emit_merged_args(tcp);
+				free_merged_arg_bufs(tcp);
+			} else
+#endif
+				tprint_arg_end();
 			tprint_space();
 			tabto();
 			tprint_sysret_begin();
@@ -847,8 +938,23 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 	tcp->s_prev_ent = prev_ent;
 
 	if (structured_output && cflag != CFLAG_ONLY_STATS) {
-		printleader(tcp);
-		syscall_arg_begin(tcp);
+#if ENABLE_STRUCTURED_OUTPUT
+		if (structured_output->merged) {
+			/*
+			 * Continue argument indexing where the entry decoder
+			 * left off, so exit arguments land in their own slots
+			 * rather than overwriting the captured entry ones.
+			 */
+			tcp->arg_capture.outfp = &tcp->outf;
+			tcp->arg_capture.exiting = true;
+			structured_capture_begin(&tcp->arg_capture,
+						 tcp->entry_arg_next);
+		} else
+#endif
+		{
+			printleader(tcp);
+			syscall_arg_begin(tcp);
+		}
 	}
 
 	int sys_res = 0;
@@ -863,6 +969,15 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		}
 	}
 
+#if ENABLE_STRUCTURED_OUTPUT
+	if (structured_output && structured_output->merged
+	    && cflag != CFLAG_ONLY_STATS) {
+		tprint_arg_end();
+		structured_capture_end();
+		tcp->curcol = 0;
+	}
+#endif
+
 	if (!is_complete_set(status_set, NUMBER_OF_STATUSES)) {
 		bool publish = syserror(tcp)
 			       && is_number_in_set(STATUS_FAILED, status_set);
@@ -873,6 +988,10 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		if (!publish) {
 			if (cflag != CFLAG_ONLY_STATS)
 				line_ended();
+#if ENABLE_STRUCTURED_OUTPUT
+			if (structured_output && structured_output->merged)
+				free_merged_arg_bufs(tcp);
+#endif
 #ifdef ENABLE_STACKTRACE
 			if (stack_trace_mode)
 				unwind_tcb_discard(tcp);
@@ -890,7 +1009,16 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			return 0;
 	}
 
-	tprint_arg_end();
+#if ENABLE_STRUCTURED_OUTPUT
+	if (structured_output && structured_output->merged) {
+		printleader(tcp);
+		syscall_arg_begin(tcp);
+		emit_merged_args(tcp);
+		free_merged_arg_bufs(tcp);
+	} else
+#endif
+		tprint_arg_end();
+
 	tprint_space();
 	tabto();
 	tprint_sysret_begin();
