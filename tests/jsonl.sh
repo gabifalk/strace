@@ -21,4 +21,5 @@ case "$fmt" in
 	*)	fail_ "unknown jsonl format: $fmt" ;;
 esac
 
-run_strace_match_diff $jflag "$@" QUIRK:PROG:"$prog"
+run_strace_match_diff $jflag "$@" \
+	QUIRK:PROG:"$prog" QUIRK:SKIP-LEADING-LINES:1

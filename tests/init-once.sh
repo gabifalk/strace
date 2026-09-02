@@ -719,6 +719,11 @@ run_strace_match_diff()
 			sed_cmd="/$(sed_slash_escape "$str")/,\$p"
 			continue
 			;;
+		QUIRK:SKIP-LEADING-LINES:*)
+			str="${arg#QUIRK:SKIP-LEADING-LINES:}"
+			sed_cmd="$((str + 1)),\$p"
+			continue
+			;;
 		QUIRK:PROG:*)
 			prog="../${arg#QUIRK:PROG:}"
 			prog_args="$prog"

@@ -119,6 +119,7 @@ extern void tprint_object_field_end(void);
 extern void json_print_object_field_end(void);
 extern void tprints_object_field_string(const char *field, const char *s);
 extern void json_prints_object_field_string(const char *field, const char *s);
+extern void json_print_object_field_bool(const char *field, bool val);
 extern void tprintv_object_field_int(const char *name, const char *fmt,
 				     va_list args)
 	ATTRIBUTE_FORMAT((printf, 2, 0));

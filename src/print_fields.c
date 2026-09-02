@@ -239,6 +239,17 @@ json_prints_object_field_string(const char *field, const char *s)
 	tprints_object_field_string(field, s);
 }
 
+void
+json_print_object_field_bool(const char *field, bool val)
+{
+	if (!structured_output)
+		return;
+
+	tprints_object_field_begin(field);
+	STRACE_PRINTS(val ? JSON_TRUE : JSON_FALSE);
+	tprint_object_field_end();
+}
+
 ATTRIBUTE_FORMAT((printf, 2, 0))
 void
 tprintv_object_field_int(const char *name, const char *fmt, va_list args)

@@ -237,42 +237,60 @@ strerror(int err_no)
 struct structured_output_data structured_output_data;
 #endif
 
-static void
-print_version(unsigned int verbosity)
-{
-	static const char features[] =
+static const struct optional_feature {
+	const char *name;
+	const char *value;
+	bool disabled;
+} optional_features[] = {
 #ifdef ENABLE_STACKTRACE
-		" stack-trace=" USE_UNWINDER
+	{ "stack-trace", USE_UNWINDER, false },
 #endif
 #ifdef USE_DEMANGLE
-		" stack-demangle"
+	{ "stack-demangle", NULL, false },
 #endif
 #if SUPPORTED_PERSONALITIES > 1
 # if defined HAVE_M32_MPERS
-		" m32-mpers"
+	{ "m32-mpers", NULL, false },
 # else
-		" no-m32-mpers"
+	{ "m32-mpers", NULL, true },
 # endif
 #endif /* SUPPORTED_PERSONALITIES > 1 */
 #if SUPPORTED_PERSONALITIES > 2
 # if defined HAVE_MX32_MPERS
-		" mx32-mpers"
+	{ "mx32-mpers", NULL, false },
 # else
-		" no-mx32-mpers"
+	{ "mx32-mpers", NULL, true },
 # endif
 #endif /* SUPPORTED_PERSONALITIES > 2 */
 #ifdef ENABLE_SECONTEXT
-		" secontext"
+	{ "secontext", NULL, false },
 #endif
-		"";
+	{ NULL, NULL, false }
+};
 
+static void
+print_version(unsigned int verbosity)
+{
 	printf("%s -- version %s\n"
 	       "Copyright (c) 1991-%s The strace developers <%s>.\n"
 	       "This is free software; see the source for copying conditions.  There is NO\n"
 	       "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
 	       PACKAGE_NAME, PACKAGE_VERSION, COPYRIGHT_YEAR, PACKAGE_URL);
-	printf("\nOptional features enabled:%s\n",
-	       features[0] ? features : " (none)");
+	printf("\nOptional features enabled:");
+	if (optional_features[0].name) {
+		for (const struct optional_feature *f = optional_features;
+		     f->name; ++f) {
+			if (f->disabled)
+				printf(" no-%s", f->name);
+			else if (f->value)
+				printf(" %s=%s", f->name, f->value);
+			else
+				printf(" %s", f->name);
+		}
+	} else {
+		printf(" (none)");
+	}
+	printf("\n");
 
 	/* Raise strauss awareness */
 	print_strauss(verbosity);
@@ -4430,6 +4448,38 @@ main(int argc, char *argv[])
 {
 	setlocale(LC_ALL, "");
 	init(argc, argv);
+
+	if (structured_output && nprocs) {
+		set_current_tcp(tcbtab[0]);
+		tprintf_event_start("header");
+
+		tprints_object_field_begin("version");
+		STRACE_PRINTS("1");
+		tprint_object_field_end();
+		tprints_object_field_string("strace_version", PACKAGE_VERSION);
+		tprints_object_field_string("format", "jsonl-split");
+
+		tprints_object_field_begin("capabilities");
+		tprint_array_begin();
+		for (const struct optional_feature *f = optional_features;
+		     f->name; ++f) {
+			tprint_array_element_begin();
+			tprint_object_begin();
+			tprints_object_field_string("name", f->name);
+			if (f->value)
+				tprints_object_field_string("value", f->value);
+			if (f->disabled)
+				json_print_object_field_bool("disabled", true);
+			tprint_object_end();
+			tprint_array_element_end();
+		}
+		tprint_array_end();
+		tprint_object_field_end();
+
+		tprint_event_end();
+		tprint_newline();
+		line_ended();
+	}
 
 	exit_code = !nprocs;
 

@@ -583,6 +583,11 @@ check_PROGRAMS += \
 	getresuid-jsonl \
 	sysinfo-jsonl \
 	# end of structured-output check_PROGRAMS
+JSONL_TESTS = \
+	strace-J-header-split.test \
+	# end of JSONL_TESTS
+else
+JSONL_TESTS =
 endif
 
 DECODER_TESTS = \
@@ -756,7 +761,8 @@ MISC_TESTS = \
 	umovestr_cached.test \
 	# end of MISC_TESTS
 
-TESTS = $(GEN_TESTS) $(DECODER_TESTS) $(MISC_TESTS) $(STACKTRACE_TESTS)
+TESTS = $(GEN_TESTS) $(DECODER_TESTS) $(MISC_TESTS) $(STACKTRACE_TESTS) \
+	$(JSONL_TESTS)
 
 XFAIL_TESTS_ =
 XFAIL_TESTS_m32 = $(STACKTRACE_XFAIL_TESTS)
