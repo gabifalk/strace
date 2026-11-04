@@ -1025,6 +1025,20 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 					PRINT_VAL_U(tcp->u_rval);
 				}
 				break;
+			case RVAL_UID:
+			case RVAL_GID: {
+				unsigned long long id =
+					zero_extend_signed_to_ull(tcp->u_rval);
+#if ANY_WORDSIZE_LESS_THAN_KERNEL_LONG
+				if (current_klongsize < sizeof(tcp->u_rval))
+					id = (unsigned int) id;
+#endif
+				bool uid = (sys_res & RVAL_MASK) == RVAL_UID;
+				json_print_raw_begin(uid ? "uid" : "gid");
+				tprintf_string("%llu", id);
+				json_print_raw_end();
+				break;
+			}
 			case RVAL_FD:
 				/*
 				 * printfd accepts int as fd and it makes

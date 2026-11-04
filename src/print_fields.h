@@ -308,6 +308,20 @@ tprint_sysret_pseudo_rval(void)
 			PRINT_VAL_U(val_);				\
 	} while (0)
 
+# define PRINT_VAL_ID_AS(type_, val_)					\
+	do {								\
+		json_print_raw_begin(type_);				\
+		if (sign_extend_unsigned_to_ll(val_) == -1LL)		\
+			STRACE_PRINTS("-1");				\
+		else							\
+			STRACE_PRINTF("%llu",				\
+				      zero_extend_signed_to_ull(val_));	\
+		json_print_raw_end();					\
+	} while (0)
+
+# define PRINT_VAL_UID(val_)	PRINT_VAL_ID_AS("uid", val_)
+# define PRINT_VAL_GID(val_)	PRINT_VAL_ID_AS("gid", val_)
+
 # define PRINT_FIELD_D(where_, field_)					\
 	do {								\
 		tprints_field_name(#field_);				\
@@ -495,6 +509,18 @@ tprint_sysret_pseudo_rval(void)
 	do {								\
 		tprints_field_name(#field_);				\
 		PRINT_VAL_ID((where_).field_);				\
+	} while (0)
+
+# define PRINT_FIELD_UID(where_, field_)				\
+	do {								\
+		tprints_field_name(#field_);				\
+		PRINT_VAL_UID((where_).field_);				\
+	} while (0)
+
+# define PRINT_FIELD_GID(where_, field_)				\
+	do {								\
+		tprints_field_name(#field_);				\
+		PRINT_VAL_GID((where_).field_);				\
 	} while (0)
 
 # define PRINT_FIELD_UUID(where_, field_)				\
