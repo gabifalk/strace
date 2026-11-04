@@ -102,6 +102,12 @@ json_prints_string_value(const char *s)
 	(void) s;
 }
 
+static inline void
+json_print_object_field_null(const char *field)
+{
+	(void) field;
+}
+
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
@@ -193,6 +199,11 @@ tprint_space(void)
 static inline void
 tprint_null(void)
 {
+	if (structured_output) {
+		json_prints_object_field_string("type", "addr");
+		json_print_object_field_null("raw");
+		return;
+	}
 	STRACE_PRINTS("NULL");
 }
 
@@ -237,6 +248,14 @@ tprint_sysret_pseudo_rval(void)
 	do {								\
 		json_print_raw_begin("hex");				\
 		STRACE_PRINTF("%#0*llx", (int) sizeof(val_) * 2,	\
+			      zero_extend_signed_to_ull(val_));		\
+		json_print_raw_end();					\
+	} while (0)
+
+# define PRINT_VAL_ADDR(val_)						\
+	do {								\
+		json_print_raw_begin("addr");				\
+		STRACE_PRINTF("%#llx",					\
 			      zero_extend_signed_to_ull(val_));		\
 		json_print_raw_end();					\
 	} while (0)
