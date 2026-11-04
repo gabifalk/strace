@@ -300,6 +300,13 @@ tprint_sysret_pseudo_rval(void)
 		json_print_raw_end();					\
 	} while (0)
 
+# define PRINT_VAL_FD(val_)						\
+	do {								\
+		json_print_raw_begin("fd");				\
+		STRACE_PRINTF("%d", (val_));				\
+		json_print_raw_end();					\
+	} while (0)
+
 # define PRINT_VAL_ID(val_)						\
 	do {								\
 		if (sign_extend_unsigned_to_ll(val_) == -1LL)		\
