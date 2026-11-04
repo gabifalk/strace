@@ -436,12 +436,32 @@ print_err(int64_t err, bool negated)
 }
 
 static void
+json_print_errno(unsigned long u_error, const char *sym, const char *str)
+{
+	json_prints_object_field_begin("errno");
+	json_print_object_begin();
+	json_print_raw_begin("errno");
+	tprintf_string("%lu", u_error);
+	json_print_raw_end();
+	if (sym)
+		json_prints_object_field_string("sym", sym);
+	json_prints_object_field_string("strerror", str);
+	json_print_object_end();
+	json_print_object_field_end();
+}
+
+static void
 print_err_ret(kernel_ulong_t ret, unsigned long u_error)
 {
 	const char *u_error_str = err_name(u_error);
 
 	tprints_sysret_next("retval");
 	PRINT_VAL_D(ret);
+
+	if (structured_output) {
+		json_print_errno(u_error, u_error_str, strerror(u_error));
+		return;
+	}
 
 	if (u_error_str) {
 		tprints_sysret_next("error");
@@ -793,9 +813,15 @@ print_injected_note(struct tcb *tcp)
 }
 
 static void
-print_erestart(const char *err_short, const char *err_long)
+print_erestart(unsigned long u_error, const char *err_short,
+	       const char *err_long)
 {
 	tprints_sysret_next("retval");
+	if (structured_output) {
+		json_prints_object_field_string("type", "interrupted");
+		json_print_errno(u_error, err_short, err_long);
+		return;
+	}
 	tprint_sysret_pseudo_rval();
 	tprints_sysret_next("error");
 	tprints_string(err_short);
@@ -923,13 +949,15 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			 * The system call will be restarted with the same arguments
 			 * if SA_RESTART is set; otherwise, it will fail with EINTR.
 			 */
-			print_erestart("ERESTARTSYS", "To be restarted if SA_RESTART is set");
+			print_erestart(tcp->u_error, "ERESTARTSYS",
+				       "To be restarted if SA_RESTART is set");
 			break;
 		case ERESTARTNOINTR:
 			/* Rare. For example, fork() returns this if interrupted.
 			 * SA_RESTART is ignored (assumed set): the restart is unconditional.
 			 */
-			print_erestart("ERESTARTNOINTR", "To be restarted");
+			print_erestart(tcp->u_error, "ERESTARTNOINTR",
+				       "To be restarted");
 			break;
 		case ERESTARTNOHAND:
 			/* pause(), rt_sigsuspend() etc use this code.
@@ -939,7 +967,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			 * after SIG_IGN or SIG_DFL signal it will restart
 			 * (thus the name "restart only if has no handler").
 			 */
-			print_erestart("ERESTARTNOHAND", "To be restarted if no handler");
+			print_erestart(tcp->u_error, "ERESTARTNOHAND",
+				       "To be restarted if no handler");
 			break;
 		case ERESTART_RESTARTBLOCK:
 			/* Syscalls like nanosleep(), poll() which can't be
@@ -953,7 +982,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			 * which in turn saves another such restart block,
 			 * old data is lost and restart becomes impossible)
 			 */
-			print_erestart("ERESTART_RESTARTBLOCK", "Interrupted by signal");
+			print_erestart(tcp->u_error, "ERESTART_RESTARTBLOCK",
+				       "Interrupted by signal");
 			break;
 		default:
 			print_err_ret(tcp->u_rval, tcp->u_error);
