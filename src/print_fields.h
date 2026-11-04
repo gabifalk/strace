@@ -136,6 +136,16 @@ json_print_object_field_bool(const char *field, bool val)
 	(void) val;
 }
 
+static inline void
+json_print_arg_inout(void)
+{
+}
+
+static inline void
+json_print_arg_changed(void)
+{
+}
+
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
@@ -154,7 +164,9 @@ extern void tprint_arg_end(void);
 extern void tprints_arg_name_unconditionally(const char *name);
 extern void tprints_arg_next_name_unconditionally(const char *name);
 extern void tprints_arg_name(const char *name);
+extern void tprints_arg_name_at(unsigned int index, const char *name);
 extern void tprints_arg_next_name(const char *name);
+extern void tprints_arg_next_name_at(unsigned int index, const char *name);
 extern void tprints_fn_begin(const char *name);
 extern void tprint_fn_next(void);
 extern void tprint_fn_end(void);
