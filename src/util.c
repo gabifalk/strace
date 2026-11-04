@@ -2067,6 +2067,8 @@ print_array_ex(struct tcb *const tcp,
 			break;
 		}
 
+		json_print_object_begin();
+
 		if (flags & PAF_PRINT_INDICES) {
 			tprint_array_index_begin();
 
@@ -2085,6 +2087,8 @@ print_array_ex(struct tcb *const tcp,
 
 		if (flags & PAF_PRINT_INDICES)
 			tprint_array_index_end();
+
+		json_print_object_end();
 
 		if (break_needed) {
 			cur = end_addr;
