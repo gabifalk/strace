@@ -118,12 +118,15 @@ print_sockaddr_data_un(struct tcb *tcp, const void *const buf, const int addrlen
 	const int path_len = un_len - SIZEOF_SA_FAMILY;
 
 	tprints_field_name("sun_path");
+	json_prints_object_field_string("type", "sun_path");
 	if (sa_un->sun_path[0]) {
 		print_quoted_string(sa_un->sun_path, path_len + 1,
 				    QUOTE_0_TERMINATED);
 		selinux_printfilecon(tcp, sa_un->sun_path);
 	} else {
-		tprints_string("@");
+		json_print_object_field_bool("abstract", true);
+		if (!structured_output)
+			tprints_string("@");
 		print_quoted_string(sa_un->sun_path + 1, path_len - 1, 0);
 	}
 }
@@ -661,6 +664,7 @@ print_sockaddr_data_raw(const void *const buf, const int addrlen)
 	const int datalen = addrlen - SIZEOF_SA_FAMILY;
 
 	tprints_field_name("sa_data");
+	json_prints_object_field_string("type", "string");
 	print_quoted_string(data, datalen, 0);
 }
 

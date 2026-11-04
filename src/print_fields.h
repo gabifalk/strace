@@ -10,6 +10,7 @@
 # define STRACE_PRINT_FIELDS_H
 
 # include "static_assert.h"
+# include <stdbool.h>
 # include <string.h>
 
 # ifdef IN_STRACE
@@ -126,6 +127,13 @@ static inline void
 json_print_object_field_null(const char *field)
 {
 	(void) field;
+}
+
+static inline void
+json_print_object_field_bool(const char *field, bool val)
+{
+	(void) field;
+	(void) val;
 }
 
 extern void tprint_struct_begin(void);
