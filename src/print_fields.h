@@ -9,6 +9,7 @@
 #ifndef STRACE_PRINT_FIELDS_H
 # define STRACE_PRINT_FIELDS_H
 
+# include "gcc_compat.h"
 # include "static_assert.h"
 # include <stdbool.h>
 # include <string.h>
@@ -121,6 +122,12 @@ static inline void
 json_prints_string_value(const char *s)
 {
 	(void) s;
+}
+
+static inline void ATTRIBUTE_FORMAT((printf, 1, 2))
+json_printf_string_value(const char *fmt, ...)
+{
+	(void) fmt;
 }
 
 static inline void

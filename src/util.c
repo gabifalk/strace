@@ -650,14 +650,6 @@ getfdinode(struct tcb *tcp, int fd)
 	return 0;
 }
 
-static void
-print_fd_info_type_string(const char *type, const char *str)
-{
-	tprint_associated_info_begin();
-	tprints_string(str);
-	tprint_associated_info_end();
-}
-
 /*
  * Emit `len' bytes of `str' as a decimal-integer array in the `field'
  * field of the enclosing structured output object.
@@ -676,6 +668,35 @@ print_bytes_array_field(const char *field, const char *str, unsigned int len)
 	}
 	json_print_array_end();
 	json_print_object_field_end();
+}
+
+/*
+ * Emit a NUL-terminated string `str' as a decimal-integer array in the
+ * `field' field of the enclosing structured output object.
+ */
+static void
+print_cstr_array_field(const char *field, const char *str)
+{
+	print_bytes_array_field(field, str, strlen(str));
+}
+
+static void
+print_fd_info_type_string(const char *type, const char *str)
+{
+	if (structured_output) {
+		json_prints_object_field_begin("fd_info");
+		json_print_object_begin();
+		json_prints_object_field_string("type", type);
+		print_cstr_array_field(strcmp(type, "socket") ? "path"
+							      : "details", str);
+		json_print_object_end();
+		json_print_object_field_end();
+		return;
+	}
+
+	tprint_associated_info_begin();
+	tprints_string(str);
+	tprint_associated_info_end();
 }
 
 static bool
@@ -891,6 +912,54 @@ get_finfo_for_dev(pid_t pid, int fd, const char *path, struct finfo *finfo)
 	return finfo;
 }
 
+static void
+print_dev_in_angle_brackets(const struct finfo *finfo)
+{
+	tprint_associated_info_begin();
+	print_quoted_string_ex(finfo->path, strlen(finfo->path),
+			       QUOTE_OMIT_LEADING_TRAILING_QUOTES,
+			       "<>");
+	tprint_associated_info_begin();
+	tprintf_string("%s %u:%u",
+		       (finfo->type == FINFO_DEV_BLK)? "block" : "char",
+		       finfo->dev.major, finfo->dev.minor);
+	if (is_ptmx(finfo) && finfo->dev.tty_index >= 0)
+		tprintf_string(" @/dev/pts/%d", finfo->dev.tty_index);
+	else if (is_tun(finfo) && finfo->dev.tun_backend[0]) {
+		tprints_string(" @");
+		print_quoted_string_ex(
+			finfo->dev.tun_backend,
+			strlen(finfo->dev.tun_backend),
+			QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
+	}
+	tprint_associated_info_end();
+	tprint_associated_info_end();
+}
+
+static void
+json_print_dev_fd_info(const struct finfo *finfo)
+{
+	json_prints_object_field_begin("fd_info");
+	json_print_object_begin();
+	json_prints_object_field_string("type", "dev");
+	print_cstr_array_field("path", finfo->path);
+	json_prints_object_field_string("kind",
+		finfo->type == FINFO_DEV_BLK ? "block" : "char");
+	json_prints_object_field_begin("major");
+	json_printf_string_value("%u", finfo->dev.major);
+	json_print_object_field_end();
+	json_prints_object_field_begin("minor");
+	json_printf_string_value("%u", finfo->dev.minor);
+	json_print_object_field_end();
+	if (is_ptmx(finfo) && finfo->dev.tty_index >= 0) {
+		json_prints_object_field_begin("tty_index");
+		json_printf_string_value("%d", finfo->dev.tty_index);
+		json_print_object_field_end();
+	}
+	json_print_object_end();
+	json_print_object_field_end();
+}
+
 static bool
 printdev(pid_t pid, int fd, const char *path, const struct finfo *finfo)
 {
@@ -901,25 +970,10 @@ printdev(pid_t pid, int fd, const char *path, const struct finfo *finfo)
 	switch (finfo->type) {
 	case FINFO_DEV_BLK:
 	case FINFO_DEV_CHR:
-		tprint_associated_info_begin();
-		print_quoted_string_ex(finfo->path, strlen(finfo->path),
-				       QUOTE_OMIT_LEADING_TRAILING_QUOTES,
-				       "<>");
-		tprint_associated_info_begin();
-		tprintf_string("%s %u:%u",
-			       (finfo->type == FINFO_DEV_BLK)? "block" : "char",
-			       finfo->dev.major, finfo->dev.minor);
-		if (is_ptmx(finfo) && finfo->dev.tty_index >= 0)
-			tprintf_string(" @/dev/pts/%d", finfo->dev.tty_index);
-		else if (is_tun(finfo) && finfo->dev.tun_backend[0]) {
-			tprints_string(" @");
-			print_quoted_string_ex(
-				finfo->dev.tun_backend,
-				strlen(finfo->dev.tun_backend),
-				QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
-		}
-		tprint_associated_info_end();
-		tprint_associated_info_end();
+		if (structured_output)
+			json_print_dev_fd_info(finfo);
+		else
+			print_dev_in_angle_brackets(finfo);
 		return true;
 	default:
 		break;
@@ -958,7 +1012,20 @@ printpidfd(pid_t pid_of_fd, int fd, const char *path)
 		return false;
 
 	pid_t pid = pidfd_get_pid(pid_of_fd, fd);
-	if (pid > 0) {
+	if (structured_output) {
+		json_prints_object_field_begin("fd_info");
+		json_print_object_begin();
+		json_prints_object_field_string("type", "pidfd");
+		if (pid > 0) {
+			json_prints_object_field_begin("pid");
+			json_printf_string_value("%d", pid);
+			json_print_object_field_end();
+		} else {
+			print_cstr_array_field("path", path);
+		}
+		json_print_object_end();
+		json_print_object_field_end();
+	} else if (pid > 0) {
 		tprint_associated_info_begin();
 		tprints_string("pid:");
 		/*
@@ -994,9 +1061,20 @@ print_fdinfo_sigmask(const char *value, void *data)
 		sigmask[(sigset_size - 1 - i) ^ pos_xor_mask] = byte;
 	}
 
-	tprint_associated_info_begin();
-	tprints_string(sprintsigmask_n("signalfd:", sigmask, sigset_size));
-	tprint_associated_info_end();
+	if (structured_output) {
+		json_prints_object_field_begin("fd_info");
+		json_print_object_begin();
+		json_prints_object_field_string("type", "signalfd");
+		json_prints_object_field_string("sigmask",
+			sprintsigmask_n("", sigmask, sigset_size));
+		json_print_object_end();
+		json_print_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		tprints_string(sprintsigmask_n("signalfd:", sigmask,
+					       sigset_size));
+		tprint_associated_info_end();
+	}
 
 	free(sigmask);
 	return true;
@@ -1087,7 +1165,35 @@ printeventfd(pid_t pid_of_fd, int fd, const char *path)
 
 	scan_fdinfo_lines(pid_of_fd, fd, ARRSZ_PAIR(fdinfo_lines));
 
-	if (efd_counter) {
+	if (structured_output) {
+		json_prints_object_field_begin("fd_info");
+		json_print_object_begin();
+		if (efd_counter) {
+			json_prints_object_field_string("type", "eventfd");
+			json_prints_object_field_begin("count");
+			json_printf_string_value(efd_counter[0] != '0'
+						 ? "0x%s" : "%s", efd_counter);
+			json_print_object_field_end();
+			free(efd_counter);
+			if (efd_id != -1) {
+				json_prints_object_field_begin("id");
+				json_printf_string_value("%u", efd_id);
+				json_print_object_field_end();
+				if (efd_semaphore != -1) {
+					json_prints_object_field_begin(
+						"semaphore");
+					json_printf_string_value("%u",
+								 efd_semaphore);
+					json_print_object_field_end();
+				}
+			}
+		} else {
+			json_prints_object_field_string("type", "path");
+			print_cstr_array_field("path", path);
+		}
+		json_print_object_end();
+		json_print_object_field_end();
+	} else if (efd_counter) {
 		tprint_associated_info_begin();
 		tprint_struct_begin();
 		tprints_field_name("eventfd-count");
@@ -1122,6 +1228,18 @@ print_assoc_type_string(const char *type, const char *str, const size_t len,
 {
 	if (!len)
 		return;
+
+	if (structured_output && !strcmp(type, "fd_info")) {
+		json_prints_object_field_begin(type);
+		json_print_object_begin();
+		json_prints_object_field_string("type", "path");
+		print_bytes_array_field("path", str, len);
+		if (deleted)
+			json_print_object_field_bool("deleted", true);
+		json_print_object_end();
+		json_print_object_field_end();
+		return;
+	}
 
 	tprint_associated_info_begin();
 	print_quoted_string_ex(str, len,
