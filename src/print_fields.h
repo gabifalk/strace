@@ -55,6 +55,18 @@
 
 # endif /* !IN_STRACE */
 
+# define structured_output 0
+
+static inline void
+json_print_raw_begin(const char *type)
+{
+	(void) type;
+}
+
+static inline void
+json_print_raw_end(void)
+{
+}
 
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
@@ -156,21 +168,44 @@ tprint_sysret_pseudo_rval(void)
 	STRACE_PRINTS("?");
 }
 
-# define PRINT_VAL_D(val_)	\
-	STRACE_PRINTF("%lld", sign_extend_unsigned_to_ll(val_))
+# define PRINT_VAL_D(val_)						\
+	do {								\
+		json_print_raw_begin("decimal");			\
+		STRACE_PRINTF("%lld",					\
+			      sign_extend_unsigned_to_ll(val_));	\
+		json_print_raw_end();					\
+	} while (0)
 
-# define PRINT_VAL_U(val_)	\
-	STRACE_PRINTF("%llu", zero_extend_signed_to_ull(val_))
+# define PRINT_VAL_U(val_)						\
+	do {								\
+		json_print_raw_begin("unsigned");			\
+		STRACE_PRINTF("%llu", zero_extend_signed_to_ull(val_)); \
+		json_print_raw_end();					\
+	} while (0)
 
-# define PRINT_VAL_X(val_)	\
-	STRACE_PRINTF("%#llx", zero_extend_signed_to_ull(val_))
+# define PRINT_VAL_X(val_)						\
+	do {								\
+		json_print_raw_begin("hex");				\
+		STRACE_PRINTF("%#llx",					\
+			      zero_extend_signed_to_ull(val_));		\
+		json_print_raw_end();					\
+	} while (0)
 
-# define PRINT_VAL_03O(val_)	\
-	STRACE_PRINTF("%#03llo", zero_extend_signed_to_ull(val_))
+# define PRINT_VAL_03O(val_)						\
+	do {								\
+		json_print_raw_begin("octal");				\
+		STRACE_PRINTF("%#03llo",				\
+			      zero_extend_signed_to_ull(val_));		\
+		json_print_raw_end();					\
+	} while (0)
 
 # define PRINT_VAL_0X(val_)						\
-	STRACE_PRINTF("%#0*llx", (int) sizeof(val_) * 2,		\
-		      zero_extend_signed_to_ull(val_))
+	do {								\
+		json_print_raw_begin("hex");				\
+		STRACE_PRINTF("%#0*llx", (int) sizeof(val_) * 2,	\
+			      zero_extend_signed_to_ull(val_));		\
+		json_print_raw_end();					\
+	} while (0)
 
 # define PRINT_VAL_ID(val_)						\
 	do {								\
