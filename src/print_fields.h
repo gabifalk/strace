@@ -78,6 +78,30 @@ json_print_object_end(void)
 {
 }
 
+static inline void
+json_prints_object_field_begin(const char *field)
+{
+	(void) field;
+}
+
+static inline void
+json_print_object_field_end(void)
+{
+}
+
+static inline void
+json_prints_object_field_string(const char *field, const char *s)
+{
+	(void) field;
+	(void) s;
+}
+
+static inline void
+json_prints_string_value(const char *s)
+{
+	(void) s;
+}
+
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);

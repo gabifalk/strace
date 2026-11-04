@@ -220,6 +220,34 @@ xlookup_le(const struct xlat *xlat, uint64_t *val)
 	return NULL;
 }
 
+static void
+json_print_xlat(uint64_t val, const char *str, const char *dflt,
+		enum xlat_style style)
+{
+	json_prints_object_field_string("type", "const");
+	json_prints_object_field_begin("raw");
+	json_prints_string_value(sprint_xlat_val(val, style));
+	json_print_object_field_end();
+	if (str)
+		json_prints_object_field_string("sym", str);
+	else if (dflt)
+		json_prints_object_field_string("table", dflt);
+}
+
+static int
+json_printxvals_va(uint64_t val, const char *dflt, enum xlat_style style,
+		   const struct xlat *xlat, va_list args)
+{
+	const char *str = NULL;
+
+	for (; xlat && !str; xlat = va_arg(args, const struct xlat *))
+		str = xlookup(xlat, val);
+
+	json_print_xlat(val, str, dflt, style);
+
+	return !!str;
+}
+
 /**
  * Print an entry in struct xlat table, if it is there.
  *
@@ -237,6 +265,16 @@ printxvals_ex(const uint64_t val, const char *dflt, enum xlat_style style,
 	      const struct xlat *xlat, ...)
 {
 	style = get_xlat_style(style);
+
+	if (structured_output) {
+		va_list args;
+
+		va_start(args, xlat);
+		int rc = json_printxvals_va(val, dflt, style, xlat, args);
+		va_end(args);
+
+		return rc;
+	}
 
 	if (xlat_verbose(style) == XLAT_STYLE_RAW) {
 		print_xlat_val(val, style);
@@ -525,6 +563,12 @@ print_xlat_ex(const uint64_t val, const char *str, uint32_t style)
 {
 	bool default_str = style & PXF_DEFAULT_STR;
 	style = get_xlat_style(style);
+
+	if (structured_output) {
+		json_print_xlat(val, default_str ? NULL : str,
+				default_str ? str : NULL, style);
+		return;
+	}
 
 	switch (xlat_verbose(style)) {
 	case XLAT_STYLE_ABBREV:
