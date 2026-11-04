@@ -12,6 +12,7 @@ void
 tprints_field_name(const char *name)
 {
 	STRACE_PRINTF("%s=", name);
+	json_print_object_begin();
 }
 
 void

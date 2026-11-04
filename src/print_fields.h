@@ -68,6 +68,16 @@ json_print_raw_end(void)
 {
 }
 
+static inline void
+json_print_object_begin(void)
+{
+}
+
+static inline void
+json_print_object_end(void)
+{
+}
+
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
