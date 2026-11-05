@@ -285,6 +285,10 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-geteuid \
 	jsonl-getgid \
 	jsonl-getresuid \
+	jsonl-mseal \
+	jsonl-pause \
+	jsonl-sched_get_priority_mxx \
+	jsonl-seccomp_get_notif_sizes \
 	jsonl-sysinfo \
 	jsonl-vfork-f \
 	kcmp-y--pidns-translation \
@@ -929,6 +933,10 @@ EXTRA_DIST = \
 	jsonl-geteuid.c \
 	jsonl-getgid.c \
 	jsonl-getresuid.c \
+	jsonl-mseal.c \
+	jsonl-pause.c \
+	jsonl-sched_get_priority_mxx.c \
+	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-sysinfo.c \
 	jsonl-vfork-f.c \
 	jsonl.h \

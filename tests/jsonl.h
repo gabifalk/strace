@@ -10,8 +10,10 @@
 #ifndef STRACE_TESTS_JSONL_H
 # define STRACE_TESTS_JSONL_H
 
+# include <errno.h>
 # include <stdbool.h>
 # include <stdio.h>
+# include <string.h>
 # include <unistd.h>
 
 /*
@@ -90,6 +92,24 @@ static inline void
 jsonl_bytes(const char *str)
 {
 	jsonl_bytes_n(str, strlen(str));
+}
+
+/*
+ * The "return" field of a syscall event: an errno object for rc == -1,
+ * otherwise a value of the given type.
+ */
+static inline void
+jsonl_return(const char *type, long rc)
+{
+	if (rc == -1) {
+		printf("\"return\": {\"type\": \"decimal\", \"raw\": \"-1\","
+		       " \"errno\": {\"type\": \"errno\", \"raw\": \"%d\","
+		       " \"sym\": \"%s\", \"strerror\": \"%s\"}}",
+		       errno, errno2name(errno), strerror(errno));
+	} else {
+		printf("\"return\": {\"type\": \"%s\", \"raw\": \"%ld\"}",
+		       type, rc);
+	}
 }
 
 /* The "exit" event of the current process. */
