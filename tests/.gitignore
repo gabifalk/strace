@@ -542,9 +542,11 @@ jsonl-getegid
 jsonl-geteuid
 jsonl-getgid
 jsonl-getresuid
+jsonl-getsockname
 jsonl-mseal
 jsonl-pause
 jsonl-prctl-no-args
+jsonl-prctl-tsc
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
 jsonl-status-none
