@@ -555,6 +555,8 @@ ipc_shm-Xabbrev	+ipc.sh -Xabbrev -a26
 ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
 jsonl-merged-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
+jsonl-merged-access	-e trace=access --trace-path=strace_enoent_xyz
+jsonl-merged-close_range	-e trace=close_range
 jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
@@ -563,6 +565,8 @@ jsonl-merged-geteuid	-e trace=geteuid
 jsonl-merged-getgid	-e trace=getgid
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-getsockname	-e trace=getsockname
+jsonl-merged-memfd_secret	-e trace=memfd_secret
+jsonl-merged-mlockall	-e trace=mlockall
 jsonl-merged-mseal	-e trace=mseal
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
@@ -574,6 +578,8 @@ jsonl-merged-status-none	-e trace=all --status=none
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
+jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
+jsonl-split-close_range	-e trace=close_range
 jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
@@ -582,6 +588,8 @@ jsonl-split-geteuid	-e trace=geteuid
 jsonl-split-getgid	-e trace=getgid
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-getsockname	-e trace=getsockname
+jsonl-split-memfd_secret	-e trace=memfd_secret
+jsonl-split-mlockall	-e trace=mlockall
 jsonl-split-mseal	-e trace=mseal
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd

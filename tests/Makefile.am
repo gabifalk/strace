@@ -281,6 +281,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	ip_local_port_range-success-Xverbose \
 	is_linux_mips_n64 \
 	jsonl-accept-f \
+	jsonl-access \
+	jsonl-close_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
 	jsonl-fork-f \
@@ -289,6 +291,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getgid \
 	jsonl-getresuid \
 	jsonl-getsockname \
+	jsonl-memfd_secret \
+	jsonl-mlockall \
 	jsonl-mseal \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
@@ -937,6 +941,8 @@ EXTRA_DIST = \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
 	jsonl-accept-f.c \
+	jsonl-access.c \
+	jsonl-close_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
 	jsonl-fork-f.c \
@@ -945,6 +951,8 @@ EXTRA_DIST = \
 	jsonl-getgid.c \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
+	jsonl-memfd_secret.c \
+	jsonl-mlockall.c \
 	jsonl-mseal.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
