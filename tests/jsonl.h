@@ -92,4 +92,13 @@ jsonl_bytes(const char *str)
 	jsonl_bytes_n(str, strlen(str));
 }
 
+/* The "exit" event of the current process. */
+static inline void
+jsonl_exit_event(int status)
+{
+	printf("{\"event\": \"exit\", "
+	       "\"pid\": {\"type\": \"tid\", \"raw\": \"%d\"}, \"status\": %d}\n",
+	       (int) getpid(), status);
+}
+
 #endif /* !STRACE_TESTS_JSONL_H */

@@ -27,6 +27,7 @@ main(int argc, char *argv[])
 		jsonl_syscall_merged_open("geteuid", __NR_geteuid);
 		printf("], \"return\": {\"type\": \"uid\", \"raw\": \"%lu\"}}\n",
 		       rc);
+		jsonl_exit_event(0);
 		return 0;
 	}
 
@@ -34,6 +35,7 @@ main(int argc, char *argv[])
 	printf("]}\n");
 	jsonl_syscall_open("geteuid", __NR_geteuid, false);
 	printf("], \"return\": {\"type\": \"uid\", \"raw\": \"%lu\"}}\n", rc);
+	jsonl_exit_event(0);
 	return 0;
 }
 

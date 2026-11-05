@@ -68,5 +68,6 @@ main(int argc, char *argv[])
 	jsonl_arg_close(side);
 	printf("], \"return\": {\"type\": \"unsigned\","
 	       " \"raw\": \"0\"}}\n");
+	jsonl_exit_event(0);
 	return 0;
 }

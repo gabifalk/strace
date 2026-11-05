@@ -3674,13 +3674,20 @@ print_exited(struct tcb *tcp, const int pid, int status)
 		strace_child = 0;
 	}
 
-	if (structured_output)
-		return;
-
 	if (cflag != CFLAG_ONLY_STATS &&
 	    !is_number_in_set(QUIET_EXIT, quiet_set)) {
 		printleader(tcp);
-		tprintf_string("+++ exited with %d +++", WEXITSTATUS(status));
+		if (structured_output) {
+			tprintf_event_start("exit");
+			tprints_event_pid(tcp->pid, tcp->comm);
+			tprints_object_field_begin("status");
+			tprintf_string("%d", WEXITSTATUS(status));
+			tprint_object_field_end();
+			tprint_event_end();
+		} else {
+			tprintf_string("+++ exited with %d +++",
+				       WEXITSTATUS(status));
+		}
 		tprint_newline();
 		line_ended();
 	}
