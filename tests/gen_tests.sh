@@ -57,6 +57,17 @@ while read -r name arg0 args; do {
 	# A generated test may be sourced while another build regenerates it.
 	# Replace the file atomically so the reader keeps its original contents.
 	tmp_output="$output.$$"
+	# A jsonl-<fmt>-<syscall> name selects a JSONL test; the shared
+	# jsonl.sh body derives the format and the program from the name.
+	case "$name" in
+	jsonl-*)
+		cat <<-EOF
+		$hdr
+		set -- $arg0 $args
+		. "\${srcdir=.}/jsonl.sh"
+		EOF
+		;;
+	*)
 	case "$arg0" in
 		+*)
 		cat <<-EOF
@@ -102,6 +113,8 @@ while read -r name arg0 args; do {
 		. "\${srcdir=.}/init.sh"
 		$arg0 $args
 		EOF
+		;;
+	esac
 		;;
 	esac > "$tmp_output"
 
