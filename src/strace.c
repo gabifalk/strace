@@ -442,8 +442,8 @@ Output format:\n\
                  print instruction pointer at time of syscall\n\
 "
 "\
-  -J, --jsonl\n\
-                 output events as JSONL (JSON Lines)\n\
+  -J, --jsonl[=split|merged]\n\
+                 output events as JSONL (JSON Lines), split by default\n\
 "
 #ifdef ENABLE_STACKTRACE
 "\
@@ -1159,6 +1159,13 @@ droptcb(struct tcb *tcp)
 
 	for (int p = 0; p < SUPPORTED_PERSONALITIES; ++p)
 		free(tcp->inject_vec[p]);
+
+	/* Release any jsonl-merged captures for a syscall that never exited. */
+	if (structured_output)
+		for (unsigned int i = 0; i < MAX_ARGS; i++) {
+			free(tcp->arg_capture.entry_buf[i]);
+			free(tcp->arg_capture.exit_buf[i]);
+		}
 
 	free_tcb_priv_data(tcp);
 
@@ -2517,7 +2524,7 @@ init(int argc, char *argv[])
 		{ "help",		no_argument,	   0, 'h' },
 		{ "instruction-pointer", no_argument,      0, 'i' },
 		{ "interruptible",	required_argument, 0, 'I' },
-		{ "jsonl",		no_argument,	   0, 'J' },
+		{ "jsonl",		optional_argument, 0, 'J' },
 		{ "kill-on-exit",	no_argument,	   0, GETOPT_KILL_ON_EXIT },
 		{ "stack-trace" ,	optional_argument, 0, GETOPT_STACK },
 		{ "stack-traces" ,	optional_argument, 0, GETOPT_STACK },
@@ -2664,6 +2671,12 @@ init(int argc, char *argv[])
 			memset(&structured_output_data, 0,
 			       sizeof(structured_output_data));
 			structured_output = &structured_output_data;
+			if (!optarg || !strcmp(optarg, "split"))
+				structured_output->merged = false;
+			else if (!strcmp(optarg, "merged"))
+				structured_output->merged = true;
+			else
+				error_opt_arg(c, lopt, optarg);
 			break;
 		case 'k':
 #ifdef ENABLE_STACKTRACE
@@ -3754,8 +3767,15 @@ print_event_exit(struct tcb *tcp)
 	}
 
 	if (structured_output) {
+		if (structured_output->merged
+		    && !is_complete_set(status_set, NUMBER_OF_STATUSES))
+			strace_open_memstream(tcp);
 		printleader(tcp);
 		syscall_arg_begin(tcp);
+		if (structured_output->merged) {
+			emit_merged_args(tcp);
+			free_merged_arg_bufs(tcp);
+		}
 	} else {
 		print_syscall_resume(tcp);
 
@@ -3769,7 +3789,8 @@ print_event_exit(struct tcb *tcp)
 		}
 	}
 
-	tprint_arg_end();
+	if (!structured_output || !structured_output->merged)
+		tprint_arg_end();
 	tprint_space();
 	if (!structured_output)
 		tabto();
@@ -4479,7 +4500,9 @@ main(int argc, char *argv[])
 		STRACE_PRINTS("1");
 		tprint_object_field_end();
 		tprints_object_field_string("strace_version", PACKAGE_VERSION);
-		tprints_object_field_string("format", "jsonl-split");
+		tprints_object_field_string("format",
+					    structured_output->merged
+					    ? "jsonl-merged" : "jsonl-split");
 
 		tprints_object_field_begin("capabilities");
 		json_print_array_begin();
