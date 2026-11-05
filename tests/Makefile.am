@@ -280,6 +280,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	ip_local_port_range-success-Xraw \
 	ip_local_port_range-success-Xverbose \
 	is_linux_mips_n64 \
+	jsonl-accept-f \
 	jsonl-fork-f \
 	jsonl-getegid \
 	jsonl-geteuid \
@@ -932,6 +933,7 @@ EXTRA_DIST = \
 	getresugid.c \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
+	jsonl-accept-f.c \
 	jsonl-fork-f.c \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \
