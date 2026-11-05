@@ -538,6 +538,8 @@ ipc_shm-Xraw
 ipc_shm-Xverbose
 is_linux_mips_n64
 jsonl-accept-f
+jsonl-dup-y
+jsonl-dup-yy
 jsonl-fork-f
 jsonl-getegid
 jsonl-geteuid
@@ -546,6 +548,7 @@ jsonl-getresuid
 jsonl-getsockname
 jsonl-mseal
 jsonl-pause
+jsonl-pidfd_getfd-yy
 jsonl-prctl-no-args
 jsonl-prctl-tsc
 jsonl-sched_get_priority_mxx
