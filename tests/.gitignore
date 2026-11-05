@@ -544,6 +544,7 @@ jsonl-getgid
 jsonl-getresuid
 jsonl-mseal
 jsonl-pause
+jsonl-prctl-no-args
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
 jsonl-sysinfo
