@@ -11,7 +11,9 @@
 
 # include "gcc_compat.h"
 # include "static_assert.h"
+# include <stdarg.h>
 # include <stdbool.h>
+# include <stdint.h>
 # include <string.h>
 
 # ifdef IN_STRACE
@@ -20,6 +22,7 @@
 
 #  define STRACE_PRINTS(s_) tprints_string(s_)
 #  define STRACE_PRINT_COLOR_SEQ(kind_) tprint_color_seq(kind_)
+#  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
 
 /*
  * The printf-like function to use in header files
@@ -27,11 +30,49 @@
  */
 #  define STRACE_PRINTF tprintf_string
 
+#  define JSON_STACK_MAX 64
+
+enum json_container_type {
+	JSON_CONTAINER_OBJECT = 0,
+	JSON_CONTAINER_ARRAY,
+};
+
+struct json_stack_frame {
+	enum json_container_type type;
+	bool needs_sep;
+	bool struct_fields;
+};
+
+struct json_stack {
+	unsigned int depth;
+	struct json_stack_frame stack[JSON_STACK_MAX];
+};
+
+#  define JSON_OBJ_BEGIN "{"
+#  define JSON_OBJ_END "}"
+#  define JSON_ARR_BEGIN "["
+#  define JSON_ARR_END "]"
+#  define JSON_SEP ", "
+#  define JSON_FIELD_SEP ": "
+#  define JSON_NULL "null"
+#  define JSON_TRUE "true"
+#  define JSON_FALSE "false"
+
+struct structured_output_data {
+	struct json_stack state;
+	bool arg_open;
+	unsigned int arg_open_depth;
+	unsigned int arg_index;
+};
+
+extern struct structured_output_data *structured_output;
+
 # else /* !IN_STRACE */
 
 #  include <stdio.h>
 
 #  define STRACE_PRINTS(s_) fputs((s_), stdout)
+#  define STRACE_PRINTV(fmt_, args_) vprintf(fmt_, args_)
 
 /*
  * The printf-like function to use in header files
@@ -57,7 +98,26 @@
 
 # endif /* !IN_STRACE */
 
-# define structured_output 0
+# ifdef IN_STRACE
+
+extern void json_print_raw_begin(const char *type);
+extern void json_print_raw_end(void);
+extern void json_print_object_begin(void);
+extern void json_print_object_end(void);
+extern void json_prints_object_field_begin(const char *field);
+extern void json_print_object_field_end(void);
+extern void json_prints_object_field_string(const char *field, const char *s);
+extern void json_prints_string_value(const char *s);
+extern void json_printf_string_value(const char *fmt, ...)
+	ATTRIBUTE_FORMAT((printf, 1, 2));
+extern void json_print_object_field_null(const char *field);
+extern void json_print_object_field_bool(const char *field, bool val);
+extern void json_print_arg_inout(void);
+extern void json_print_arg_changed(void);
+
+# else /* !IN_STRACE */
+
+#  define structured_output 0
 
 static inline void
 json_print_raw_begin(const char *type)
@@ -88,26 +148,6 @@ json_prints_object_field_begin(const char *field)
 
 static inline void
 json_print_object_field_end(void)
-{
-}
-
-static inline void
-json_print_array_begin(void)
-{
-}
-
-static inline void
-json_print_array_element_begin(void)
-{
-}
-
-static inline void
-json_print_array_element_end(void)
-{
-}
-
-static inline void
-json_print_array_end(void)
 {
 }
 
@@ -153,6 +193,20 @@ json_print_arg_changed(void)
 {
 }
 
+# endif /* !IN_STRACE */
+
+extern void json_print_quoted_string_begin(void);
+extern void json_print_quoted_string_end(void);
+extern void tprints_string_value(const char *str);
+extern void tprintv_string_value(const char *fmt, va_list args)
+	ATTRIBUTE_FORMAT((printf, 1, 0));
+extern void tprintf_string_value(const char *fmt, ...)
+	ATTRIBUTE_FORMAT((printf, 1, 2));
+extern void tprint_object_begin(void);
+extern void tprints_object_field_begin(const char *field);
+extern void tprint_object_field_end(void);
+extern void tprints_object_field_string(const char *field, const char *s);
+extern void tprint_object_end(void);
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
@@ -160,12 +214,18 @@ extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
 extern void tprint_union_end(void);
 extern void tprint_array_begin(void);
+extern void json_print_array_begin(void);
+extern void json_print_array_element_begin(void);
+extern void json_print_array_element_end(void);
 extern void tprint_array_next(void);
 extern void tprint_array_end(void);
+extern void json_print_array_end(void);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);
 extern void tprints_syscall_name(const char *name);
-extern void tprints_arg_begin(const char *name);
+extern void tprints_event_pid(int pid, const char *comm);
+extern void tprints_arg_begin(const char *name, unsigned long long scno,
+			      bool entering, int pid, const char *comm);
 extern void tprint_arg_next(void);
 extern void tprint_arg_end(void);
 extern void tprints_arg_name_unconditionally(const char *name);
@@ -197,8 +257,13 @@ extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
-extern void tprints_sysret_string(const char *name, const char *str);
+extern void tprints_sysret_string(const char *name, const char *str,
+				  bool parentheses);
 extern void tprint_sysret_end(void);
+extern void trad_prints(const char *s);
+
+extern void tprintf_event_start(const char *type);
+extern void tprint_event_end(void);
 
 static inline void
 tprint_array_index_end(void)
@@ -240,6 +305,9 @@ tprint_plus(void)
 static inline void
 tprint_space(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINTS(" ");
 }
 
@@ -257,6 +325,10 @@ tprint_null(void)
 static inline void
 tprint_sysret_pseudo_rval(void)
 {
+	if (structured_output) {
+		json_prints_object_field_string("type", "unavailable");
+		return;
+	}
 	STRACE_PRINTS("?");
 }
 

@@ -239,42 +239,62 @@ strerror(int err_no)
 
 #endif /* HAVE_STERRROR */
 
-static void
-print_version(unsigned int verbosity)
-{
-	static const char features[] =
+struct structured_output_data structured_output_data;
+
+static const struct optional_feature {
+	const char *name;
+	const char *value;
+	bool disabled;
+} optional_features[] = {
 #ifdef ENABLE_STACKTRACE
-		" stack-trace=" USE_UNWINDER
+	{ "stack-trace", USE_UNWINDER, false },
 #endif
 #ifdef USE_DEMANGLE
-		" stack-demangle"
+	{ "stack-demangle", NULL, false },
 #endif
 #if SUPPORTED_PERSONALITIES > 1
 # if defined HAVE_M32_MPERS
-		" m32-mpers"
+	{ "m32-mpers", NULL, false },
 # else
-		" no-m32-mpers"
+	{ "m32-mpers", NULL, true },
 # endif
 #endif /* SUPPORTED_PERSONALITIES > 1 */
 #if SUPPORTED_PERSONALITIES > 2
 # if defined HAVE_MX32_MPERS
-		" mx32-mpers"
+	{ "mx32-mpers", NULL, false },
 # else
-		" no-mx32-mpers"
+	{ "mx32-mpers", NULL, true },
 # endif
 #endif /* SUPPORTED_PERSONALITIES > 2 */
 #ifdef ENABLE_SECONTEXT
-		" secontext"
+	{ "secontext", NULL, false },
 #endif
-		"";
+	{ NULL, NULL, false }
+};
 
+static void
+print_version(unsigned int verbosity)
+{
 	printf("%s -- version %s\n"
 	       "Copyright (c) 1991-%s The strace developers <%s>.\n"
 	       "This is free software; see the source for copying conditions.  There is NO\n"
 	       "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
 	       PACKAGE_NAME, PACKAGE_VERSION, COPYRIGHT_YEAR, PACKAGE_URL);
-	printf("\nOptional features enabled:%s\n",
-	       features[0] ? features : " (none)");
+	printf("\nOptional features enabled:");
+	if (optional_features[0].name) {
+		for (const struct optional_feature *f = optional_features;
+		     f->name; ++f) {
+			if (f->disabled)
+				printf(" no-%s", f->name);
+			else if (f->value)
+				printf(" %s=%s", f->name, f->value);
+			else
+				printf(" %s", f->name);
+		}
+	} else {
+		printf(" (none)");
+	}
+	printf("\n");
 
 	/* Raise strauss awareness */
 	print_strauss(verbosity);
@@ -420,6 +440,10 @@ Output format:\n\
 "\
   -i, --instruction-pointer\n\
                  print instruction pointer at time of syscall\n\
+"
+"\
+  -J, --jsonl\n\
+                 output events as JSONL (JSON Lines)\n\
 "
 #ifdef ENABLE_STACKTRACE
 "\
@@ -761,8 +785,7 @@ outf_perror(const struct tcb * const tcp)
 		perror_msg("%s", outfname);
 }
 
-ATTRIBUTE_FORMAT((printf, 1, 0))
-static void
+void
 tvprintf(const char *const fmt, va_list args)
 {
 	if (current_tcp) {
@@ -894,7 +917,8 @@ printleader(struct tcb *tcp)
 	set_current_tcp(tcp);
 	current_tcp->curcol = 0;
 
-	if (print_pid_pfx || (nprocs > 1 && !outfname)) {
+	if (!structured_output &&
+	    (print_pid_pfx || (nprocs > 1 && !outfname))) {
 		size_t len = is_number_in_set(DECODE_PID_COMM, decode_pid_set)
 			     ? strlen(tcp->comm) : 0;
 
@@ -917,7 +941,7 @@ printleader(struct tcb *tcp)
 
 	selinux_printpidcon(tcp);
 
-	if (tflag_format) {
+	if (!structured_output && tflag_format) {
 		struct timespec ts;
 		clock_gettime(CLOCK_REALTIME, &ts);
 
@@ -936,7 +960,7 @@ printleader(struct tcb *tcp)
 			tprintf_string("%s ", str);
 	}
 
-	if (rflag) {
+	if (!structured_output && rflag) {
 		struct timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 
@@ -957,10 +981,10 @@ printleader(struct tcb *tcp)
 		tprints_string(tflag_format ? ") " : " ");
 	}
 
-	if (nflag)
+	if (!structured_output && nflag)
 		print_syscall_number(tcp);
 
-	if (iflag)
+	if (!structured_output && iflag)
 		print_instruction_pointer(tcp);
 }
 
@@ -2439,7 +2463,7 @@ init(int argc, char *argv[])
 #endif
 
 	static const char optstring[] =
-		"+a:Ab:cCdDe:E:fFhiI:knNo:O:p:P:qrs:S:tTu:U:vVwxX:yYzZ";
+		"+a:Ab:cCdDe:E:fFhiI:JknNo:O:p:P:qrs:S:tTu:U:vVwxX:yYzZ";
 
 	enum {
 		GETOPT_SECCOMP = 0x100,
@@ -2493,6 +2517,7 @@ init(int argc, char *argv[])
 		{ "help",		no_argument,	   0, 'h' },
 		{ "instruction-pointer", no_argument,      0, 'i' },
 		{ "interruptible",	required_argument, 0, 'I' },
+		{ "jsonl",		no_argument,	   0, 'J' },
 		{ "kill-on-exit",	no_argument,	   0, GETOPT_KILL_ON_EXIT },
 		{ "stack-trace" ,	optional_argument, 0, GETOPT_STACK },
 		{ "stack-traces" ,	optional_argument, 0, GETOPT_STACK },
@@ -2634,6 +2659,11 @@ init(int argc, char *argv[])
 			opt_intr = parse_interruptible_arg(optarg);
 			if (opt_intr <= 0)
 				error_opt_arg(c, lopt, optarg);
+			break;
+		case 'J':
+			memset(&structured_output_data, 0,
+			       sizeof(structured_output_data));
+			structured_output = &structured_output_data;
 			break;
 		case 'k':
 #ifdef ENABLE_STACKTRACE
@@ -3225,6 +3255,9 @@ init(int argc, char *argv[])
 		setvbuf(shared_log, NULL, _IOLBF, 0);
 	}
 
+	if (structured_output)
+		color_mode = COLOR_NEVER;
+
 	color_init(fileno(shared_log), output_separately);
 	hyperlink_init(fileno(shared_log), output_separately);
 
@@ -3606,6 +3639,9 @@ print_signalled(struct tcb *tcp, const int pid, int status)
 		strace_child = 0;
 	}
 
+	if (structured_output)
+		return;
+
 	if (cflag != CFLAG_ONLY_STATS
 	    && is_number_in_set(WTERMSIG(status), signal_set)) {
 		printleader(tcp);
@@ -3625,6 +3661,9 @@ print_exited(struct tcb *tcp, const int pid, int status)
 		strace_child = 0;
 	}
 
+	if (structured_output)
+		return;
+
 	if (cflag != CFLAG_ONLY_STATS &&
 	    !is_number_in_set(QUIET_EXIT, quiet_set)) {
 		printleader(tcp);
@@ -3637,6 +3676,9 @@ print_exited(struct tcb *tcp, const int pid, int status)
 static void
 print_stopped(struct tcb *tcp, const siginfo_t *si, const unsigned int sig)
 {
+	if (structured_output)
+		return;
+
 	if (cflag != CFLAG_ONLY_STATS
 	    && !hide_log(tcp)
 	    && is_number_in_set(sig, signal_set)) {
@@ -3699,7 +3741,8 @@ print_event_exit(struct tcb *tcp)
 		return;
 	}
 
-	if (!output_separately && printing_tcp && printing_tcp != tcp
+	if (!output_separately
+	    && printing_tcp && printing_tcp != tcp
 	    && printing_tcp->curcol != 0 && !printing_tcp->staged_output_data) {
 		set_current_tcp(printing_tcp);
 		tprint_space();
@@ -3710,24 +3753,31 @@ print_event_exit(struct tcb *tcp)
 		set_current_tcp(tcp);
 	}
 
-	print_syscall_resume(tcp);
+	if (structured_output) {
+		printleader(tcp);
+		syscall_arg_begin(tcp);
+	} else {
+		print_syscall_resume(tcp);
 
-	if (!(tcp->sys_func_rval & RVAL_DECODED)) {
-		/*
-		 * The decoder has probably decided to print something
-		 * on exiting syscall which is not going to happen.
-		 */
-		tprint_space();
-		tprints_string("<unfinished ...>");
+		if (!(tcp->sys_func_rval & RVAL_DECODED)) {
+			/*
+			 * The decoder has probably decided to print something
+			 * on exiting syscall which is not going to happen.
+			 */
+			tprint_space();
+			tprints_string("<unfinished ...>");
+		}
 	}
 
 	tprint_arg_end();
 	tprint_space();
-	tabto();
+	if (!structured_output)
+		tabto();
 	tprint_sysret_begin();
 	tprints_sysret_next("retval");
 	tprint_sysret_pseudo_rval();
 	tprint_sysret_end();
+	tprint_event_end();
 	tprint_newline();
 	if (!is_complete_set(status_set, NUMBER_OF_STATUSES)) {
 		bool publish = is_number_in_set(STATUS_UNFINISHED, status_set);
@@ -4420,6 +4470,38 @@ main(int argc, char *argv[])
 {
 	setlocale(LC_ALL, "");
 	init(argc, argv);
+
+	if (structured_output && nprocs) {
+		set_current_tcp(tcbtab[0]);
+		tprintf_event_start("header");
+
+		tprints_object_field_begin("version");
+		STRACE_PRINTS("1");
+		tprint_object_field_end();
+		tprints_object_field_string("strace_version", PACKAGE_VERSION);
+		tprints_object_field_string("format", "jsonl-split");
+
+		tprints_object_field_begin("capabilities");
+		json_print_array_begin();
+		for (const struct optional_feature *f = optional_features;
+		     f->name; ++f) {
+			json_print_array_element_begin();
+			tprint_object_begin();
+			tprints_object_field_string("name", f->name);
+			if (f->value)
+				tprints_object_field_string("value", f->value);
+			if (f->disabled)
+				json_print_object_field_bool("disabled", true);
+			tprint_object_end();
+			json_print_array_element_end();
+		}
+		json_print_array_end();
+		tprint_object_field_end();
+
+		tprint_event_end();
+		tprint_newline();
+		line_ended();
+	}
 
 	exit_code = !nprocs;
 
