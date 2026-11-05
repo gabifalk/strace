@@ -745,6 +745,7 @@ MISC_TESTS = \
 	strace-E-override.test \
 	strace-E-unset.test \
 	strace-E.test \
+	strace-J-header-merged.test \
 	strace-J-header-split.test \
 	strace-S.test \
 	strace-T_upper.test \
