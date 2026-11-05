@@ -4504,6 +4504,35 @@ main(int argc, char *argv[])
 					    structured_output->merged
 					    ? "jsonl-merged" : "jsonl-split");
 
+		tprints_object_field_begin("options");
+		tprint_object_begin();
+		tprints_object_field_string("xlat",
+			xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW
+			? "raw"
+			: xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
+			? "verbose" : "abbrev");
+		json_print_object_field_bool("follow_forks",
+					     followfork || print_pid_pfx);
+		json_print_object_field_bool("syscall_number", nflag);
+		json_print_object_field_bool("arg_names", Nflag);
+		if (tflag_format)
+			tprints_object_field_string("timestamps",
+				strcmp(tflag_format, "%s") ? "time" : "unix");
+		tprints_object_field_string("strings_in_hex",
+			xflag == HEXSTR_NON_ASCII ? "non-ascii"
+			: xflag == HEXSTR_ALL ? "all"
+			: xflag == HEXSTR_NON_ASCII_CHARS ? "non-ascii-chars"
+			: "none");
+		json_print_object_field_bool("decode_pid_comm",
+			is_number_in_set(DECODE_PID_COMM, decode_pid_set));
+		tprints_object_field_begin("acolumn");
+		tprintf_string("%d", acolumn);
+		tprint_object_field_end();
+		json_print_object_field_bool("output_separately",
+					     output_separately);
+		tprint_object_end();
+		tprint_object_field_end();
+
 		tprints_object_field_begin("capabilities");
 		json_print_array_begin();
 		for (const struct optional_feature *f = optional_features;

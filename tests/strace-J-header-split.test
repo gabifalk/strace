@@ -27,7 +27,7 @@ done
 ver="$(get_config_str PACKAGE_VERSION)"
 
 cat > "$EXP" <<__EOF__
-{"event": "header", "version": 1, "strace_version": "$ver", "format": "jsonl-split", "capabilities": [$caps]}
+{"event": "header", "version": 1, "strace_version": "$ver", "format": "jsonl-split", "options": {"xlat": "abbrev", "follow_forks": false, "syscall_number": false, "arg_names": false, "strings_in_hex": "none", "decode_pid_comm": false, "acolumn": 40, "output_separately": false}, "capabilities": [$caps]}
 __EOF__
 
 run_strace -J -e trace=sysinfo ../jsonl-sysinfo > /dev/null
