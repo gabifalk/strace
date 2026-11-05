@@ -790,6 +790,7 @@ syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
 	if (structured_output) {
 		tprint_arg_end();
+		tcp->entry_arg_next = structured_output->arg_index;
 		tprint_event_end();
 		tprint_newline();
 		line_ended();
@@ -991,6 +992,7 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		} else {
 			printleader(tcp);
 			syscall_arg_begin(tcp);
+			structured_output->arg_index = tcp->entry_arg_next;
 		}
 	}
 
