@@ -48,7 +48,23 @@ sprint_xlat_val(uint64_t val, enum xlat_style style)
 static void
 print_xlat_val(uint64_t val, enum xlat_style style)
 {
-	tprints_string(sprint_xlat_val(val, style));
+	tprint_type_const();
+	tprints_object_field_begin("raw");
+	tprints_string_value(sprint_xlat_val(val, style));
+	tprint_object_field_end();
+}
+
+static void
+print_xlat_name(const char *str, const char *dflt)
+{
+	if (structured_output) {
+		if (str)
+			tprints_object_field_string("sym", str);
+		else if (dflt)
+			tprints_object_field_string("table", dflt);
+	} else {
+		tprints_comment(str ? str : dflt);
+	}
 }
 
 static void
@@ -254,7 +270,7 @@ printxvals_ex(const uint64_t val, const char *dflt, enum xlat_style style,
 		if (str) {
 			if (xlat_verbose(style) == XLAT_STYLE_VERBOSE) {
 				print_xlat_val(val, style);
-				tprints_comment(str);
+				print_xlat_name(str, dflt);
 			} else {
 				tprints_xlat_const(str);
 			}
@@ -265,7 +281,7 @@ printxvals_ex(const uint64_t val, const char *dflt, enum xlat_style style,
 
 	/* No hits -- print raw # instead. */
 	print_xlat_val(val, style);
-	tprints_comment(dflt);
+	print_xlat_name(str, dflt);
 
 printxvals_ex_end:
 	va_end(args);
@@ -549,6 +565,7 @@ print_xlat_ex(const uint64_t val, const char *str, uint32_t style)
 
 	case XLAT_STYLE_VERBOSE:
 		print_xlat_val(val, style);
-		tprints_comment(str);
+		print_xlat_name(default_str ? NULL : str,
+				default_str ? str : NULL);
 	}
 }

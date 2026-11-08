@@ -88,6 +88,35 @@ tprint_object_end(void)
 {
 }
 
+static inline void
+tprint_type_const(void)
+{
+}
+
+static inline void
+tprints_object_field_begin(const char *field)
+{
+	(void) field;
+}
+
+static inline void
+tprint_object_field_end(void)
+{
+}
+
+static inline void
+tprints_object_field_string(const char *field, const char *s)
+{
+	(void) field;
+	STRACE_PRINTS(s);
+}
+
+static inline void
+tprints_string_value(const char *str)
+{
+	STRACE_PRINTS(str);
+}
+
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
