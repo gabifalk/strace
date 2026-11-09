@@ -661,6 +661,26 @@ print_fd_info_type_string(const char *type, const char *str)
 	tprint_associated_info_end();
 }
 
+/*
+ * Emit `len' bytes of `str' as a decimal-integer array in the `field'
+ * field of the enclosing structured output object.
+ */
+static void
+print_bytes_array_field(const char *field, const char *str, unsigned int len)
+{
+	const unsigned char *ustr = (const unsigned char *) str;
+
+	json_prints_object_field_begin(field);
+	json_print_array_begin();
+	for (unsigned int i = 0; i < len; ++i) {
+		json_print_array_element_begin();
+		tprintf_string("%u", ustr[i]);
+		json_print_array_element_end();
+	}
+	json_print_array_end();
+	json_print_object_field_end();
+}
+
 static bool
 printsocket(struct tcb *tcp, int fd, const char *path)
 {
@@ -1399,6 +1419,9 @@ string_quote(const char *instr, char *outstr, const unsigned int size,
  * If QUOTE_OMIT_LEADING_TRAILING_QUOTES `style' flag is set,
  * do not add leading and trailing quoting symbols.
  *
+ * In structured output mode, emit the bytes as a decimal-integer array
+ * in the value field of the enclosing object.
+ *
  * Returns 0 if QUOTE_0_TERMINATED is set and NUL was seen, 1 otherwise.
  * Note that if QUOTE_0_TERMINATED is not set, always returns 1.
  */
@@ -1414,38 +1437,69 @@ print_quoted_string_ex(const char *str, unsigned int size,
 	if (size && style & QUOTE_0_TERMINATED)
 		--size;
 
-	alloc_size = 4 * size;
-	if (alloc_size / 4 != size) {
-		error_func_msg("requested %u bytes exceeds %u bytes limit",
-			       size, -1U / 4);
-		tprint_unavailable();
-		return -1;
-	}
-	alloc_size += 1 + (style & QUOTE_OMIT_LEADING_TRAILING_QUOTES ? 0 : 2) +
-		(style & QUOTE_EMIT_COMMENT ? 7 : 0);
+	if (structured_output) {
+		const unsigned char *ustr = (const unsigned char *) str;
+		const int eol = (style & QUOTE_0_TERMINATED) ? '\0' : 0x100;
+		unsigned int len = 0;
+		bool terminated = false;
 
-	if (use_alloca(alloc_size)) {
-		outstr = alloca(alloc_size);
-		buf = NULL;
+		while (len < size) {
+			const int c = ustr[len];
+
+			if (c == eol) {
+				terminated = true;
+				break;
+			}
+			if (len == size - 1 && (style & QUOTE_OMIT_TRAILING_0)
+			    && c == '\0') {
+				terminated = true;
+				break;
+			}
+			len++;
+		}
+		if (!terminated && (style & QUOTE_0_TERMINATED)
+		    && ustr[len] == '\0')
+			terminated = true;
+
+		print_bytes_array_field("value", str, len);
+
+		rc = terminated ? 0 : 1;
 	} else {
-		outstr = buf = malloc(alloc_size);
-		if (!buf) {
-			error_func_msg("memory exhausted when tried to allocate"
-				       " %u bytes", alloc_size);
+		alloc_size = 4 * size;
+		if (alloc_size / 4 != size) {
+			error_func_msg("requested %u bytes exceeds"
+				       " %u bytes limit", size, -1U / 4);
 			tprint_unavailable();
 			return -1;
 		}
-	}
+		alloc_size += 1 +
+			(style & QUOTE_OMIT_LEADING_TRAILING_QUOTES ? 0 : 2) +
+			(style & QUOTE_EMIT_COMMENT ? 7 : 0);
 
-	rc = string_quote(str, outstr, size, style, escape_chars);
-	tprints_string(outstr);
+		if (use_alloca(alloc_size)) {
+			outstr = alloca(alloc_size);
+			buf = NULL;
+		} else {
+			outstr = buf = malloc(alloc_size);
+			if (!buf) {
+				error_func_msg("memory exhausted when tried"
+					       " to allocate %u bytes",
+					       alloc_size);
+				tprint_unavailable();
+				return -1;
+			}
+		}
+
+		rc = string_quote(str, outstr, size, style, escape_chars);
+		tprints_string(outstr);
+
+		free(buf);
+	}
 
 	if (((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
-	     == (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0)) && rc) {
+	     == (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0)) && rc > 0)
 		tprint_more_data_follows();
-	}
 
-	free(buf);
 	return rc;
 }
 

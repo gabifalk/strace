@@ -105,6 +105,26 @@ json_print_object_field_end(void)
 }
 
 static inline void
+json_print_array_begin(void)
+{
+}
+
+static inline void
+json_print_array_element_begin(void)
+{
+}
+
+static inline void
+json_print_array_element_end(void)
+{
+}
+
+static inline void
+json_print_array_end(void)
+{
+}
+
+static inline void
 json_prints_object_field_string(const char *field, const char *s)
 {
 	(void) field;
