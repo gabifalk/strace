@@ -11,6 +11,7 @@
 # define STRACE_TESTS_JSONL_H
 
 # include <errno.h>
+# include <inttypes.h>
 # include <stdbool.h>
 # include <stdio.h>
 # include <string.h>
@@ -145,6 +146,58 @@ jsonl_exit_event(int status)
 	printf("{\"event\": \"exit\", "
 	       "\"pid\": {\"type\": \"tid\", \"raw\": \"%d\"}, \"status\": %d}\n",
 	       (int) getpid(), status);
+}
+
+/* A raw xlat value string: "0" for zero, "0x..." otherwise. */
+static inline void
+jsonl_xlat_raw(uint64_t val)
+{
+	printf("\"%#" PRIx64 "\"", val);
+}
+
+/*
+ * Open a flags value with its single implicit group, up to the elems array:
+ * "type": "flags", "raw": "<raw>", "groups": [{"raw": "<raw>",
+ * "group_type": "flags", "elems": [
+ */
+static inline void
+jsonl_flags_open(uint64_t raw)
+{
+	printf("\"type\": \"flags\", \"raw\": ");
+	jsonl_xlat_raw(raw);
+	printf(", \"groups\": [{\"raw\": ");
+	jsonl_xlat_raw(raw);
+	printf(", \"group_type\": \"flags\", \"elems\": [");
+}
+
+/* A matched flag: {"type": "const", "raw": "<raw>", "sym": "<sym>"}. */
+static inline void
+jsonl_flags_const(uint64_t raw, const char *sym, bool first)
+{
+	printf("%s{\"type\": \"const\", \"raw\": ", first ? "" : ", ");
+	jsonl_xlat_raw(raw);
+	printf(", \"sym\": \"%s\"}", sym);
+}
+
+/*
+ * The leftover bits: {"type": "remainder", "raw": "<raw>"[, "sym": "<sym>"]}.
+ * A NULL sym emits no "sym" field; an empty sym emits "sym": "".
+ */
+static inline void
+jsonl_flags_remainder(uint64_t raw, const char *sym, bool first)
+{
+	printf("%s{\"type\": \"remainder\", \"raw\": ", first ? "" : ", ");
+	jsonl_xlat_raw(raw);
+	if (sym)
+		printf(", \"sym\": \"%s\"", sym);
+	printf("}");
+}
+
+/* Close the elems array, the group, and the groups array: ]}]. */
+static inline void
+jsonl_flags_close(void)
+{
+	printf("]}]");
 }
 
 #endif /* !STRACE_TESTS_JSONL_H */

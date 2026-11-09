@@ -539,6 +539,8 @@ ipc_shm-Xraw
 ipc_shm-Xverbose
 is_linux_mips_n64
 jsonl-accept-f
+jsonl-access
+jsonl-close_range
 jsonl-dup-y
 jsonl-dup-yy
 jsonl-fork-f
@@ -547,6 +549,8 @@ jsonl-geteuid
 jsonl-getgid
 jsonl-getresuid
 jsonl-getsockname
+jsonl-memfd_secret
+jsonl-mlockall
 jsonl-mseal
 jsonl-pause
 jsonl-pidfd_getfd-yy
