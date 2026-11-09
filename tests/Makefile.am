@@ -311,6 +311,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-setxattr \
+	jsonl-signal \
 	jsonl-status-none \
 	jsonl-sysinfo \
 	jsonl-vfork-f \
@@ -988,6 +989,7 @@ EXTRA_DIST = \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-setxattr.c \
+	jsonl-signal.c \
 	jsonl-status-none.c \
 	jsonl-sysinfo.c \
 	jsonl-vfork-f.c \
