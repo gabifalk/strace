@@ -562,6 +562,7 @@ jsonl-merged-getgid	-e trace=getgid
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-mseal	-e trace=mseal
 jsonl-merged-pause	-e trace=pause -e signal=none
+jsonl-merged-prctl-no-args	-e trace=prctl
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-sysinfo	-e trace=sysinfo
@@ -573,6 +574,7 @@ jsonl-split-getgid	-e trace=getgid
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-mseal	-e trace=mseal
 jsonl-split-pause	-e trace=pause -e signal=none
+jsonl-split-prctl-no-args	-e trace=prctl
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-split-sysinfo	-e trace=sysinfo
