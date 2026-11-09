@@ -87,6 +87,12 @@ tprint_array_end(void)
 }
 
 void
+tprint_array_fetch_failed_addr(unsigned long long addr)
+{
+	(void) addr;
+}
+
+void
 tprint_array_index_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);

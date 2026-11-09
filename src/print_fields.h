@@ -199,6 +199,7 @@ extern void tprint_union_end(void);
 extern void tprint_array_begin(void);
 extern void tprint_array_next(void);
 extern void tprint_array_end(void);
+extern void tprint_array_fetch_failed_addr(unsigned long long addr);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);
 extern void tprints_syscall_name(const char *name);

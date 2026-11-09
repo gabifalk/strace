@@ -2227,6 +2227,8 @@ print_array_ex(struct tcb *const tcp,
 	kernel_ulong_t idx = 0;
 	enum xlat_style xlat_style = flags & XLAT_STYLE_MASK;
 	bool truncated = false;
+	bool fetch_failed = false;
+	kernel_ulong_t fetch_failed_addr = 0;
 
 	for (cur = start_addr; cur < end_addr; cur += elem_size, idx++) {
 		if (cur != start_addr)
@@ -2234,9 +2236,15 @@ print_array_ex(struct tcb *const tcp,
 
 		if (tfetch_mem_func) {
 			if (!tfetch_mem_func(tcp, cur, elem_size, elem_buf)) {
-				if (cur == start_addr)
+				if (cur == start_addr) {
 					printaddr(cur);
-				else {
+				} else if (structured_output) {
+					tprint_object_begin();
+					tprint_object_end();
+					fetch_failed = true;
+					fetch_failed_addr = cur;
+					truncated = true;
+				} else {
 					tprint_more_data_follows();
 					printaddr_comment(cur);
 					truncated = true;
@@ -2295,6 +2303,8 @@ print_array_ex(struct tcb *const tcp,
 		}
 
 		tprint_array_end();
+		if (fetch_failed)
+			tprint_array_fetch_failed_addr(fetch_failed_addr);
 	}
 
 	return cur >= end_addr;
