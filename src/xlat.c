@@ -236,6 +236,80 @@ xlookup_le(const struct xlat *xlat, uint64_t *val)
 	return NULL;
 }
 
+static int
+json_printflags_va(uint64_t flags, const char *dflt, enum xlat_style style,
+		   const struct xlat *xlat, va_list args)
+{
+	const uint64_t orig_flags = flags;
+	int n = 0;
+
+	json_prints_object_field_string("type", "flags");
+	json_prints_object_field_begin("raw");
+	json_prints_string_value(sprint_xlat_val(orig_flags, style));
+	json_print_object_field_end();
+
+	json_prints_object_field_begin("groups");
+	json_print_array_begin();
+
+	json_print_array_element_begin();
+	tprint_object_begin();
+	json_prints_object_field_begin("raw");
+	json_prints_string_value(sprint_xlat_val(orig_flags, style));
+	json_print_object_field_end();
+	json_prints_object_field_string("group_type", "flags");
+	if (!dflt)
+		json_prints_object_field_string("dflt_null", "true");
+	json_prints_object_field_begin("elems");
+	json_print_array_begin();
+
+	for (; xlat; xlat = va_arg(args, const struct xlat *)) {
+		for (size_t idx = 0; (flags || !n) && idx < xlat->size; ++idx) {
+			const uint64_t v = xlat->data[idx].val;
+			if (xlat->data[idx].str
+			    && ((flags == v) || (v && (flags & v) == v))) {
+				json_print_array_element_begin();
+				tprint_object_begin();
+				json_prints_object_field_string("type", "const");
+				json_prints_object_field_begin("raw");
+				json_prints_string_value(sprint_xlat_val(v, style));
+				json_print_object_field_end();
+				json_prints_object_field_string("sym",
+							       xlat->data[idx].str);
+				tprint_object_end();
+				json_print_array_element_end();
+				++n;
+				flags &= ~v;
+			}
+			if (!flags)
+				break;
+		}
+	}
+
+	if (flags) {
+		json_print_array_element_begin();
+		tprint_object_begin();
+		json_prints_object_field_string("type", "remainder");
+		json_prints_object_field_begin("raw");
+		json_prints_string_value(sprint_xlat_val(flags, style));
+		json_print_object_field_end();
+		if (dflt && !n)
+			json_prints_object_field_string("sym", dflt);
+		tprint_object_end();
+		json_print_array_element_end();
+		++n;
+	}
+
+	json_print_array_end();
+	json_print_object_field_end();
+	tprint_object_end();
+	json_print_array_element_end();
+
+	json_print_array_end();
+	json_print_object_field_end();
+
+	return n;
+}
+
 /**
  * Print an entry in struct xlat table, if it is there.
  *
@@ -473,67 +547,82 @@ printflags_ex(uint64_t flags, const char *dflt, enum xlat_style style,
 {
 	style = get_xlat_style(style);
 
-	if (xlat_verbose(style) == XLAT_STYLE_RAW) {
-		if (flags || dflt) {
-			print_xlat_val(flags, style);
-			return 1;
-		}
+	if (structured_output) {
+		va_list args;
 
-		return 0;
-	}
+		va_start(args, xlat);
+		int rc = json_printflags_va(flags, dflt, style, xlat, args);
+		va_end(args);
 
-	const bool need_comment = xlat_verbose(style) == XLAT_STYLE_VERBOSE;
-	unsigned int n = 0;
-	va_list args;
-
-	if (need_comment && flags)
-		print_xlat_val(flags, style);
-
-	va_start(args, xlat);
-	for (; xlat; xlat = va_arg(args, const struct xlat *)) {
-		for (size_t idx = 0; (flags || !n) && idx < xlat->size; ++idx) {
-			uint64_t v = xlat->data[idx].val;
-			if (xlat->data[idx].str
-			    && ((flags == v) || (v && (flags & v) == v))) {
-				if (need_comment && !flags)
-					PRINT_VAL_U(0);
-				if (n++)
-					tprint_flags_or();
-				else if (need_comment)
-					tprint_comment_begin();
-				if (need_comment)
-					tprints_string(xlat->data[idx].str);
-				else
-					tprints_xlat_const(xlat->data[idx].str);
-				flags &= ~v;
-			}
-			if (!flags)
-				break;
-		}
-	}
-	va_end(args);
-
-	if (n) {
-		if (flags) {
-			tprint_flags_or();
-			print_xlat_val(flags, style);
-			n++;
-		}
-
-		if (need_comment)
-			tprint_comment_end();
+		return rc;
 	} else {
-		if (flags) {
-			if (xlat_verbose(style) != XLAT_STYLE_VERBOSE)
+		if (xlat_verbose(style) == XLAT_STYLE_RAW) {
+			if (flags || dflt) {
 				print_xlat_val(flags, style);
-			tprints_comment(dflt);
-		} else {
-			if (dflt)
-				PRINT_VAL_U(0);
-		}
-	}
+				return 1;
+			}
 
-	return n;
+			return 0;
+		}
+
+		const bool need_comment =
+			xlat_verbose(style) == XLAT_STYLE_VERBOSE;
+		unsigned int n = 0;
+		va_list args;
+
+		if (need_comment && flags)
+			print_xlat_val(flags, style);
+
+		va_start(args, xlat);
+		for (; xlat; xlat = va_arg(args, const struct xlat *)) {
+			for (size_t idx = 0; (flags || !n) && idx < xlat->size;
+			     ++idx) {
+				uint64_t v = xlat->data[idx].val;
+				if (xlat->data[idx].str
+				    && ((flags == v)
+					|| (v && (flags & v) == v))) {
+					if (need_comment && !flags)
+						PRINT_VAL_U(0);
+					if (n++)
+						tprint_flags_or();
+					else if (need_comment)
+						tprint_comment_begin();
+					if (need_comment)
+						tprints_string(
+							xlat->data[idx].str);
+					else
+						tprints_xlat_const(
+							xlat->data[idx].str);
+					flags &= ~v;
+				}
+				if (!flags)
+					break;
+			}
+		}
+		va_end(args);
+
+		if (n) {
+			if (flags) {
+				tprint_flags_or();
+				print_xlat_val(flags, style);
+				n++;
+			}
+
+			if (need_comment)
+				tprint_comment_end();
+		} else {
+			if (flags) {
+				if (xlat_verbose(style) != XLAT_STYLE_VERBOSE)
+					print_xlat_val(flags, style);
+				tprints_comment(dflt);
+			} else {
+				if (dflt)
+					PRINT_VAL_U(0);
+			}
+		}
+
+		return n;
+	}
 }
 
 void
