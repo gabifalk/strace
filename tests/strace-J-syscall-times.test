@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Check JSONL output of the --syscall-times (-T) time and time_unit fields.
+#
+# Copyright (c) 2026 The strace developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+. "${srcdir=.}/init.sh"
+
+[ $# -gt 0 ] || set -- -J --syscall-times
+
+opt=
+for arg; do
+	case "$arg" in
+		-T|--syscall-times|--syscall-times=*)
+			opt="$arg"
+			;;
+	esac
+done
+[ -n "$opt" ] || fail_ "missing --syscall-times option in: $*"
+
+run_prog ../sleep-timing 0 "$TIMING_FILE"
+run_strace "$@" -enanosleep ../sleep-timing 1 "$TIMING_FILE"
+check_strace_syscall_time "$opt"

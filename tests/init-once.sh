@@ -607,6 +607,29 @@ parse_strace_T_time()
 	val=$(LC_ALL=C sed -n \
 		'/nanosleep({.*) = 0 </{s/.*<\([0-9.]*\)>.*/\1/p;q}' "$LOG")
 
+	if [ -z "$val" ]; then
+		# JSONL output: a "time" integer in "time_unit" units.
+		local num unit div
+		num=$(LC_ALL=C sed -n \
+			'/"name": "nanosleep".*"time": "/{s/.*"time": "\([0-9]*\)".*/\1/p;q}' \
+			"$LOG")
+		unit=$(LC_ALL=C sed -n \
+			'/"name": "nanosleep".*"time_unit": "/{s/.*"time_unit": "\([a-z]*\)".*/\1/p;q}' \
+			"$LOG")
+		div=
+		case "$unit" in
+			seconds)      val="$num" ;;
+			milliseconds) div=1000 ;;
+			microseconds) div=1000000 ;;
+			nanoseconds)  div=1000000000 ;;
+		esac
+		[ -n "$num" ] && [ -n "$div" ] && {
+			check_prog gawk
+			val=$(gawk -v n="$num" -v d="$div" \
+				'BEGIN { printf "%.9f", n / d }')
+		}
+	fi
+
 	[ -n "$val" ] ||
 		fail_ "nanosleep -T time not found in \"$LOG\""
 	echo "$val"

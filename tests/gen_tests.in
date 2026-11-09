@@ -1387,6 +1387,14 @@ strace--syscall-times-ms +strace-T_upper.test --syscall-times=ms
 strace--syscall-times-ns +strace-T_upper.test --syscall-times=ns
 strace--syscall-times-s +strace-T_upper.test --syscall-times=s
 strace--syscall-times-us +strace-T_upper.test --syscall-times=us
+strace-J-syscall-times-s +strace-J-syscall-times.test -J --syscall-times=s
+strace-J-syscall-times-ms +strace-J-syscall-times.test -J --syscall-times=ms
+strace-J-syscall-times-us +strace-J-syscall-times.test -J --syscall-times=us
+strace-J-syscall-times-ns +strace-J-syscall-times.test -J --syscall-times=ns
+strace-J-syscall-times-merged-s +strace-J-syscall-times.test --jsonl=merged --syscall-times=s
+strace-J-syscall-times-merged-ms +strace-J-syscall-times.test --jsonl=merged --syscall-times=ms
+strace-J-syscall-times-merged-us +strace-J-syscall-times.test --jsonl=merged --syscall-times=us
+strace-J-syscall-times-merged-ns +strace-J-syscall-times.test --jsonl=merged --syscall-times=ns
 strace--timestamps +strace-t.test --timestamps
 strace--timestamps-time +strace-t.test --timestamps=time
 strace--timestamps-time-ms +strace-tt.test 3 --timestamps=time,ms
