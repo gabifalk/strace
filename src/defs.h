@@ -606,6 +606,7 @@ extern void print_syscall_number(struct tcb *);
 
 extern void print_syscall_resume(struct tcb *tcp);
 
+extern void syscall_arg_begin(struct tcb *);
 extern int syscall_entering_decode(struct tcb *);
 extern int syscall_entering_trace(struct tcb *, unsigned int *);
 extern void syscall_entering_finish(struct tcb *, int);
@@ -1819,6 +1820,8 @@ extern struct tcb *printing_tcp;
 extern void printleader(struct tcb *);
 extern void line_ended(void);
 extern void tabto(void);
+extern void tvprintf(const char *const fmt, va_list args)
+	ATTRIBUTE_FORMAT((printf, 1, 0));
 extern void tprintf_string(const char *fmt, ...) ATTRIBUTE_FORMAT((printf, 1, 2));
 extern void tvprintf(const char *fmt, va_list args) ATTRIBUTE_FORMAT((printf, 1, 0));
 extern void tprints_string(const char *str);

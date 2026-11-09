@@ -573,6 +573,13 @@ tamper_with_syscall_exiting(struct tcb *tcp)
 	return 0;
 }
 
+void
+syscall_arg_begin(struct tcb *tcp)
+{
+	tprints_arg_begin(tcp_sysent(tcp)->sys_name, tcp->true_scno,
+			  entering(tcp), tcp->pid, tcp->comm);
+}
+
 /*
  * Returns:
  * 0: "ignore this ptrace stop", bail out silently.
@@ -589,7 +596,7 @@ syscall_entering_decode(struct tcb *tcp)
 		return res;
 	if (res != 1 || (res = get_syscall_args(tcp)) != 1) {
 		printleader(tcp);
-		tprints_arg_begin(tcp_sysent(tcp)->sys_name);
+		syscall_arg_begin(tcp);
 		/*
 		 * " <unavailable>" will be added later by the code which
 		 * detects ptrace errors.
@@ -678,9 +685,15 @@ syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 		strace_open_memstream(tcp);
 
 	printleader(tcp);
-	tprints_arg_begin(tcp_sysent(tcp)->sys_name);
+	syscall_arg_begin(tcp);
 	int res = raw(tcp) ? printargs(tcp) : tcp_sysent(tcp)->sys_func(tcp);
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+	if (structured_output) {
+		tprint_arg_end();
+		tprint_event_end();
+		tprint_newline();
+		line_ended();
+	}
 	fflush(tcp->outf);
 	return res;
 }
@@ -762,9 +775,12 @@ print_syscall_resume(struct tcb *tcp)
 	 * "strace -ff -oLOG test/threaded_execve" corner case.
 	 * It's the only case when -ff mode needs reprinting.
 	 */
-	if ((!output_separately && printing_tcp != tcp && !tcp->staged_output_data)
-	    || (tcp->flags & TCB_REPRINT)) {
-		tcp->flags &= ~TCB_REPRINT;
+	bool reprint = tcp->flags & TCB_REPRINT;
+	tcp->flags &= ~TCB_REPRINT;
+
+	if ((!output_separately && !structured_output
+	     && printing_tcp != tcp && !tcp->staged_output_data)
+	    || (reprint && !structured_output)) {
 		printleader(tcp);
 		tprints_string("<... ");
 		tprints_syscall_name(tcp_sysent(tcp)->sys_name);
@@ -841,13 +857,15 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		if (cflag != CFLAG_ONLY_STATS) {
 			tprint_arg_end();
 			tprint_space();
-			tabto();
+			if (!structured_output)
+				tabto();
 			tprint_sysret_begin();
 			tprints_sysret_next("retval");
 			tprint_sysret_pseudo_rval();
 			tprints_sysret_next("return");
-			tprints_string("<unavailable>");
+			trad_prints("<unavailable>");
 			tprint_sysret_end();
+			tprint_event_end();
 			tprint_newline();
 			if (status_filtering)
 				strace_close_memstream(tcp, publish);
@@ -860,6 +878,11 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		return res;
 	}
 	tcp->s_prev_ent = prev_ent;
+
+	if (structured_output && cflag != CFLAG_ONLY_STATS) {
+		printleader(tcp);
+		syscall_arg_begin(tcp);
+	}
 
 	int sys_res = 0;
 	if (cflag != CFLAG_ONLY_STATS) {
@@ -902,7 +925,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 
 	tprint_arg_end();
 	tprint_space();
-	tabto();
+	if (!structured_output)
+		tabto();
 	tprint_sysret_begin();
 
 	if (raw(tcp)) {

@@ -59,6 +59,7 @@ strace \- trace system calls and signals
 .OP \-\-seccomp\-bpf
 .if '@ENABLE_STACKTRACE_FALSE@'#' .OP \-\-stack\-trace\-frame\-limit\fR=\fIlimit\fR
 .OP \-\-syscall\-limit=\fIlimit\fR
+.OP \-\-jsonl
 .if '@ENABLE_SECONTEXT_FALSE@'#' .OP \-\-secontext\fR[=\fIformat\fR]
 .OP \-\-tips\fR[=\fIformat\fR]
 .BR "" {
@@ -1051,6 +1052,20 @@ and
 .TQ
 .B \-\-instruction\-pointer
 Prints the instruction pointer at the time of the system call.
+.TP
+.B \-J
+.TQ
+.B \-\-jsonl
+Outputs trace events in the JSON Lines format
+(one JSON object per line).
+This is an experimental feature.
+Options that annotate the traditional output line, such as
+.BR \-T ,
+.BR \-i ,
+.BR \-r ,
+and
+.BR \-t ,
+are not yet represented in the structured output.
 .TP
 .B \-n
 .TQ
