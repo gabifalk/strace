@@ -3656,15 +3656,25 @@ print_signalled(struct tcb *tcp, const int pid, int status)
 		strace_child = 0;
 	}
 
-	if (structured_output)
-		return;
-
 	if (cflag != CFLAG_ONLY_STATS
 	    && is_number_in_set(WTERMSIG(status), signal_set)) {
 		printleader(tcp);
-		tprintf_string("+++ killed by %s %s+++",
-			       sprintsigname(WTERMSIG(status)),
-			       WCOREDUMP(status) ? "(core dumped) " : "");
+		if (structured_output) {
+			tprintf_event_start("killed");
+			tprints_event_pid(tcp->pid, tcp->comm);
+			tprints_object_field_begin("signal");
+			tprint_object_begin();
+			printsignal(WTERMSIG(status));
+			tprint_object_end();
+			tprint_object_field_end();
+			json_print_object_field_bool("coredumped",
+						     !!WCOREDUMP(status));
+			tprint_event_end();
+		} else {
+			tprintf_string("+++ killed by %s %s+++",
+				       sprintsigname(WTERMSIG(status)),
+				       WCOREDUMP(status) ? "(core dumped) " : "");
+		}
 		tprint_newline();
 		line_ended();
 	}
@@ -3700,24 +3710,40 @@ print_exited(struct tcb *tcp, const int pid, int status)
 static void
 print_stopped(struct tcb *tcp, const siginfo_t *si, const unsigned int sig)
 {
-	if (structured_output)
-		return;
-
 	if (cflag != CFLAG_ONLY_STATS
 	    && !hide_log(tcp)
 	    && is_number_in_set(sig, signal_set)) {
 		printleader(tcp);
-		if (si) {
-			tprintf_string("--- %s ", sprintsigname(sig));
-			printsiginfo(tcp, si);
-			tprints_string(" ---");
-		} else
-			tprintf_string("--- stopped by %s ---", sprintsigname(sig));
+		if (structured_output) {
+			tprintf_event_start(si ? "signal" : "stopped");
+			tprints_event_pid(tcp->pid, tcp->comm);
+			tprints_object_field_begin("signal");
+			tprint_object_begin();
+			printsignal(sig);
+			tprint_object_end();
+			tprint_object_field_end();
+			if (si) {
+				tprints_object_field_begin("info");
+				tprint_object_begin();
+				printsiginfo(tcp, si);
+				tprint_object_end();
+				tprint_object_field_end();
+			}
+			tprint_event_end();
+		} else {
+			if (si) {
+				tprintf_string("--- %s ", sprintsigname(sig));
+				printsiginfo(tcp, si);
+				tprints_string(" ---");
+			} else
+				tprintf_string("--- stopped by %s ---",
+					       sprintsigname(sig));
+		}
 		tprint_newline();
 		line_ended();
 
 #ifdef ENABLE_STACKTRACE
-		if (stack_trace_mode)
+		if (!structured_output && stack_trace_mode)
 			unwind_tcb_print(tcp);
 #endif
 	}
