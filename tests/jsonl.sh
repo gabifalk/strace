@@ -15,6 +15,7 @@ prog="jsonl-${rest#*-}"
 
 case "$fmt" in
 	split)	jflag=-J ;;
+	merged)	jflag=--jsonl=merged ;;
 	*)	fail_ "unknown jsonl format: $fmt" ;;
 esac
 

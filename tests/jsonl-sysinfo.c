@@ -12,6 +12,7 @@
 #include "scno.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/sysinfo.h>
 #include <unistd.h>
 
@@ -25,7 +26,6 @@ jsonl_u(const char *name, unsigned long long val, bool last)
 static void
 jsonl_sysinfo_struct(const struct sysinfo *si)
 {
-	jsonl_arg_open(0, "info");
 	printf("\"type\": \"struct\", \"fields\": {");
 	jsonl_u("uptime", (unsigned long) si->uptime, false);
 	printf("\"loads\": {\"type\": \"array\", \"elems\": [");
@@ -43,21 +43,29 @@ jsonl_sysinfo_struct(const struct sysinfo *si)
 	jsonl_u("totalhigh", si->totalhigh, false);
 	jsonl_u("freehigh", si->freehigh, false);
 	jsonl_u("mem_unit", si->mem_unit, true);
-	printf("}}");
+	printf("}");
 }
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	TAIL_ALLOC_OBJECT_CONST_PTR(struct sysinfo, si);
 
 	if (syscall(__NR_sysinfo, si))
 		perror_msg_and_skip("sysinfo");
 
-	jsonl_syscall_open("sysinfo", __NR_sysinfo, true);
-	printf("]}\n");
-	jsonl_syscall_open("sysinfo", __NR_sysinfo, false);
+	const char *side = NULL;
+	if (argc > 1 && !strcmp(argv[1], "merged")) {
+		side = "exit";
+		jsonl_syscall_merged_open("sysinfo", __NR_sysinfo);
+	} else {
+		jsonl_syscall_open("sysinfo", __NR_sysinfo, true);
+		printf("]}\n");
+		jsonl_syscall_open("sysinfo", __NR_sysinfo, false);
+	}
+	jsonl_arg_open(0, "info", side);
 	jsonl_sysinfo_struct(si);
+	jsonl_arg_close(side);
 	printf("], \"return\": {\"type\": \"unsigned\","
 	       " \"raw\": \"0\"}}\n");
 	return 0;
