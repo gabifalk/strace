@@ -445,17 +445,8 @@ print_sysret_retval(kernel_ulong_t ret)
 static void
 print_sysret_errno(unsigned long u_error, const char *err_long)
 {
-	const char *err_short = err_name(u_error);
-
-	if (err_short) {
-		tprints_sysret_next("error");
-		tprints_string(err_short);
-		tprints_sysret_string("strerror",
-				      err_long ?: strerror(u_error));
-	} else {
-		tprints_sysret_next("strerror");
-		tprintf_string("(errno %lu)", u_error);
-	}
+	tprint_sysret_errno(u_error, err_name(u_error),
+			    err_long ?: strerror(u_error));
 }
 
 static long get_regs(struct tcb *);
@@ -786,15 +777,15 @@ static void
 print_injected_note(struct tcb *tcp)
 {
 	if (syscall_tampered(tcp) && syscall_tampered_poked(tcp))
-		tprints_sysret_string("inject", "INJECTED: args, retval");
+		tprints_sysret_string("inject", "INJECTED: args, retval", true);
 	else if (syscall_tampered_poked(tcp))
-		tprints_sysret_string("inject", "INJECTED: args");
+		tprints_sysret_string("inject", "INJECTED: args", true);
 	else if (syscall_tampered(tcp))
-		tprints_sysret_string("inject", "INJECTED");
+		tprints_sysret_string("inject", "INJECTED", true);
 	if (syscall_tampered_delayed(tcp))
-		tprints_sysret_string("delay", "DELAYED");
+		tprints_sysret_string("delay", "DELAYED", true);
 	if (syscall_tampered_sanitized(tcp))
-		tprints_sysret_string("sanitize", "SANITIZED");
+		tprints_sysret_string("sanitize", "SANITIZED", true);
 }
 
 static void
@@ -804,6 +795,23 @@ print_erestart(unsigned long u_error, const char *err_long)
 	tprint_sysret_interrupted();
 
 	print_sysret_errno(u_error, err_long);
+}
+
+static const char *
+timescale_to_unit(int scale)
+{
+	switch (scale) {
+	case 1000000000:
+		return "seconds";
+	case 1000000:
+		return "milliseconds";
+	case 1000:
+		return "microseconds";
+	case 1:
+		return "nanoseconds";
+	default:
+		return NULL;
+	}
 }
 
 int
@@ -1047,21 +1055,42 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			}
 		}
 	}
-	if ((sys_res & RVAL_STR) && tcp->auxstr)
-		tprints_sysret_string("retstr", tcp->auxstr);
-	print_injected_note(tcp);
-	if (Tflag) {
-		tprints_sysret_next("time");
-		tprint_associated_info_begin();
-		ts_sub(ts, ts, &tcp->etime);
-		PRINT_VAL_D(ts->tv_sec);
-		if (Tflag_width) {
-			tprintf_string(".%0*ld", Tflag_width,
-				       (long) ts->tv_nsec / Tflag_scale);
+	if (structured_output) {
+		tprint_sysret_end();
+		print_injected_note(tcp);
+		if (Tflag) {
+			const char *unit = timescale_to_unit(Tflag_scale);
+
+			if (unit) {
+				char buf[3 * sizeof(long long) + 2];
+				long long factor = 1000000000LL / Tflag_scale;
+
+				ts_sub(ts, ts, &tcp->etime);
+				xsprintf(buf, "%lld",
+					 (long long) ts->tv_sec * factor
+					 + ts->tv_nsec / Tflag_scale);
+				tprints_object_field_string("time", buf);
+				tprints_object_field_string("time_unit", unit);
+			}
 		}
-		tprint_associated_info_end();
+	} else {
+		if ((sys_res & RVAL_STR) && tcp->auxstr)
+			tprints_sysret_string("retstr", tcp->auxstr, true);
+		print_injected_note(tcp);
+		if (Tflag) {
+			tprints_sysret_next("time");
+			tprint_associated_info_begin();
+			ts_sub(ts, ts, &tcp->etime);
+			PRINT_VAL_D(ts->tv_sec);
+			if (Tflag_width) {
+				tprintf_string(".%0*ld", Tflag_width,
+					       (long) ts->tv_nsec / Tflag_scale);
+			}
+			tprint_associated_info_end();
+		}
+		tprint_sysret_end();
 	}
-	tprint_sysret_end();
+	tprint_event_end();
 	tprint_newline();
 	dumpio(tcp);
 	line_ended();

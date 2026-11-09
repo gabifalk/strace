@@ -375,14 +375,32 @@ tprints_sysret_next(const char *name)
 }
 
 void
-tprints_sysret_string(const char *name, const char *str)
+tprints_sysret_string(const char *name, const char *str, bool parentheses)
 {
 	tprints_sysret_next(name);
-	STRACE_PRINTF("(%s)", str);
+	if (structured_output)
+		tprints_object_field_string(name, str);
+	else if (parentheses)
+		STRACE_PRINTF("(%s)", str);
+	else
+		STRACE_PRINTS(str);
 }
 
 void
 tprint_sysret_end(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+}
+
+void
+tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
+{
+	if (sym) {
+		tprints_sysret_next("error");
+		STRACE_PRINTS(sym);
+		tprints_sysret_string("strerror", str, true);
+	} else {
+		tprints_sysret_next("strerror");
+		STRACE_PRINTF("(errno %lu)", u_error);
+	}
 }

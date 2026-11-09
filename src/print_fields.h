@@ -62,6 +62,11 @@
 # define structured_output 0
 
 static inline void
+tprint_event_end(void)
+{
+}
+
+static inline void
 tprints_object_type(const char *type)
 {
 	(void) type;
@@ -159,8 +164,11 @@ extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
-extern void tprints_sysret_string(const char *name, const char *str);
+extern void tprints_sysret_string(const char *name, const char *str,
+				  bool parentheses);
 extern void tprint_sysret_end(void);
+extern void tprint_sysret_errno(unsigned long u_error, const char *sym,
+				const char *str);
 
 static inline void
 tprint_array_index_end(void)
