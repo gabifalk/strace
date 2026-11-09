@@ -582,6 +582,7 @@ tprint_sysret_interrupted(void)
 # define PRINT_FIELD_STRING(where_, field_, len_, style_)		\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_prints_object_field_string("type", "string");	\
 		print_quoted_string((const char *)(where_).field_,	\
 				    (len_), (style_));			\
 	} while (0)
@@ -589,6 +590,7 @@ tprint_sysret_interrupted(void)
 # define PRINT_FIELD_CSTRING(where_, field_)				\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_prints_object_field_string("type", "string");	\
 		print_quoted_cstring((const char *) (where_).field_,	\
 				     sizeof((where_).field_) +		\
 				     MUST_BE_ARRAY((where_).field_));	\
@@ -597,6 +599,7 @@ tprint_sysret_interrupted(void)
 # define PRINT_FIELD_CSTRING_SZ(where_, field_, size_)			\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_prints_object_field_string("type", "string");	\
 		print_quoted_cstring((const char *) (where_).field_,	\
 				     (size_));				\
 	} while (0)
@@ -631,6 +634,7 @@ tprint_sysret_interrupted(void)
 # define PRINT_FIELD_HEX_ARRAY(where_, field_)				\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_prints_object_field_string("type", "bytes");	\
 		print_quoted_string((const char *)(where_).field_,	\
 				    sizeof((where_).field_) +		\
 					    MUST_BE_ARRAY((where_).field_), \
@@ -640,6 +644,7 @@ tprint_sysret_interrupted(void)
 # define PRINT_FIELD_HEX_ARRAY_UPTO(where_, field_, upto_)		\
 	do {								\
 		tprints_field_name(#field_);				\
+		json_prints_object_field_string("type", "bytes");	\
 		print_quoted_string((const char *)(where_).field_,	\
 				    (upto_), QUOTE_FORCE_HEX);		\
 	} while (0)
@@ -824,6 +829,8 @@ tprint_sysret_interrupted(void)
 					    ##__VA_ARGS__);		\
 			} else {					\
 				tprints_field_name(#field_);		\
+				json_prints_object_field_string(	\
+					"type", "bytes");		\
 				print_quoted_string(			\
 					(void *)&(where_).field_,	\
 					len_ - start, QUOTE_FORCE_HEX);	\
