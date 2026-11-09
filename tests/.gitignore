@@ -542,6 +542,7 @@ jsonl-accept-f
 jsonl-access
 jsonl-adjtimex
 jsonl-aio
+jsonl-chdir
 jsonl-close_range
 jsonl-dup-y
 jsonl-dup-yy
@@ -552,6 +553,7 @@ jsonl-geteuid
 jsonl-getgid
 jsonl-getresuid
 jsonl-getsockname
+jsonl-landlock_create_ruleset
 jsonl-memfd_secret
 jsonl-mlockall
 jsonl-mseal

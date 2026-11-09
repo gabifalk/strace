@@ -97,6 +97,13 @@ jsonl_bytes(const char *str)
 	jsonl_bytes_n(str, strlen(str));
 }
 
+/* The ", \"truncated\": true" marker that closes a truncated value. */
+static inline void
+jsonl_truncated(void)
+{
+	printf(", \"truncated\": true");
+}
+
 /* The fields of an fd value, with a path fd_info when path is given. */
 static inline void
 jsonl_fd(int fd, const char *path, bool deleted)

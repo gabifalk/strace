@@ -285,6 +285,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-access \
 	jsonl-adjtimex \
 	jsonl-aio \
+	jsonl-chdir \
 	jsonl-close_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
@@ -295,6 +296,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getgid \
 	jsonl-getresuid \
 	jsonl-getsockname \
+	jsonl-landlock_create_ruleset \
 	jsonl-memfd_secret \
 	jsonl-mlockall \
 	jsonl-mseal \
@@ -958,6 +960,7 @@ EXTRA_DIST = \
 	jsonl-access.c \
 	jsonl-adjtimex.c \
 	jsonl-aio.c \
+	jsonl-chdir.c \
 	jsonl-close_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
@@ -968,6 +971,7 @@ EXTRA_DIST = \
 	jsonl-getgid.c \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
+	jsonl-landlock_create_ruleset.c \
 	jsonl-memfd_secret.c \
 	jsonl-mlockall.c \
 	jsonl-mseal.c \
