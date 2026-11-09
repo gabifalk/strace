@@ -107,6 +107,18 @@ json_stack_needs_sep(enum json_container_type type)
 }
 
 static void
+json_stack_mark_truncated(void)
+{
+	struct json_stack *state = &structured_output->state;
+
+	if (state->depth == 0)
+		error_func_msg_and_die("tried to mark truncation"
+				       " on an empty stack");
+
+	state->stack[state->depth - 1].truncated = true;
+}
+
+static void
 json_stack_reset(void)
 {
 	if (!structured_output)
@@ -311,6 +323,8 @@ tprint_object_end(void)
 		    || json_stack_top_type() != JSON_CONTAINER_OBJECT)
 			error_func_msg_and_die("structured output object"
 					       " end outside of an object");
+		if (structured_output->state.stack[structured_output->state.depth - 1].truncated)
+			json_print_object_field_bool("truncated", true);
 		json_stack_pop();
 		STRACE_PRINTS(JSON_OBJ_END);
 	}
@@ -447,8 +461,12 @@ void
 tprint_array_end(void)
 {
 	if (structured_output) {
+		bool truncated = structured_output->state.stack
+			[structured_output->state.depth - 1].truncated;
 		json_print_array_end();
 		tprint_object_field_end();
+		if (truncated)
+			json_print_object_field_bool("truncated", true);
 	} else {
 		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 		STRACE_PRINTS("]");
@@ -967,8 +985,10 @@ tprint_associated_info_end(void)
 void
 tprint_more_data_follows(void)
 {
-	if (structured_output)
+	if (structured_output) {
+		json_stack_mark_truncated();
 		return;
+	}
 
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("...");

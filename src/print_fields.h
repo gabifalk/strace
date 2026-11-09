@@ -42,6 +42,7 @@ struct json_stack_frame {
 	enum json_container_type type;
 	bool needs_sep;
 	bool struct_fields;
+	bool truncated;
 };
 
 struct json_stack {
