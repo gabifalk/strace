@@ -540,9 +540,11 @@ ipc_shm-Xverbose
 is_linux_mips_n64
 jsonl-accept-f
 jsonl-access
+jsonl-adjtimex
 jsonl-close_range
 jsonl-dup-y
 jsonl-dup-yy
+jsonl-fcntl-getlease
 jsonl-fork-f
 jsonl-getegid
 jsonl-geteuid
@@ -554,6 +556,8 @@ jsonl-mlockall
 jsonl-mseal
 jsonl-pause
 jsonl-pidfd_getfd-yy
+jsonl-prctl-dumpable
+jsonl-prctl-mce-kill
 jsonl-prctl-no-args
 jsonl-prctl-tsc
 jsonl-sched_get_priority_mxx

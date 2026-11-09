@@ -557,9 +557,11 @@ ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
 jsonl-merged-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-merged-access	-e trace=access --trace-path=strace_enoent_xyz
+jsonl-merged-adjtimex	-e trace=adjtimex
 jsonl-merged-close_range	-e trace=close_range
 jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
+jsonl-merged-fcntl-getlease	-e trace=fcntl
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-getegid	-e trace=getegid
 jsonl-merged-geteuid	-e trace=geteuid
@@ -571,6 +573,8 @@ jsonl-merged-mlockall	-e trace=mlockall
 jsonl-merged-mseal	-e trace=mseal
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
+jsonl-merged-prctl-dumpable	-e trace=prctl
+jsonl-merged-prctl-mce-kill	-e trace=prctl
 jsonl-merged-prctl-no-args	-e trace=prctl
 jsonl-merged-prctl-tsc	-e trace=prctl
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
@@ -580,9 +584,11 @@ jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
+jsonl-split-adjtimex	-e trace=adjtimex
 jsonl-split-close_range	-e trace=close_range
 jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup
+jsonl-split-fcntl-getlease	-e trace=fcntl
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-getegid	-e trace=getegid
 jsonl-split-geteuid	-e trace=geteuid
@@ -594,6 +600,8 @@ jsonl-split-mlockall	-e trace=mlockall
 jsonl-split-mseal	-e trace=mseal
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
+jsonl-split-prctl-dumpable	-e trace=prctl
+jsonl-split-prctl-mce-kill	-e trace=prctl
 jsonl-split-prctl-no-args	-e trace=prctl
 jsonl-split-prctl-tsc	-e trace=prctl
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max

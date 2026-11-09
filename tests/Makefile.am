@@ -283,9 +283,11 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	is_linux_mips_n64 \
 	jsonl-accept-f \
 	jsonl-access \
+	jsonl-adjtimex \
 	jsonl-close_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
+	jsonl-fcntl-getlease \
 	jsonl-fork-f \
 	jsonl-getegid \
 	jsonl-geteuid \
@@ -297,6 +299,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-mseal \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
+	jsonl-prctl-dumpable \
+	jsonl-prctl-mce-kill \
 	jsonl-prctl-no-args \
 	jsonl-prctl-tsc \
 	jsonl-sched_get_priority_mxx \
@@ -949,9 +953,11 @@ EXTRA_DIST = \
 	ioctl_kvm_run_common.c \
 	jsonl-accept-f.c \
 	jsonl-access.c \
+	jsonl-adjtimex.c \
 	jsonl-close_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
+	jsonl-fcntl-getlease.c \
 	jsonl-fork-f.c \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \
@@ -963,6 +969,8 @@ EXTRA_DIST = \
 	jsonl-mseal.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
+	jsonl-prctl-dumpable.c \
+	jsonl-prctl-mce-kill.c \
 	jsonl-prctl-no-args.c \
 	jsonl-prctl-tsc.c \
 	jsonl-sched_get_priority_mxx.c \
