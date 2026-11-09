@@ -541,6 +541,7 @@ is_linux_mips_n64
 jsonl-accept-f
 jsonl-access
 jsonl-adjtimex
+jsonl-aio
 jsonl-close_range
 jsonl-dup-y
 jsonl-dup-yy

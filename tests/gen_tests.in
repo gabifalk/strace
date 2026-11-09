@@ -558,6 +558,7 @@ ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
 jsonl-merged-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-merged-access	-e trace=access --trace-path=strace_enoent_xyz
 jsonl-merged-adjtimex	-e trace=adjtimex
+jsonl-merged-aio	-e trace=io_submit
 jsonl-merged-close_range	-e trace=close_range
 jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
@@ -586,6 +587,7 @@ jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
 jsonl-split-adjtimex	-e trace=adjtimex
+jsonl-split-aio	-e trace=io_submit
 jsonl-split-close_range	-e trace=close_range
 jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup

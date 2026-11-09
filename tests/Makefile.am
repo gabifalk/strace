@@ -284,6 +284,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-accept-f \
 	jsonl-access \
 	jsonl-adjtimex \
+	jsonl-aio \
 	jsonl-close_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
@@ -956,6 +957,7 @@ EXTRA_DIST = \
 	jsonl-accept-f.c \
 	jsonl-access.c \
 	jsonl-adjtimex.c \
+	jsonl-aio.c \
 	jsonl-close_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
