@@ -34,8 +34,8 @@ sprint_ioprio(unsigned int ioprio)
 	return outstr;
 }
 
-void
-print_ioprio(unsigned int ioprio)
+static void
+trad_print_ioprio(unsigned int ioprio)
 {
 	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
 		PRINT_VAL_X(ioprio);
@@ -47,6 +47,39 @@ print_ioprio(unsigned int ioprio)
 
 	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
 		? tprints_comment : tprints_string)(str);
+}
+
+static void
+json_print_ioprio(unsigned int ioprio, bool signed_raw)
+{
+	json_prints_object_field_string("type", "ioprio");
+
+	json_prints_object_field_begin("raw");
+	if (signed_raw)
+		json_printf_string_value("%d", (int) ioprio);
+	else
+		json_printf_string_value("%#x", ioprio);
+	json_print_object_field_end();
+
+	json_prints_object_field_begin("class");
+	tprint_object_begin();
+	printxval_ex(ioprio_class, IOPRIO_PRIO_CLASS(ioprio),
+		     "IOPRIO_CLASS_???", XLAT_STYLE_DEFAULT);
+	tprint_object_end();
+	json_print_object_field_end();
+
+	json_prints_object_field_begin("level");
+	json_printf_string_value("%u", (unsigned int) IOPRIO_PRIO_DATA(ioprio));
+	json_print_object_field_end();
+}
+
+void
+print_ioprio(unsigned int ioprio)
+{
+	if (structured_output)
+		json_print_ioprio(ioprio, false);
+	else
+		trad_print_ioprio(ioprio);
 }
 
 static void
@@ -100,14 +133,17 @@ SYS_FUNC(ioprio_set)
 
 	/* ioprio */
 	tprints_arg_next_name("ioprio");
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_D((int) tcp->u_arg[2]);
+	if (structured_output) {
+		json_print_ioprio((unsigned int) tcp->u_arg[2], true);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			PRINT_VAL_D((int) tcp->u_arg[2]);
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return RVAL_DECODED;
-
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-		? tprints_comment : tprints_string)(sprint_ioprio(tcp->u_arg[2]));
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW)
+			(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
+				? tprints_comment
+				: tprints_string)(sprint_ioprio(tcp->u_arg[2]));
+	}
 
 	return RVAL_DECODED;
 }
