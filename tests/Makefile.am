@@ -291,6 +291,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prctl-no-args \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
+	jsonl-status-none \
 	jsonl-sysinfo \
 	jsonl-vfork-f \
 	kcmp-y--pidns-translation \
@@ -946,6 +947,7 @@ EXTRA_DIST = \
 	jsonl-prctl-no-args.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
+	jsonl-status-none.c \
 	jsonl-sysinfo.c \
 	jsonl-vfork-f.c \
 	jsonl.h \
