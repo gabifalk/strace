@@ -109,6 +109,8 @@ struct sockaddr_ipx {
 	unsigned char sipx_zero;
 };
 
+static bool sockaddr_normalize;
+
 static void
 print_sockaddr_data_un(struct tcb *tcp, const void *const buf, const int addrlen)
 {
@@ -117,7 +119,10 @@ print_sockaddr_data_un(struct tcb *tcp, const void *const buf, const int addrlen
 			   ? (int) sizeof(*sa_un) : addrlen;
 	const int path_len = un_len - SIZEOF_SA_FAMILY;
 
-	tprints_field_name("sun_path");
+	if (structured_output)
+		tprints_field_name("path");
+	else
+		tprints_field_name("sun_path");
 	json_prints_object_field_string("type", "sun_path");
 	if (sa_un->sun_path[0]) {
 		print_quoted_string(sa_un->sun_path, path_len + 1,
@@ -251,9 +256,21 @@ print_sockaddr_data_in(struct tcb *tcp, const void *const buf,
 {
 	const struct sockaddr_in *const sa_in = buf;
 
-	PRINT_FIELD_NET_PORT(*sa_in, sin_port);
-	tprint_struct_next();
-	PRINT_FIELD_INET_ADDR(*sa_in, sin_addr, AF_INET);
+	if (sockaddr_normalize) {
+		char addr[INET_ADDRSTRLEN];
+
+		sockaddr_normalize = false;
+		json_prints_object_field_string("addr",
+			inet_ntop(AF_INET, &sa_in->sin_addr, addr, sizeof(addr))
+			?: "");
+		json_prints_object_field_begin("port");
+		json_printf_string_value("%u", ntohs(sa_in->sin_port));
+		json_print_object_field_end();
+	} else {
+		PRINT_FIELD_NET_PORT(*sa_in, sin_port);
+		tprint_struct_next();
+		PRINT_FIELD_INET_ADDR(*sa_in, sin_addr, AF_INET);
+	}
 }
 
 #define SIN6_MIN_LEN offsetof(struct sockaddr_in6, sin6_scope_id)
@@ -263,6 +280,27 @@ print_sockaddr_data_in6(struct tcb *tcp, const void *const buf,
 			const int addrlen)
 {
 	const struct sockaddr_in6 *const sa_in6 = buf;
+
+	if (sockaddr_normalize) {
+		char addr[INET6_ADDRSTRLEN];
+
+		sockaddr_normalize = false;
+		json_prints_object_field_string("addr",
+			inet_ntop(AF_INET6, &sa_in6->sin6_addr, addr,
+				  sizeof(addr)) ?: "");
+		json_prints_object_field_begin("port");
+		json_printf_string_value("%u", ntohs(sa_in6->sin6_port));
+		json_print_object_field_end();
+		json_prints_object_field_begin("flowinfo");
+		json_printf_string_value("%u", ntohl(sa_in6->sin6_flowinfo));
+		json_print_object_field_end();
+		if (addrlen > (int) SIN6_MIN_LEN) {
+			json_prints_object_field_begin("scope_id");
+			json_printf_string_value("%u", sa_in6->sin6_scope_id);
+			json_print_object_field_end();
+		}
+		return;
+	}
 
 	PRINT_FIELD_NET_PORT(*sa_in6, sin6_port);
 	tprint_struct_next();
@@ -516,6 +554,22 @@ static void
 print_sockaddr_data_nl(struct tcb *tcp, const void *const buf, const int addrlen)
 {
 	const struct sockaddr_nl *const sa_nl = buf;
+
+	if (sockaddr_normalize) {
+		sockaddr_normalize = false;
+		if (sa_nl->nl_pad) {
+			json_prints_object_field_begin("nl_pad");
+			json_printf_string_value("%#x", sa_nl->nl_pad);
+			json_print_object_field_end();
+		}
+		json_prints_object_field_begin("pid");
+		json_printf_string_value("%u", sa_nl->nl_pid);
+		json_print_object_field_end();
+		json_prints_object_field_begin("groups");
+		json_printf_string_value("%#x", sa_nl->nl_groups);
+		json_print_object_field_end();
+		return;
+	}
 
 	if (sa_nl->nl_pad) {
 		PRINT_FIELD_X(*sa_nl, nl_pad);
@@ -848,6 +902,8 @@ print_sockaddr_data_rxrpc(struct tcb *tcp, const void *const buf,
 {
 	const struct sockaddr_rxrpc *const sa = buf;
 
+	sockaddr_normalize = false;
+
 	PRINT_FIELD_XVAL_VERBOSE(*sa, srx_service, rxrpc_services,
 				 "???_SERVICE");
 	tprint_struct_next();
@@ -1134,22 +1190,36 @@ print_sockaddr(struct tcb *tcp, const void *const buf, const int addrlen)
 {
 	const struct sockaddr *const sa = buf;
 
-	tprint_struct_begin();
-	PRINT_FIELD_XVAL(*sa, sa_family, addrfams, "AF_???");
+	if (structured_output) {
+		json_prints_object_field_string("type", "sockaddr");
+		json_prints_object_field_begin("family");
+		tprint_object_begin();
+		printxval64(addrfams, zero_extend_signed_to_ull(sa->sa_family),
+			    "AF_???");
+		tprint_object_end();
+		json_print_object_field_end();
+	} else {
+		tprint_struct_begin();
+		PRINT_FIELD_XVAL(*sa, sa_family, addrfams, "AF_???");
+	}
 
 	if (addrlen > (int) SIZEOF_SA_FAMILY) {
-		tprint_struct_next();
+		if (!structured_output)
+			tprint_struct_next();
 
 		if (sa->sa_family < ARRAY_SIZE(sa_printers)
 		    && sa_printers[sa->sa_family].printer
 		    && addrlen >= sa_printers[sa->sa_family].min_len) {
+			sockaddr_normalize = structured_output;
 			sa_printers[sa->sa_family].printer(tcp, buf, addrlen);
+			sockaddr_normalize = false;
 		} else {
 			print_sockaddr_data_raw(buf, addrlen);
 		}
 	}
 
-	tprint_struct_end();
+	if (!structured_output)
+		tprint_struct_end();
 }
 
 int
