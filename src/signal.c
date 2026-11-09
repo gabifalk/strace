@@ -237,12 +237,21 @@ printsignal(int nr)
 {
 	const char *str = signame(nr);
 
-	if (!str || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_D(nr);
-	if (!str || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+	tprints_object_type("signal");
+
+	if (structured_output || !str ||
+	    xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		tprintf_object_field_string("raw", "%d", nr);
+
+	if (!str || (!structured_output &&
+		     xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW))
 		return;
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-		? tprints_comment : tprints_string)(str);
+
+	if (structured_output ||
+	    xlat_verbose(xlat_verbosity) != XLAT_STYLE_VERBOSE)
+		tprints_object_field_string("sym", str);
+	else
+		tprints_comment(str);
 }
 
 static void
