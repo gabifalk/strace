@@ -211,8 +211,8 @@ do_adjtimex(struct tcb *const tcp, const print_obj_by_addr_fn print_tx,
 	tprints_arg_name("buf");
 	if (print_tx(tcp, addr))
 		return 0;
-	tcp->auxstr = xlookup(adjtimex_state, (kernel_ulong_t) tcp->u_rval);
-	return RVAL_STR;
+	tcp->rval_xlat = adjtimex_state;
+	return RVAL_XLAT;
 }
 
 #if HAVE_ARCH_TIME32_SYSCALLS

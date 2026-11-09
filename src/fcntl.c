@@ -249,8 +249,8 @@ print_fcntl(struct tcb *tcp)
 	case F_GETLEASE:
 		if (entering(tcp) || syserror(tcp))
 			return 0;
-		tcp->auxstr = xlookup(lockfcmds, (kernel_ulong_t) tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_xlat = lockfcmds;
+		return RVAL_HEX | RVAL_XLAT;
 	case F_GET_SEALS:
 		if (entering(tcp) || syserror(tcp) || tcp->u_rval == 0)
 			return 0;

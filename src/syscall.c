@@ -977,7 +977,13 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		tprints_sysret_next("retval");
 		if (sys_res & RVAL_NONE)
 			tprint_sysret_pseudo_rval();
-		else {
+		else if (structured_output && (sys_res & RVAL_XLAT)) {
+			enum xlat_style fmt =
+				(sys_res & RVAL_MASK) == RVAL_HEX
+					? XLAT_STYLE_FMT_X : XLAT_STYLE_FMT_U;
+			printxvals_ex((kernel_ulong_t) tcp->u_rval, NULL, fmt,
+				      tcp->rval_xlat, NULL);
+		} else {
 			switch (sys_res & RVAL_MASK) {
 			case RVAL_HEX:
 #if ANY_WORDSIZE_LESS_THAN_KERNEL_LONG
@@ -1074,8 +1080,14 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			}
 		}
 	} else {
-		if ((sys_res & RVAL_STR) && tcp->auxstr)
+		if (sys_res & RVAL_XLAT) {
+			const char *rval_str = xlookup(tcp->rval_xlat,
+						(kernel_ulong_t) tcp->u_rval);
+			if (rval_str)
+				tprints_sysret_string("retstr", rval_str, true);
+		} else if ((sys_res & RVAL_STR) && tcp->auxstr) {
 			tprints_sysret_string("retstr", tcp->auxstr, true);
+		}
 		print_injected_note(tcp);
 		if (Tflag) {
 			tprints_sysret_next("time");
