@@ -59,11 +59,17 @@ struct json_stack {
 #  define JSON_TRUE "true"
 #  define JSON_FALSE "false"
 
+struct arg_capture;
+
 struct structured_output_data {
 	struct json_stack state;
 	bool arg_open;
 	unsigned int arg_open_depth;
 	unsigned int arg_index;
+
+	bool merged;
+	/* Per-tracee capture context, or NULL when not capturing. */
+	struct arg_capture *capture;
 };
 
 extern struct structured_output_data *structured_output;
@@ -239,6 +245,10 @@ extern void tprints_syscall_name(const char *name);
 extern void tprints_event_pid(int pid, const char *comm);
 extern void tprints_arg_begin(const char *name, unsigned long long scno,
 			      bool entering, int pid, const char *comm);
+struct arg_capture;
+extern void structured_capture_begin(struct arg_capture *,
+				     unsigned int arg_index_start);
+extern void structured_capture_end(void);
 extern void tprint_arg_next(void);
 extern void tprint_arg_end(void);
 extern void tprints_arg_name_unconditionally(const char *name);

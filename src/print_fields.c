@@ -574,11 +574,13 @@ emit_syscall_event_start(const char *name, kernel_ulong_t scno, int entry,
 	}
 	tprint_object_end();
 	tprint_object_field_end();
-	tprints_object_field_begin("entering");
-	STRACE_PRINTS(entry ? JSON_TRUE : JSON_FALSE);
-	tprint_object_field_end();
-	tprints_object_field_begin("args");
-	json_print_array_begin();
+	if (!structured_output->merged) {
+		tprints_object_field_begin("entering");
+		STRACE_PRINTS(entry ? JSON_TRUE : JSON_FALSE);
+		tprint_object_field_end();
+		tprints_object_field_begin("args");
+		json_print_array_begin();
+	}
 	if (entry)
 		structured_output->arg_index = 0;
 	structured_output->arg_open = false;
@@ -599,6 +601,73 @@ tprints_arg_begin(const char *name, unsigned long long scno, bool entering,
 	}
 }
 
+void
+structured_capture_begin(struct arg_capture *cap, unsigned int arg_index_start)
+{
+	if (!structured_output)
+		return;
+
+	json_stack_reset();
+	structured_output->capture = cap;
+	structured_output->arg_index = arg_index_start;
+	structured_output->arg_open = false;
+}
+
+void
+structured_capture_end(void)
+{
+	if (!structured_output)
+		return;
+
+	structured_output->capture = NULL;
+}
+
+/*
+ * Redirect the current argument's output to a per-argument memory stream in
+ * the capture context, choosing the entry or exit buffer according to the
+ * syscall phase, so the two renderings can later be paired.
+ */
+static void
+capture_arg_open(unsigned int index, const char *name)
+{
+	struct arg_capture *cap = structured_output->capture;
+
+	if (!cap || index >= MAX_ARGS)
+		return;
+
+	free(cap->name[index]);
+	cap->name[index] = xstrdup(name);
+
+	char **bufp = cap->exiting ? &cap->exit_buf[index]
+				   : &cap->entry_buf[index];
+	size_t *lenp = cap->exiting ? &cap->exit_len[index]
+				    : &cap->entry_len[index];
+
+	free(*bufp);
+	*bufp = NULL;
+	*lenp = 0;
+
+	FILE *fp = open_memstream(bufp, lenp);
+	if (fp) {
+		cap->saved_outf = *cap->outfp;
+		cap->memstream = fp;
+		*cap->outfp = fp;
+	}
+}
+
+static void
+capture_arg_close(void)
+{
+	struct arg_capture *cap = structured_output->capture;
+
+	if (cap && cap->memstream) {
+		fclose(cap->memstream);
+		cap->memstream = NULL;
+		*cap->outfp = cap->saved_outf;
+		cap->saved_outf = NULL;
+	}
+}
+
 static void
 close_arg(void)
 {
@@ -615,7 +684,11 @@ close_arg(void)
 	}
 
 	tprint_object_end();
-	json_print_array_element_end();
+
+	if (structured_output->capture)
+		capture_arg_close();
+	else
+		json_print_array_element_end();
 }
 
 void
@@ -636,6 +709,8 @@ tprint_arg_end(void)
 {
 	if (structured_output) {
 		close_arg();
+		if (structured_output->capture)
+			return;
 		json_print_array_end();
 		json_print_object_field_end();
 	} else {
@@ -651,14 +726,19 @@ tprints_arg_name_unconditionally_at(unsigned int index, const char *name)
 	if (structured_output) {
 		close_arg();
 
-		json_print_array_element_begin();
-		tprint_object_begin();
-		tprints_object_field_begin("index");
-		STRACE_PRINTF("%u", index);
-		tprint_object_field_end();
-		tprints_object_field_begin("arg");
-		tprintf_string_value("%s", name);
-		tprint_object_field_end();
+		if (structured_output->capture) {
+			capture_arg_open(index, name);
+			tprint_object_begin();
+		} else {
+			json_print_array_element_begin();
+			tprint_object_begin();
+			tprints_object_field_begin("index");
+			STRACE_PRINTF("%u", index);
+			tprint_object_field_end();
+			tprints_object_field_begin("arg");
+			tprintf_string_value("%s", name);
+			tprint_object_field_end();
+		}
 		structured_output->arg_open = true;
 		structured_output->arg_open_depth =
 			structured_output->state.depth;
