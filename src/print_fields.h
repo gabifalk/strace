@@ -138,6 +138,12 @@ json_prints_string_value(const char *s)
 	(void) s;
 }
 
+static inline void ATTRIBUTE_FORMAT((printf, 1, 2))
+json_printf_string_value(const char *fmt, ...)
+{
+	(void) fmt;
+}
+
 static inline void
 json_print_object_field_bool(const char *field, bool val)
 {
