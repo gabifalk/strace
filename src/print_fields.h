@@ -94,6 +94,30 @@ tprint_object_end(void)
 }
 
 static inline void
+json_prints_object_field_begin(const char *field)
+{
+	(void) field;
+}
+
+static inline void
+json_print_object_field_end(void)
+{
+}
+
+static inline void
+json_prints_object_field_string(const char *field, const char *s)
+{
+	(void) field;
+	(void) s;
+}
+
+static inline void
+json_prints_string_value(const char *s)
+{
+	(void) s;
+}
+
+static inline void
 tprint_type_const(void)
 {
 }
