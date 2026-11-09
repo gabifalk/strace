@@ -15,11 +15,13 @@
 #define PRINT_FIELD_CSTRING_OFFSET(where_, field_, str_buf_, str_size_)		\
 	do {									\
 		tprints_field_name(#field_);					\
-		if ((where_).field_ < (str_size_))				\
+		if ((where_).field_ < (str_size_)) {				\
+			json_prints_object_field_string("type", "string");	\
 			print_quoted_cstring((str_buf_) + (where_).field_,	\
 					     (str_size_) - (where_).field_);	\
-		else								\
+		} else {							\
 			PRINT_VAL_X((where_).field_);				\
+		}								\
 	} while (0)
 
 #define PRINT_FIELD_CSTRING_SEQUENCE(tcp_, where_, field_, num_,		\

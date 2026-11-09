@@ -100,6 +100,8 @@ decode_attr_extra_data(struct tcb *const tcp,
 				tprint_more_data_follows();
 			} else {
 				tprints_field_name("extra_data");
+				json_prints_object_field_string("type",
+								"bytes");
 				print_quoted_string(data, size,
 						    QUOTE_FORCE_HEX);
 				tprintf_comment("bytes %zu..%zu",

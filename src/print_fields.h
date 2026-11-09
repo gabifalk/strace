@@ -12,6 +12,7 @@
 # include "gcc_compat.h"
 # include "static_assert.h"
 # include <stdarg.h>
+# include <stdbool.h>
 # include <string.h>
 
 # ifdef IN_STRACE
@@ -135,6 +136,13 @@ static inline void
 json_prints_string_value(const char *s)
 {
 	(void) s;
+}
+
+static inline void
+json_print_object_field_bool(const char *field, bool val)
+{
+	(void) field;
+	(void) val;
 }
 
 static inline void

@@ -298,6 +298,7 @@ print_cmsg_type_data(struct tcb *tcp, const int cmsg_level, const int cmsg_type,
 	if (!cmsg_data_printed && data_len) {
 		tprint_struct_next();
 		tprints_field_name("cmsg_data");
+		json_prints_object_field_string("type", "bytes");
 		print_quoted_string(cmsg_data, data_len, QUOTE_FORCE_HEX);
 	}
 }
