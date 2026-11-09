@@ -473,7 +473,12 @@ json_print_array_end(void)
 void
 tprint_array_fetch_failed_addr(unsigned long long addr)
 {
-	(void) addr;
+	if (!structured_output)
+		return;
+
+	tprints_object_field_begin("fetch_failed_addr");
+	json_printf_string_value("%#llx", addr);
+	tprint_object_field_end();
 }
 
 void
