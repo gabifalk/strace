@@ -195,6 +195,24 @@ jsonl_signal(int nr, const char *sym)
 }
 
 /*
+ * The fields of a ticks value: "type": "ticks", "raw": "<raw>", with the
+ * clock frequency "hz" and decimal "precision" derived from _SC_CLK_TCK
+ * the same way print_clock_t does.
+ */
+static inline void
+jsonl_ticks(uint64_t raw)
+{
+	const long hz = sysconf(_SC_CLK_TCK);
+	unsigned int precision = 0;
+
+	for (long t = hz - 1; t > 0 && precision < 9; t /= 10)
+		++precision;
+
+	printf("\"type\": \"ticks\", \"raw\": \"%" PRIu64 "\", "
+	       "\"hz\": \"%ld\", \"precision\": \"%u\"", raw, hz, precision);
+}
+
+/*
  * Open a flags value with its single implicit group, up to the elems array:
  * "type": "flags", "raw": "<raw>", "groups": [{"raw": "<raw>",
  * "group_type": "flags", "elems": [

@@ -570,6 +570,7 @@ jsonl-merged-geteuid	-e trace=geteuid
 jsonl-merged-getgid	-e trace=getgid
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-getsockname	-e trace=getsockname
+jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-memfd_secret	-e trace=memfd_secret
 jsonl-merged-mlockall	-e trace=mlockall
@@ -585,8 +586,10 @@ jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-setxattr	-e trace=setxattr
+jsonl-merged-sigchld	-e trace=none
 jsonl-merged-signal	-e trace=none
 jsonl-merged-status-none	-e trace=all --status=none
+jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
@@ -604,6 +607,7 @@ jsonl-split-geteuid	-e trace=geteuid
 jsonl-split-getgid	-e trace=getgid
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-getsockname	-e trace=getsockname
+jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-memfd_secret	-e trace=memfd_secret
 jsonl-split-mlockall	-e trace=mlockall
@@ -619,8 +623,10 @@ jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-split-setxattr	-e trace=setxattr
+jsonl-split-sigchld	-e trace=none
 jsonl-split-signal	-e trace=none
 jsonl-split-status-none	-e trace=all --status=none
+jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-split-sysinfo	-e trace=sysinfo
 jsonl-split-vfork-f	-qq -f -e signal=none -e trace=chdir
 kcmp	-a22

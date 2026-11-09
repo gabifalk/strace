@@ -296,6 +296,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getgid \
 	jsonl-getresuid \
 	jsonl-getsockname \
+	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-memfd_secret \
 	jsonl-mlockall \
@@ -311,8 +312,10 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-setxattr \
+	jsonl-sigchld \
 	jsonl-signal \
 	jsonl-status-none \
+	jsonl-stopped \
 	jsonl-sysinfo \
 	jsonl-vfork-f \
 	kcmp-y--pidns-translation \
@@ -974,6 +977,7 @@ EXTRA_DIST = \
 	jsonl-getgid.c \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
+	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-memfd_secret.c \
 	jsonl-mlockall.c \
@@ -989,8 +993,10 @@ EXTRA_DIST = \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-setxattr.c \
+	jsonl-sigchld.c \
 	jsonl-signal.c \
 	jsonl-status-none.c \
+	jsonl-stopped.c \
 	jsonl-sysinfo.c \
 	jsonl-vfork-f.c \
 	jsonl.h \
