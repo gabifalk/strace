@@ -209,6 +209,15 @@ decode_sockname(struct tcb *tcp)
 
 		if (fetch_socklen(tcp, &ulen, tcp->u_arg[1], tcp->u_arg[2])) {
 			set_tcb_priv_ulong(tcp, ulen);
+
+			if (structured_output) {
+				/* addrlen */
+				tprints_arg_next_name_at(2, "addrlen");
+				tprint_indirect_begin();
+				PRINT_VAL_D(ulen);
+				tprint_indirect_end();
+				json_print_arg_inout();
+			}
 			return 0;
 		} else {
 			/* addr */
@@ -243,12 +252,14 @@ decode_sockname(struct tcb *tcp)
 		/* addrlen */
 		tprints_arg_next_name("addrlen");
 		tprint_indirect_begin();
-		if (ulen != rlen) {
+		if (!structured_output && ulen != rlen) {
 			PRINT_VAL_D(ulen);
 			tprint_value_changed();
 		}
 		PRINT_VAL_D(rlen);
 		tprint_indirect_end();
+		if (ulen != rlen)
+			json_print_arg_changed();
 	}
 
 	return RVAL_DECODED;

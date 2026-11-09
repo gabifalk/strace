@@ -178,10 +178,23 @@ tprints_arg_name(const char *name)
 }
 
 void
+tprints_arg_name_at(unsigned int index, const char *name)
+{
+	tprints_arg_name(name);
+}
+
+void
 tprints_arg_next_name(const char *name)
 {
 	tprint_arg_next();
 	tprints_arg_name(name);
+}
+
+void
+tprints_arg_next_name_at(unsigned int index, const char *name)
+{
+	tprint_arg_next();
+	tprints_arg_name_at(index, name);
 }
 
 void
