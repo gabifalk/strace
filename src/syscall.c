@@ -1062,6 +1062,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		}
 	}
 	if (structured_output) {
+		if ((sys_res & RVAL_STR) && tcp->auxstr)
+			tprints_sysret_string("retstr", tcp->auxstr, true);
 		tprint_sysret_end();
 		print_injected_note(tcp);
 		if (Tflag) {
