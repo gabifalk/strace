@@ -183,6 +183,18 @@ jsonl_const(uint64_t val, bool hex, const char *sym, const char *table)
 }
 
 /*
+ * The fields of a signal value: "type": "signal", "raw": "<nr>" (decimal),
+ * and a "sym" when sym is non-NULL.
+ */
+static inline void
+jsonl_signal(int nr, const char *sym)
+{
+	printf("\"type\": \"signal\", \"raw\": \"%d\"", nr);
+	if (sym)
+		printf(", \"sym\": \"%s\"", sym);
+}
+
+/*
  * Open a flags value with its single implicit group, up to the elems array:
  * "type": "flags", "raw": "<raw>", "groups": [{"raw": "<raw>",
  * "group_type": "flags", "elems": [

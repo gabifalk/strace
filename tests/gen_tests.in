@@ -579,7 +579,9 @@ jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-prctl-dumpable	-e trace=prctl
 jsonl-merged-prctl-mce-kill	-e trace=prctl
 jsonl-merged-prctl-no-args	-e trace=prctl
+jsonl-merged-prctl-pdeathsig	-e trace=prctl
 jsonl-merged-prctl-tsc	-e trace=prctl
+jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-setxattr	-e trace=setxattr
@@ -610,7 +612,9 @@ jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-prctl-dumpable	-e trace=prctl
 jsonl-split-prctl-mce-kill	-e trace=prctl
 jsonl-split-prctl-no-args	-e trace=prctl
+jsonl-split-prctl-pdeathsig	-e trace=prctl
 jsonl-split-prctl-tsc	-e trace=prctl
+jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-split-setxattr	-e trace=setxattr

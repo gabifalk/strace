@@ -305,7 +305,9 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
 	jsonl-prctl-no-args \
+	jsonl-prctl-pdeathsig \
 	jsonl-prctl-tsc \
+	jsonl-printsignal \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-setxattr \
@@ -980,7 +982,9 @@ EXTRA_DIST = \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
 	jsonl-prctl-no-args.c \
+	jsonl-prctl-pdeathsig.c \
 	jsonl-prctl-tsc.c \
+	jsonl-printsignal.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-setxattr.c \
