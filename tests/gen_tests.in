@@ -555,8 +555,14 @@ ipc_shm	+ipc.sh -a26
 ipc_shm-Xabbrev	+ipc.sh -Xabbrev -a26
 ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
+jsonl-merged-getegid	-e trace=getegid
+jsonl-merged-geteuid	-e trace=geteuid
+jsonl-merged-getgid	-e trace=getgid
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-sysinfo	-e trace=sysinfo
+jsonl-split-getegid	-e trace=getegid
+jsonl-split-geteuid	-e trace=geteuid
+jsonl-split-getgid	-e trace=getgid
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-sysinfo	-e trace=sysinfo
 kcmp	-a22
