@@ -61,7 +61,9 @@ printargv(struct tcb *const tcp, kernel_ulong_t addr)
 			break;
 		}
 
+		tprint_object_begin();
 		printstr(tcp, word);
+		tprint_object_end();
 	}
 
 	tprint_array_end();

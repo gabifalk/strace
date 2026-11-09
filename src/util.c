@@ -1766,7 +1766,22 @@ printstr_ex(struct tcb *const tcp, const kernel_ulong_t addr,
 		   && ((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
 		       || len > max_strlen);
 
-	tprints_string(outstr);
+	if (structured_output) {
+		unsigned int vlen = size;
+
+		if (style & QUOTE_0_TERMINATED) {
+			const unsigned char *ustr = (const unsigned char *) str;
+
+			for (vlen = 0; vlen < size && ustr[vlen]; ++vlen)
+				;
+		}
+
+		json_prints_object_field_string("type", "string");
+		print_bytes_array_field("value", str, vlen);
+	} else {
+		tprints_string(outstr);
+	}
+
 	if (ellipsis)
 		tprint_more_data_follows();
 
