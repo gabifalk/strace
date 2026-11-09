@@ -27,6 +27,7 @@ main(int argc, char *argv[])
 		jsonl_syscall_merged_open("getgid", __NR_getgid);
 		printf("], \"return\": {\"type\": \"gid\", \"raw\": \"%lu\"}}\n",
 		       rc);
+		jsonl_exit_event(0);
 		return 0;
 	}
 
@@ -34,6 +35,7 @@ main(int argc, char *argv[])
 	printf("]}\n");
 	jsonl_syscall_open("getgid", __NR_getgid, false);
 	printf("], \"return\": {\"type\": \"gid\", \"raw\": \"%lu\"}}\n", rc);
+	jsonl_exit_event(0);
 	return 0;
 }
 
