@@ -15,6 +15,8 @@
 # include <stdio.h>
 # include <string.h>
 # include <unistd.h>
+# include <sys/stat.h>
+# include <sys/sysmacros.h>
 
 /*
  * Prefix of a jsonl-split "syscall" event of process pid
@@ -92,6 +94,30 @@ static inline void
 jsonl_bytes(const char *str)
 {
 	jsonl_bytes_n(str, strlen(str));
+}
+
+/* The fields of an fd value, with a path fd_info when path is given. */
+static inline void
+jsonl_fd(int fd, const char *path, bool deleted)
+{
+	printf("\"type\": \"fd\", \"raw\": \"%d\"", fd);
+	if (path) {
+		printf(", \"fd_info\": {\"type\": \"path\", \"path\": ");
+		jsonl_bytes(path);
+		printf("%s}", deleted ? ", \"deleted\": true" : "");
+	}
+}
+
+/* The fields of an fd value with the dev fd_info of a device file. */
+static inline void
+jsonl_fd_dev(int fd, const char *path, const struct stat *st)
+{
+	printf("\"type\": \"fd\", \"raw\": \"%d\","
+	       " \"fd_info\": {\"type\": \"dev_t\", \"path\": ", fd);
+	jsonl_bytes(path);
+	printf(", \"kind\": \"%s\", \"major\": \"%u\", \"minor\": \"%u\"}",
+	       S_ISBLK(st->st_mode) ? "block" : "char",
+	       major(st->st_rdev), minor(st->st_rdev));
 }
 
 /*
