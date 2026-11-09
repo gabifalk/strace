@@ -281,6 +281,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	ip_local_port_range-success-Xraw \
 	ip_local_port_range-success-Xverbose \
 	is_linux_mips_n64 \
+	jsonl-getresuid \
+	jsonl-sysinfo \
 	kcmp-y--pidns-translation \
 	kill--pidns-translation \
 	kill_child \
@@ -750,6 +752,7 @@ MISC_TESTS = \
 	strace-E-override.test \
 	strace-E-unset.test \
 	strace-E.test \
+	strace-J-header-split.test \
 	strace-S.test \
 	strace-T_upper.test \
 	strace-V.test \
@@ -922,6 +925,10 @@ EXTRA_DIST = \
 	getresugid.c \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
+	jsonl-getresuid.c \
+	jsonl-sysinfo.c \
+	jsonl.h \
+	jsonl.sh \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \
 	kill-on-exit.sh \

@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Common body for the generated jsonl-<fmt>-<syscall> tests.
+#
+# Copyright (c) 2026 The strace developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+. "${srcdir=.}/init.sh"
+
+rest="${NAME#jsonl-}"
+fmt="${rest%%-*}"
+prog="jsonl-${rest#*-}"
+
+case "$fmt" in
+	split)	jflag=-J ;;
+	*)	fail_ "unknown jsonl format: $fmt" ;;
+esac
+
+run_strace_match_diff $jflag "$@" \
+	QUIRK:PROG:"$prog" QUIRK:PROG-ARGS:"$fmt" QUIRK:SKIP-LEADING-LINES:1

@@ -538,6 +538,8 @@ ipc_shm-Xabbrev
 ipc_shm-Xraw
 ipc_shm-Xverbose
 is_linux_mips_n64
+jsonl-getresuid
+jsonl-sysinfo
 kcmp
 kcmp-y
 kcmp-y--pidns-translation
