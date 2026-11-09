@@ -555,6 +555,7 @@ ipc_shm	+ipc.sh -a26
 ipc_shm-Xabbrev	+ipc.sh -Xabbrev -a26
 ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
+jsonl-merged-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-getegid	-e trace=getegid
 jsonl-merged-geteuid	-e trace=geteuid
@@ -570,6 +571,7 @@ jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-status-none	-e trace=all --status=none
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
+jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-getegid	-e trace=getegid
 jsonl-split-geteuid	-e trace=geteuid
