@@ -286,9 +286,11 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-geteuid \
 	jsonl-getgid \
 	jsonl-getresuid \
+	jsonl-getsockname \
 	jsonl-mseal \
 	jsonl-pause \
 	jsonl-prctl-no-args \
+	jsonl-prctl-tsc \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-status-none \
@@ -942,9 +944,11 @@ EXTRA_DIST = \
 	jsonl-geteuid.c \
 	jsonl-getgid.c \
 	jsonl-getresuid.c \
+	jsonl-getsockname.c \
 	jsonl-mseal.c \
 	jsonl-pause.c \
 	jsonl-prctl-no-args.c \
+	jsonl-prctl-tsc.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-status-none.c \
