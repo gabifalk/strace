@@ -13,6 +13,17 @@
 void
 print_dev_t(const unsigned long long dev)
 {
+	const unsigned int dev_major = major(dev);
+	const unsigned int dev_minor = minor(dev);
+
+	if (structured_output) {
+		tprints_object_type("dev_t");
+		tprintf_object_field_string("raw", "%#llx", dev);
+		tprintf_object_field_string("major", "%u", dev_major);
+		tprintf_object_field_string("minor", "%u", dev_minor);
+		return;
+	}
+
 	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
 		PRINT_VAL_X(dev);
 
@@ -21,9 +32,6 @@ print_dev_t(const unsigned long long dev)
 
 	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
 		tprint_comment_begin();
-
-	const unsigned int dev_major = major(dev);
-	const unsigned int dev_minor = minor(dev);
 
 	tprints_fn_begin("makedev");
 	PRINT_VAL_X(dev_major);
