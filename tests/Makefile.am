@@ -287,10 +287,12 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-aio \
 	jsonl-chdir \
 	jsonl-close_range \
+	jsonl-copy_file_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
 	jsonl-fcntl-getlease \
 	jsonl-fork-f \
+	jsonl-getcpu \
 	jsonl-getegid \
 	jsonl-geteuid \
 	jsonl-getgid \
@@ -307,6 +309,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prctl-mce-kill \
 	jsonl-prctl-no-args \
 	jsonl-prctl-pdeathsig \
+	jsonl-prctl-sched-core \
 	jsonl-prctl-tsc \
 	jsonl-printsignal \
 	jsonl-sched_get_priority_mxx \
@@ -968,10 +971,12 @@ EXTRA_DIST = \
 	jsonl-aio.c \
 	jsonl-chdir.c \
 	jsonl-close_range.c \
+	jsonl-copy_file_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
 	jsonl-fcntl-getlease.c \
 	jsonl-fork-f.c \
+	jsonl-getcpu.c \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \
 	jsonl-getgid.c \
@@ -988,6 +993,7 @@ EXTRA_DIST = \
 	jsonl-prctl-mce-kill.c \
 	jsonl-prctl-no-args.c \
 	jsonl-prctl-pdeathsig.c \
+	jsonl-prctl-sched-core.c \
 	jsonl-prctl-tsc.c \
 	jsonl-printsignal.c \
 	jsonl-sched_get_priority_mxx.c \

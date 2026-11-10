@@ -544,10 +544,12 @@ jsonl-adjtimex
 jsonl-aio
 jsonl-chdir
 jsonl-close_range
+jsonl-copy_file_range
 jsonl-dup-y
 jsonl-dup-yy
 jsonl-fcntl-getlease
 jsonl-fork-f
+jsonl-getcpu
 jsonl-getegid
 jsonl-geteuid
 jsonl-getgid
@@ -564,6 +566,7 @@ jsonl-prctl-dumpable
 jsonl-prctl-mce-kill
 jsonl-prctl-no-args
 jsonl-prctl-pdeathsig
+jsonl-prctl-sched-core
 jsonl-prctl-tsc
 jsonl-printsignal
 jsonl-sched_get_priority_mxx
