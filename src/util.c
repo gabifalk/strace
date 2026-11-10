@@ -438,7 +438,7 @@ printaddr64(const uint64_t addr)
 		PRINT_VAL_ADDR(addr);
 }
 
-#define DEF_PRINTNUM(name, type, fmt) \
+#define DEF_PRINTNUM(name, type, fmt, vtype) \
 bool									\
 printnum_ ## name(struct tcb *const tcp, const kernel_ulong_t addr)	\
 {									\
@@ -446,7 +446,8 @@ printnum_ ## name(struct tcb *const tcp, const kernel_ulong_t addr)	\
 	if (umove_or_printaddr(tcp, addr, &num))			\
 		return false;						\
 	tprint_indirect_begin();					\
-	tprintf_string(fmt, num);					\
+	tprints_object_type(vtype);					\
+	tprintf_object_field_string("raw", fmt, num);			\
 	tprint_indirect_end();						\
 	return true;							\
 }
@@ -480,15 +481,15 @@ printpair_ ## name(struct tcb *const tcp, const kernel_ulong_t addr,	\
 	return true;							\
 }
 
-DEF_PRINTNUM(int_d, int, "%d")
-DEF_PRINTNUM(int_u, int, "%u")
-DEF_PRINTNUM(int_x, int, "%#x")
+DEF_PRINTNUM(int_d, int, "%d", "decimal")
+DEF_PRINTNUM(int_u, int, "%u", "unsigned")
+DEF_PRINTNUM(int_x, int, "%#x", "hex")
 DEF_PRINTNUM_ADDR(int, unsigned int)
 DEF_PRINTPAIR(int, int)
-DEF_PRINTNUM(short_u, short, "%hu")
-DEF_PRINTNUM(int64_d, uint64_t, "%" PRId64)
-DEF_PRINTNUM(int64_u, uint64_t, "%" PRIu64)
-DEF_PRINTNUM(int64_x, uint64_t, "%#" PRIx64)
+DEF_PRINTNUM(short_u, short, "%hu", "unsigned")
+DEF_PRINTNUM(int64_d, uint64_t, "%" PRId64, "decimal")
+DEF_PRINTNUM(int64_u, uint64_t, "%" PRIu64, "unsigned")
+DEF_PRINTNUM(int64_x, uint64_t, "%#" PRIx64, "hex")
 DEF_PRINTNUM_ADDR(int64, uint64_t)
 DEF_PRINTPAIR(int64, uint64_t)
 
