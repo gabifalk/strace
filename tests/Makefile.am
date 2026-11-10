@@ -320,6 +320,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-status-none \
 	jsonl-stopped \
 	jsonl-sysinfo \
+	jsonl-ustat \
 	jsonl-utime \
 	jsonl-vfork-f \
 	kcmp-y--pidns-translation \
@@ -1005,6 +1006,7 @@ EXTRA_DIST = \
 	jsonl-status-none.c \
 	jsonl-stopped.c \
 	jsonl-sysinfo.c \
+	jsonl-ustat.c \
 	jsonl-utime.c \
 	jsonl-vfork-f.c \
 	jsonl.h \

@@ -129,6 +129,18 @@ jsonl_fd_dev(int fd, const char *path, const struct stat *st)
 }
 
 /*
+ * The fields of a standalone device-number value: "type": "dev_t",
+ * the packed "raw" number (hex), and its "major" and "minor" components.
+ */
+static inline void
+jsonl_dev_t(unsigned long long dev)
+{
+	printf("\"type\": \"dev_t\", \"raw\": \"%#llx\", "
+	       "\"major\": \"%u\", \"minor\": \"%u\"",
+	       dev, major(dev), minor(dev));
+}
+
+/*
  * The "return" field of a syscall event: an errno object for rc == -1,
  * otherwise a value of the given type.
  */
