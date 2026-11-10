@@ -296,6 +296,18 @@ print_clock_t(uint64_t val)
 	print_ticks(val, clk_tck, frac_width);
 }
 
+void
+print_time_t(long long sec)
+{
+	if (structured_output) {
+		tprints_object_type("time_t");
+		tprintf_object_field_string("raw", "%lld", sec);
+	} else {
+		PRINT_VAL_D(sec);
+		tprints_comment(sprinttime(sec));
+	}
+}
+
 #if !defined HAVE_STPCPY
 char *
 stpcpy(char *dst, const char *src)
