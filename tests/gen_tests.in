@@ -594,6 +594,7 @@ jsonl-merged-signal	-e trace=none
 jsonl-merged-status-none	-e trace=all --status=none
 jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-merged-sysinfo	-e trace=sysinfo
+jsonl-merged-utime	-e trace=utime
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
@@ -634,6 +635,7 @@ jsonl-split-signal	-e trace=none
 jsonl-split-status-none	-e trace=all --status=none
 jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-split-sysinfo	-e trace=sysinfo
+jsonl-split-utime	-e trace=utime
 jsonl-split-vfork-f	-qq -f -e signal=none -e trace=chdir
 kcmp	-a22
 kcmp-y	-a22 -y -e trace=kcmp

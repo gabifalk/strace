@@ -194,6 +194,13 @@ jsonl_signal(int nr, const char *sym)
 		printf(", \"sym\": \"%s\"", sym);
 }
 
+/* The fields of a time_t value: "type": "time_t", "raw": "<sec>" (decimal). */
+static inline void
+jsonl_time_t(long long sec)
+{
+	printf("\"type\": \"time_t\", \"raw\": \"%lld\"", sec);
+}
+
 /*
  * The fields of a ticks value: "type": "ticks", "raw": "<raw>", with the
  * clock frequency "hz" and decimal "precision" derived from _SC_CLK_TCK
