@@ -589,6 +589,7 @@ jsonl-nlattr
 jsonl-nlattr_br_port_msg
 jsonl-nlattr_crypto_user_alg
 jsonl-nlattr_dcbmsg
+jsonl-nlattr_fib_rule_hdr
 jsonl-nlattr_ifaddrlblmsg
 jsonl-nlattr_ifla_af_spec
 jsonl-nlattr_ifla_brport

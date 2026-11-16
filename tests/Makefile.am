@@ -332,6 +332,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_br_port_msg \
 	jsonl-nlattr_crypto_user_alg \
 	jsonl-nlattr_dcbmsg \
+	jsonl-nlattr_fib_rule_hdr \
 	jsonl-nlattr_ifaddrlblmsg \
 	jsonl-nlattr_ifla_af_spec \
 	jsonl-nlattr_ifla_brport \
@@ -1073,6 +1074,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_br_port_msg.c \
 	jsonl-nlattr_crypto_user_alg.c \
 	jsonl-nlattr_dcbmsg.c \
+	jsonl-nlattr_fib_rule_hdr.c \
 	jsonl-nlattr_ifaddrlblmsg.c \
 	jsonl-nlattr_ifla_af_spec.c \
 	jsonl-nlattr_ifla_brport.c \
