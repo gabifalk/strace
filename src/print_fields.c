@@ -90,6 +90,9 @@ tprint_array_end(void)
 void
 tprint_array_element_fetch_failed(unsigned long long addr)
 {
+	if (structured_output)
+		return;
+
 	tprint_more_data_follows();
 	printaddr_comment(addr);
 }
