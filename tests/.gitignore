@@ -579,6 +579,7 @@ jsonl-nfnetlink_ipset
 jsonl-nfnetlink_nft_compat
 jsonl-nfnetlink_nftables
 jsonl-nfnetlink_osf
+jsonl-nfnetlink_queue
 jsonl-nlattr
 jsonl-nlattr_ndmsg
 jsonl-pause

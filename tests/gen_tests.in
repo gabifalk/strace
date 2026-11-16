@@ -598,6 +598,7 @@ jsonl-merged-nfnetlink_ipset	-e trace=sendto
 jsonl-merged-nfnetlink_nft_compat	-e trace=sendto
 jsonl-merged-nfnetlink_nftables	-e trace=sendto
 jsonl-merged-nfnetlink_osf	-e trace=sendto
+jsonl-merged-nfnetlink_queue	-e trace=sendto
 jsonl-merged-nlattr	-e trace=sendto
 jsonl-merged-nlattr_ndmsg	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
@@ -663,6 +664,7 @@ jsonl-split-nfnetlink_ipset	-e trace=sendto
 jsonl-split-nfnetlink_nft_compat	-e trace=sendto
 jsonl-split-nfnetlink_nftables	-e trace=sendto
 jsonl-split-nfnetlink_osf	-e trace=sendto
+jsonl-split-nfnetlink_queue	-e trace=sendto
 jsonl-split-nlattr	-e trace=sendto
 jsonl-split-nlattr_ndmsg	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
