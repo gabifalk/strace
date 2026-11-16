@@ -414,7 +414,12 @@ tprints_sysret_string(const char *name, const char *str)
 void
 tprint_char(unsigned char c)
 {
-	print_char(c, SCF_QUOTES | SCF_ESC_WS);
+	if (structured_output) {
+		tprints_object_type("char");
+		tprintf_object_field_string("raw", "%u", c);
+	} else {
+		print_char(c, SCF_QUOTES | SCF_ESC_WS);
+	}
 }
 
 void
