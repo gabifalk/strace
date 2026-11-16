@@ -232,10 +232,16 @@ tprints_arg_name_unconditionally(const char *name)
 }
 
 void
-tprints_arg_next_name_unconditionally(const char *name)
+tprints_arg_name_unconditionally_at(unsigned int index, const char *name)
+{
+	tprints_arg_name_unconditionally(name);
+}
+
+void
+tprints_arg_next_name_unconditionally_at(unsigned int index, const char *name)
 {
 	tprint_arg_next();
-	tprints_arg_name_unconditionally(name);
+	tprints_arg_name_unconditionally_at(index, name);
 }
 
 void

@@ -210,15 +210,16 @@ SYS_FUNC(clone)
 	if (entering(tcp)) {
 		const unsigned int sig = tcp->u_arg[ARG_FLAGS] & CSIGNAL;
 
-		tprints_arg_name_unconditionally("child_stack");
+		tprints_arg_name_unconditionally_at(ARG_STACK, "child_stack");
 		printaddr(tcp->u_arg[ARG_STACK]);
 #ifdef ARG_STACKSIZE
 		if (ARG_STACKSIZE != -1) {
-			tprints_arg_next_name_unconditionally("stack_size");
+			tprints_arg_next_name_unconditionally_at(ARG_STACKSIZE,
+								"stack_size");
 			PRINT_VAL_X(tcp->u_arg[ARG_STACKSIZE]);
 		}
 #endif
-		tprints_arg_next_name_unconditionally("flags");
+		tprints_arg_next_name_unconditionally_at(ARG_FLAGS, "flags");
 		if (flags) {
 			tprint_flags_begin();
 			printflags64_in(clone_flags, flags, "CLONE_???");
@@ -251,18 +252,21 @@ SYS_FUNC(clone)
 		if (flags & (CLONE_PARENT_SETTID|CLONE_PIDFD)) {
 			kernel_ulong_t addr = tcp->u_arg[ARG_PTID];
 
-			tprints_arg_next_name_unconditionally("parent_tid");
+			tprints_arg_next_name_unconditionally_at(ARG_PTID,
+								"parent_tid");
 			if (flags & CLONE_PARENT_SETTID)
 				printnum_pid(tcp, addr, PT_TID);
 			else
 				printnum_fd(tcp, addr);
 		}
 		if (flags & CLONE_SETTLS) {
-			tprints_arg_next_name_unconditionally("tls");
+			tprints_arg_next_name_unconditionally_at(ARG_TLS,
+								"tls");
 			print_tls_arg(tcp, tcp->u_arg[ARG_TLS]);
 		}
 		if (flags & (CLONE_CHILD_SETTID|CLONE_CHILD_CLEARTID)) {
-			tprints_arg_next_name_unconditionally("child_tidptr");
+			tprints_arg_next_name_unconditionally_at(ARG_CTID,
+								"child_tidptr");
 			printaddr(tcp->u_arg[ARG_CTID]);
 		}
 		if ((flags & nsflags) && !syserror(tcp)
