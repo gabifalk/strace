@@ -269,6 +269,8 @@ extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
 extern bool tprint_qcmd_begin(unsigned int qcmd);
 extern void tprint_rlim(unsigned long long lim, const char *str,
 			bool infinity);
+extern void tprint_syscall_nr(unsigned long long nr, const char *name,
+			      const char *nr_prefix);
 extern void tprint_clockid_fd(int clockid, unsigned int fd);
 extern bool tprint_clockid_cpu_begin(int clockid, int pid, bool per_thread);
 extern void tprint_clockid_cpu_end(void);
@@ -853,21 +855,7 @@ tprint_sysret_interrupted(void)
 			zero_extend_signed_to_ull((where_).field_);	\
 		const char *name = syscall_name_arch(ull_nr,		\
 					(audit_arch_), &nr_prefix_);	\
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV	\
-		    || !nr_prefix_)					\
-			PRINT_VAL_U((where_).field_);			\
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW	\
-		    || !name)						\
-			break;						\
-		if (!nr_prefix_ ||					\
-		    xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)	\
-			tprint_comment_begin();				\
-		if (nr_prefix_)						\
-			tprints_string(nr_prefix_);			\
-		tprints_string(name);					\
-		if (!nr_prefix_ ||					\
-		    xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)	\
-			tprint_comment_end();				\
+		tprint_syscall_nr(ull_nr, name, nr_prefix_);		\
 	} while (0)
 
 # define PRINT_FIELD_MAC(where_, field_)				\

@@ -697,6 +697,29 @@ timescale_to_unit(int scale)
 }
 
 /*
+ * Print a syscall number `nr' followed by its `name', if known,
+ * prefixed with `nr_prefix', if any.
+ */
+void
+tprint_syscall_nr(unsigned long long nr, const char *name,
+		  const char *nr_prefix)
+{
+	const enum xlat_style style = xlat_verbose(xlat_verbosity);
+
+	if (style != XLAT_STYLE_ABBREV || !nr_prefix)
+		PRINT_VAL_U(nr);
+	if (style != XLAT_STYLE_RAW && name) {
+		if (!nr_prefix || style == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+		if (nr_prefix)
+			tprints_string(nr_prefix);
+		tprints_string(name);
+		if (!nr_prefix || style == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	}
+}
+
+/*
  * Print a resource limit `lim' followed by its symbolic form `str', if any;
  * `infinity' tells that `str' names an infinite limit.
  */
