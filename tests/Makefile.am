@@ -345,6 +345,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_tun_filter \
 	jsonl-ioctl_unknown \
 	jsonl-ioprio_get \
+	jsonl-ip \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
 	jsonl-kill \
@@ -1202,6 +1203,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_tun_filter.c \
 	jsonl-ioctl_unknown.c \
 	jsonl-ioprio_get.c \
+	jsonl-ip.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
 	jsonl-kill.c \
@@ -1345,6 +1347,7 @@ EXTRA_DIST = \
 	jsonl.h \
 	jsonl-clone_untraced.sh \
 	jsonl-ioctl.sh \
+	jsonl-ip.sh \
 	jsonl-summary.sh \
 	jsonl-timestamps.sh \
 	jsonl.sh \

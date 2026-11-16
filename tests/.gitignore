@@ -602,6 +602,7 @@ jsonl-ioctl_termios
 jsonl-ioctl_tun_filter
 jsonl-ioctl_unknown
 jsonl-ioprio_get
+jsonl-ip
 jsonl-ip_mreq
 jsonl-keyctl
 jsonl-kill

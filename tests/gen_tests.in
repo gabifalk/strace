@@ -618,6 +618,7 @@ jsonl-merged-ioctl_sock_gifconf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_termios	+jsonl-ioctl.sh -e trace=ioctl -v
 jsonl-merged-ioctl_tun_filter	+jsonl-ioctl.sh -e trace=ioctl -v
 jsonl-merged-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
+jsonl-merged-ip	+jsonl-ip.sh -i -e trace=chdir
 jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-merged-kill	-e signal=none -e trace=kill
@@ -822,6 +823,7 @@ jsonl-split-ioctl_sock_gifconf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_termios	+jsonl-ioctl.sh -e trace=ioctl -v
 jsonl-split-ioctl_tun_filter	+jsonl-ioctl.sh -e trace=ioctl -v
 jsonl-split-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
+jsonl-split-ip	+jsonl-ip.sh -i -e trace=chdir
 jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-split-kill	-e signal=none -e trace=kill
