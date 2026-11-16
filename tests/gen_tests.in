@@ -605,6 +605,7 @@ jsonl-merged-ioctl_kd_sound	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kd_tone	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_kvm_run	+jsonl-ioctl.sh -e kvm=vcpu+ -e trace=ioctl
 jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
@@ -811,6 +812,7 @@ jsonl-split-ioctl_kd_sound	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kd_tone	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_kvm_run	+jsonl-ioctl.sh -e kvm=vcpu+ -e trace=ioctl
 jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl

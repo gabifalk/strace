@@ -588,6 +588,7 @@ jsonl-ioctl_kd_sound
 jsonl-ioctl_kd_tone
 jsonl-ioctl_kd_uniscrnmap
 jsonl-ioctl_gpio
+jsonl-ioctl_kvm_run
 jsonl-ioctl_lirc
 jsonl-ioctl_random
 jsonl-ioctl_block

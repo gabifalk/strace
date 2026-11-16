@@ -331,6 +331,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_kd_tone \
 	jsonl-ioctl_kd_uniscrnmap \
 	jsonl-ioctl_gpio \
+	jsonl-ioctl_kvm_run \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
 	jsonl-ioctl_block \
@@ -707,6 +708,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 attach_f_p_LDADD = -lpthread $(LDADD)
 jsonl_access_secontext_LDADD = $(LDADD) $(libselinux_LDADD)
 jsonl_execveat_thread_LDADD = -lpthread $(LDADD)
+jsonl_ioctl_kvm_run_LDADD = -lpthread $(LDADD)
 jsonl_exit_args_lost_LDADD = -lpthread $(LDADD)
 jsonl_superseded_LDADD = -lpthread $(LDADD)
 bpf_obj_get_info_by_fd_LDADD = $(clock_LIBS) $(LDADD)
@@ -1194,6 +1196,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_kd_tone.c \
 	jsonl-ioctl_kd_uniscrnmap.c \
 	jsonl-ioctl_gpio.c \
+	jsonl-ioctl_kvm_run.c \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \
 	jsonl-ioctl_block.c \
