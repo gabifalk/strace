@@ -573,6 +573,7 @@ jsonl-netlink_route
 jsonl-nfnetlink_acct
 jsonl-nfnetlink_cthelper
 jsonl-nfnetlink_ctnetlink
+jsonl-nfnetlink_ctnetlink_exp
 jsonl-nlattr
 jsonl-nlattr_ndmsg
 jsonl-pause
