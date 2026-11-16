@@ -445,6 +445,12 @@ tprint_char(unsigned char c)
 }
 
 void
+tprint_addr(unsigned long long addr)
+{
+	PRINT_VAL_ADDR(addr);
+}
+
+void
 tprint_sysret_end(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
