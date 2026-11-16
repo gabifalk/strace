@@ -1,6 +1,7 @@
 /*
  * Check JSONL output of the bitset returned by EVIOCGBIT ioctl commands:
- * the raw mask, the decoded bits, and the truncation of a long list.
+ * the raw mask, the decoded bits, the truncation of a long list, and the
+ * fetched words.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -34,11 +35,14 @@ set_bits(const unsigned int *nrs, size_t count)
 }
 
 static void
-test_bitset(unsigned int ev, const char *ev_sym, const unsigned int *nrs,
-	    const char *const *syms, const char *sym_pattern,
-	    size_t count, bool truncated)
+test_bitset(unsigned int ev, const char *ev_sym, unsigned int max_nr,
+	    const unsigned int *nrs, const char *const *syms,
+	    const char *sym_pattern, size_t count, bool truncated)
 {
 	const unsigned int code = EVIOCGBIT(ev, INJECTED_RVAL);
+	const unsigned int size_bits =
+		INJECTED_RVAL > max_nr / 8 ? max_nr : INJECTED_RVAL * 8;
+	const size_t nwords = (size_bits + LONG_BITS - 1) / LONG_BITS;
 	const char *side = jsonl_ioctl_merged ? "entry" : NULL;
 	unsigned long long raw = 0;
 
@@ -86,6 +90,14 @@ test_bitset(unsigned int ev, const char *ev_sym, const unsigned int *nrs,
 	printf("]");
 	if (truncated)
 		jsonl_truncated();
+	printf(", \"words\": {");
+	jsonl_array_open();
+	for (size_t i = 0; i < nwords; ++i) {
+		printf("%s{\"type\": \"hex\", \"raw\": \"%#lx\"}",
+		       i ? ", " : "", bits[i]);
+	}
+	jsonl_array_close();
+	printf("}");
 	jsonl_ioctl_argp_close();
 
 	printf("], ");
@@ -102,7 +114,7 @@ main(int argc, char *argv[])
 
 	static const unsigned int ev_nrs[] = { EV_KEY, EV_ABS, 0x6 };
 	static const char *const ev_syms[] = { "EV_KEY", "EV_ABS", NULL };
-	test_bitset(0, NULL, ev_nrs, ev_syms, "EV_???",
+	test_bitset(0, NULL, EV_MAX, ev_nrs, ev_syms, "EV_???",
 		    ARRAY_SIZE(ev_nrs), false);
 
 	static const unsigned int key_nrs[] = {
@@ -111,10 +123,11 @@ main(int argc, char *argv[])
 	static const char *const key_syms[] = {
 		"KEY_ESC", "KEY_1", "KEY_2", "KEY_3", "KEY_4"
 	};
-	test_bitset(EV_KEY, "EV_KEY", key_nrs, key_syms, "KEY_???",
+	test_bitset(EV_KEY, "EV_KEY", KEY_MAX, key_nrs, key_syms, "KEY_???",
 		    ARRAY_SIZE(key_nrs), true);
 
-	test_bitset(EV_REL, "EV_REL", NULL, NULL, "REL_???", 0, false);
+	test_bitset(EV_REL, "EV_REL", REL_MAX, NULL, NULL, "REL_???", 0,
+		    false);
 
 	jsonl_exit_event(0);
 	return 0;
