@@ -318,41 +318,115 @@ tprint_bitset_end(void)
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
 }
 
-bool
-tprint_bitset_mask_begin(void)
+static unsigned long long
+bitset_word(const void *buf, unsigned int idx)
 {
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return false;
+	if (current_wordsize == sizeof(uint64_t)) {
+		uint64_t word;
 
-	tprint_bitset_begin();
-	return true;
+		memcpy(&word, (const char *) buf + idx * sizeof(word),
+		       sizeof(word));
+		return word;
+	} else {
+		uint32_t word;
+
+		memcpy(&word, (const char *) buf + idx * sizeof(word),
+		       sizeof(word));
+		return word;
+	}
+}
+
+bool
+tprint_bitset_mask_begin(const void *buf, unsigned int size)
+{
+	bool decoded = true;
+
+	if (structured_output) {
+		unsigned int nwords = size / current_wordsize;
+		char raw[sizeof("0x") + 2 * size];
+		char *p = raw;
+
+		while (nwords > 0 && !bitset_word(buf, nwords - 1))
+			--nwords;
+
+		tprints_object_type("bitset");
+		if (nwords) {
+			p = xappendstr(raw, p, "%#llx",
+				       bitset_word(buf, nwords - 1));
+			for (unsigned int i = nwords - 1; i > 0; --i)
+				p = xappendstr(raw, p, "%0*llx",
+					       (int) (2 * current_wordsize),
+					       bitset_word(buf, i - 1));
+			tprints_object_field_string("raw", raw);
+		} else {
+			tprints_object_field_string("raw", "0");
+		}
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
+		decoded = false;
+	} else {
+		tprint_bitset_begin();
+	}
+
+	return decoded;
 }
 
 void
 tprint_bitset_mask_next(void)
 {
-	tprint_bitset_next();
+	if (structured_output)
+		tprint_array_next();
+	else
+		tprint_bitset_next();
 }
 
 void
 tprint_bitset_mask_end(void)
 {
-	tprint_bitset_end();
+	if (structured_output)
+		tprint_array_end();
+	else
+		tprint_bitset_end();
 }
 
 bool
-tprint_bitset_words_begin(void)
+tprint_bitset_words_begin(const void *buf, unsigned int size)
 {
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
+	bool printed = false;
 
-	return xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV;
+	if (structured_output) {
+		const unsigned int nwords = size / current_wordsize;
+
+		tprints_object_field_begin("words");
+		tprint_object_begin();
+		tprint_array_begin();
+		for (unsigned int i = 0; i < nwords; ++i) {
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_type("hex");
+			tprintf_object_field_string("raw", "%#llx",
+						    bitset_word(buf, i));
+			tprint_object_end();
+			tprint_list_element_end();
+		}
+		tprint_array_end();
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+		printed = xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV;
+	}
+
+	return printed;
 }
 
 void
 tprint_bitset_words_end(void)
 {
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+	if (!structured_output
+	    && xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
 		tprint_comment_end();
 }
 

@@ -169,7 +169,7 @@ decode_bitset(struct tcb *const tcp, const kernel_ulong_t arg,
 	if (umove_or_printaddr(tcp, arg, &decoded_arg))
 		return RVAL_IOCTL_DECODED;
 
-	if (tprint_bitset_mask_begin()) {
+	if (tprint_bitset_mask_begin(decoded_arg, size)) {
 		int bit_displayed = 0;
 		int i = next_set_bit(decoded_arg, 0, size_bits);
 		if (i >= 0) {
@@ -195,7 +195,7 @@ decode_bitset(struct tcb *const tcp, const kernel_ulong_t arg,
 		tprint_bitset_mask_end();
 	}
 
-	if (tprint_bitset_words_begin()) {
+	if (tprint_bitset_words_begin(decoded_arg, size)) {
 		print_local_array_ex(tcp, decoded_arg, size / current_wordsize,
 				     current_wordsize, print_xint_array_member,
 				     NULL, 0, NULL, NULL);
