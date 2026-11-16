@@ -330,6 +330,8 @@ extern void tprints_shift_value(unsigned long long raw, unsigned long long val,
 extern void tprints_shift_value_xlat_u(unsigned long long raw,
 				      unsigned long long val,
 				      unsigned int amount, const char *shift);
+extern void tprint_mac_addr(const void *addr, unsigned int size,
+			    const char *str);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_secontext(const char *ctx, unsigned int ctx_len,
 			     const char *expected, unsigned int expected_len,
