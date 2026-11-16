@@ -292,6 +292,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-dup-y \
 	jsonl-dup-yy \
 	jsonl-execve \
+	jsonl-exit_args_lost \
 	jsonl-fcntl-getlease \
 	jsonl-file_setattr \
 	jsonl-fork-f \
@@ -624,6 +625,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 
 attach_f_p_LDADD = -lpthread $(LDADD)
 jsonl_access_secontext_LDADD = $(LDADD) $(libselinux_LDADD)
+jsonl_exit_args_lost_LDADD = -lpthread $(LDADD)
 bpf_obj_get_info_by_fd_LDADD = $(clock_LIBS) $(LDADD)
 bpf_obj_get_info_by_fd_v_LDADD = $(clock_LIBS) $(LDADD)
 bpf_obj_get_info_by_fd_prog_LDADD = $(clock_LIBS) $(LDADD)
@@ -1067,6 +1069,7 @@ EXTRA_DIST = \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
 	jsonl-execve.c \
+	jsonl-exit_args_lost.c \
 	jsonl-fcntl-getlease.c \
 	jsonl-file_setattr.c \
 	jsonl-fork-f.c \

@@ -549,6 +549,7 @@ jsonl-copy_file_range
 jsonl-dup-y
 jsonl-dup-yy
 jsonl-execve
+jsonl-exit_args_lost
 jsonl-fcntl-getlease
 jsonl-file_setattr
 jsonl-fork-f

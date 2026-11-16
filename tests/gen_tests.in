@@ -568,6 +568,7 @@ jsonl-merged-copy_file_range	-e trace=copy_file_range
 jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
 jsonl-merged-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
+jsonl-merged-exit_args_lost	-f -qqq -e trace=readv
 jsonl-merged-fcntl-getlease	-e trace=fcntl
 jsonl-merged-file_setattr	-e trace=file_setattr
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
@@ -692,6 +693,7 @@ jsonl-split-copy_file_range	-e trace=copy_file_range
 jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup
 jsonl-split-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
+jsonl-split-exit_args_lost	-f -qqq -e trace=readv
 jsonl-split-fcntl-getlease	-e trace=fcntl
 jsonl-split-file_setattr	-e trace=file_setattr
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
