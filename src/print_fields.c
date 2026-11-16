@@ -139,22 +139,34 @@ tprint_struct_exiting_abandon_more_data(void)
 void
 tprint_struct_resumed_begin(void)
 {
+	if (structured_output) {
+		tprint_struct_begin();
+		tprint_struct_mark_split();
+	}
 }
 
 void
 tprints_field_resumed_name(const char *name)
 {
+	if (structured_output)
+		tprints_field_name(name);
 }
 
 void
 tprint_val_exiting_u(unsigned long long entering_val,
 		     unsigned long long exiting_val)
 {
-	if (entering_val != exiting_val) {
-		PRINT_VAL_U(entering_val);
-		tprint_value_changed();
+	if (structured_output) {
+		PRINT_VAL_U(exiting_val);
+		if (entering_val != exiting_val)
+			tprint_arg_changed();
+	} else {
+		if (entering_val != exiting_val) {
+			PRINT_VAL_U(entering_val);
+			tprint_value_changed();
+		}
+		PRINT_VAL_U(exiting_val);
 	}
-	PRINT_VAL_U(exiting_val);
 }
 
 void
