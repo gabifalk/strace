@@ -295,6 +295,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-dup-yy \
 	jsonl-execve \
 	jsonl-exit_args_lost \
+	jsonl-fanotify_init \
 	jsonl-fcntl-getfd \
 	jsonl-fcntl-getfl \
 	jsonl-fcntl-getlease \
@@ -306,6 +307,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-get_mempolicy \
 	jsonl-getcpu \
 	jsonl-getdents64 \
+	jsonl-getdents64-v \
 	jsonl-getegid \
 	jsonl-geteuid \
 	jsonl-getgid \
@@ -341,6 +343,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-kill \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
+	jsonl-listmount \
 	jsonl-lsm_set_self_attr \
 	jsonl-membarrier \
 	jsonl-memfd_create \
@@ -414,7 +417,10 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-poke \
 	jsonl-ppoll \
 	jsonl-prctl \
+	jsonl-sched_getaffinity \
 	jsonl-seccomp-filter \
+	jsonl-sendfile \
+	jsonl-signalfd4 \
 	jsonl-sock_filter \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
@@ -459,6 +465,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-v4l2-querycap \
 	jsonl-vfork-f \
 	jsonl-wait4 \
+	jsonl-write \
+	jsonl-writev \
 	jsonl-xattr \
 	kcmp-y--pidns-translation \
 	kill--pidns-translation \
@@ -1127,6 +1135,7 @@ EXTRA_DIST = \
 	jsonl-dup-yy.c \
 	jsonl-execve.c \
 	jsonl-exit_args_lost.c \
+	jsonl-fanotify_init.c \
 	jsonl-fcntl-getfd.c \
 	jsonl-fcntl-getfl.c \
 	jsonl-fcntl-getlease.c \
@@ -1137,6 +1146,7 @@ EXTRA_DIST = \
 	jsonl-fsconfig.c \
 	jsonl-get_mempolicy.c \
 	jsonl-getcpu.c \
+	jsonl-getdents64-v.c \
 	jsonl-getdents64.c \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \
@@ -1172,6 +1182,7 @@ EXTRA_DIST = \
 	jsonl-kill.c \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
+	jsonl-listmount.c \
 	jsonl-lsm_set_self_attr.c \
 	jsonl-membarrier.c \
 	jsonl-memfd_create.c \
@@ -1245,7 +1256,10 @@ EXTRA_DIST = \
 	jsonl-poke.c \
 	jsonl-ppoll.c \
 	jsonl-prctl.c \
+	jsonl-sched_getaffinity.c \
 	jsonl-seccomp-filter.c \
+	jsonl-sendfile.c \
+	jsonl-signalfd4.c \
 	jsonl-sock_filter.c \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
@@ -1290,6 +1304,8 @@ EXTRA_DIST = \
 	jsonl-v4l2.c \
 	jsonl-vfork-f.c \
 	jsonl-wait4.c \
+	jsonl-write.c \
+	jsonl-writev.c \
 	jsonl-xattr.c \
 	jsonl.h \
 	jsonl-ioctl.sh \

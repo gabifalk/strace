@@ -552,6 +552,7 @@ jsonl-dup-y
 jsonl-dup-yy
 jsonl-execve
 jsonl-exit_args_lost
+jsonl-fanotify_init
 jsonl-fcntl-getfd
 jsonl-fcntl-getfl
 jsonl-fcntl-getlease
@@ -563,6 +564,7 @@ jsonl-fsconfig
 jsonl-get_mempolicy
 jsonl-getcpu
 jsonl-getdents64
+jsonl-getdents64-v
 jsonl-getegid
 jsonl-geteuid
 jsonl-getgid
@@ -598,6 +600,7 @@ jsonl-keyctl
 jsonl-kill
 jsonl-killed
 jsonl-landlock_create_ruleset
+jsonl-listmount
 jsonl-lsm_set_self_attr
 jsonl-membarrier
 jsonl-memfd_create
@@ -671,7 +674,10 @@ jsonl-pidfd_send_signal
 jsonl-poke
 jsonl-ppoll
 jsonl-prctl
+jsonl-sched_getaffinity
 jsonl-seccomp-filter
+jsonl-sendfile
+jsonl-signalfd4
 jsonl-sock_filter
 jsonl-prctl-dumpable
 jsonl-prctl-mce-kill
@@ -716,6 +722,8 @@ jsonl-v4l2-create_bufs
 jsonl-v4l2-querycap
 jsonl-vfork-f
 jsonl-wait4
+jsonl-write
+jsonl-writev
 jsonl-xattr
 kcmp
 kcmp-y

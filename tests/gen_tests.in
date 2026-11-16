@@ -571,6 +571,7 @@ jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
 jsonl-merged-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
 jsonl-merged-exit_args_lost	-f -qqq -e trace=readv
+jsonl-merged-fanotify_init	-e trace=fanotify_init
 jsonl-merged-fcntl-getfd	-e trace=fcntl
 jsonl-merged-fcntl-getfl	-e trace=fcntl
 jsonl-merged-fcntl-getlease	-e trace=fcntl
@@ -582,6 +583,7 @@ jsonl-merged-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-merged-get_mempolicy	-s3 -e trace=get_mempolicy
 jsonl-merged-getcpu	-e trace=getcpu
 jsonl-merged-getdents64	-e trace=getdents64
+jsonl-merged-getdents64-v	-v -e trace=getdents64
 jsonl-merged-getegid	-e trace=getegid
 jsonl-merged-geteuid	-e trace=geteuid
 jsonl-merged-getgid	-e trace=getgid
@@ -617,6 +619,7 @@ jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-merged-kill	-e signal=none -e trace=kill
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
+jsonl-merged-listmount	-e trace=listmount
 jsonl-merged-lsm_set_self_attr	-e trace=lsm_set_self_attr
 jsonl-merged-membarrier	-e trace=membarrier -e inject=membarrier:retval=3
 jsonl-merged-memfd_create	-e trace=memfd_create
@@ -690,7 +693,10 @@ jsonl-merged-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-merged-poke	-e trace=dup,dup2 -e inject=dup:poke_enter=arg1=100 -e inject=dup2:poke_enter=arg2=101:retval=42
 jsonl-merged-ppoll	-e trace=ppoll
 jsonl-merged-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
+jsonl-merged-sched_getaffinity	-e trace=sched_getaffinity
 jsonl-merged-seccomp-filter	-e trace=seccomp -v
+jsonl-merged-sendfile	-e trace=sendfile
+jsonl-merged-signalfd4	-yy -e trace=signalfd4
 jsonl-merged-sock_filter	-e trace=setsockopt,getsockopt -v
 jsonl-merged-prctl-dumpable	-e trace=prctl
 jsonl-merged-prctl-mce-kill	-e trace=prctl
@@ -735,6 +741,8 @@ jsonl-merged-v4l2-create_bufs	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:ret
 jsonl-merged-v4l2-querycap	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-wait4	-e signal=none -e trace=wait4
+jsonl-merged-write	-e trace=write -e write=all -P /dev/null
+jsonl-merged-writev	-e trace=writev -e write=all -P /dev/null
 jsonl-merged-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
@@ -750,6 +758,7 @@ jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup
 jsonl-split-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
 jsonl-split-exit_args_lost	-f -qqq -e trace=readv
+jsonl-split-fanotify_init	-e trace=fanotify_init
 jsonl-split-fcntl-getfd	-e trace=fcntl
 jsonl-split-fcntl-getfl	-e trace=fcntl
 jsonl-split-fcntl-getlease	-e trace=fcntl
@@ -761,6 +770,7 @@ jsonl-split-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-split-get_mempolicy	-s3 -e trace=get_mempolicy
 jsonl-split-getcpu	-e trace=getcpu
 jsonl-split-getdents64	-e trace=getdents64
+jsonl-split-getdents64-v	-v -e trace=getdents64
 jsonl-split-getegid	-e trace=getegid
 jsonl-split-geteuid	-e trace=geteuid
 jsonl-split-getgid	-e trace=getgid
@@ -796,6 +806,7 @@ jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-split-kill	-e signal=none -e trace=kill
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
+jsonl-split-listmount	-e trace=listmount
 jsonl-split-lsm_set_self_attr	-e trace=lsm_set_self_attr
 jsonl-split-membarrier	-e trace=membarrier -e inject=membarrier:retval=3
 jsonl-split-memfd_create	-e trace=memfd_create
@@ -869,7 +880,10 @@ jsonl-split-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-split-poke	-e trace=dup,dup2 -e inject=dup:poke_enter=arg1=100 -e inject=dup2:poke_enter=arg2=101:retval=42
 jsonl-split-ppoll	-e trace=ppoll
 jsonl-split-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
+jsonl-split-sched_getaffinity	-e trace=sched_getaffinity
 jsonl-split-seccomp-filter	-e trace=seccomp -v
+jsonl-split-sendfile	-e trace=sendfile
+jsonl-split-signalfd4	-yy -e trace=signalfd4
 jsonl-split-sock_filter	-e trace=setsockopt,getsockopt -v
 jsonl-split-prctl-dumpable	-e trace=prctl
 jsonl-split-prctl-mce-kill	-e trace=prctl
@@ -914,6 +928,8 @@ jsonl-split-v4l2-create_bufs	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retv
 jsonl-split-v4l2-querycap	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-split-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-wait4	-e signal=none -e trace=wait4
+jsonl-split-write	-e trace=write -e write=all -P /dev/null
+jsonl-split-writev	-e trace=writev -e write=all -P /dev/null
 jsonl-split-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 kcmp	-a22
 kcmp-y	-a22 -y -e trace=kcmp
