@@ -256,6 +256,8 @@ extern void tprint_timespec_signed(long long sec, long long nsec);
 extern void tprint_timespec_sym(long long sec, unsigned long long nsec,
 				const char *sym);
 extern void tprint_timeval(long long sec, unsigned long long usec);
+extern void tprint_dirent_count_begin(unsigned long long addr);
+extern void tprint_dirent_count_end(unsigned int count, bool truncated);
 extern void tprint_extra_data_unavailable(void);
 extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
 extern void tprint_extra_data_end(bool truncated);

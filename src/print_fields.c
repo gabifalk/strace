@@ -1127,6 +1127,18 @@ tprint_char(unsigned char c)
 }
 
 void
+tprint_dirent_count_begin(unsigned long long addr)
+{
+	printaddr64(addr);
+}
+
+void
+tprint_dirent_count_end(unsigned int count, bool truncated)
+{
+	tprintf_comment("%u%s entries", count, truncated ? "+" : "");
+}
+
+void
 tprint_extra_data_unavailable(void)
 {
 	if (structured_output && tprint_struct_fields_end())

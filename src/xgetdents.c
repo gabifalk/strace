@@ -22,7 +22,7 @@ decode_dents(struct tcb *const tcp, kernel_ulong_t addr, unsigned int len,
 	unsigned int count = 0;
 
 	if (abbrev(tcp))
-		printaddr(addr);
+		tprint_dirent_count_begin(addr);
 
 	for (;;) {
 		if (len < header_size) {
@@ -118,7 +118,7 @@ decode_dents(struct tcb *const tcp, kernel_ulong_t addr, unsigned int len,
 		if (count)
 			tprint_array_end();
 	} else {
-		tprintf_comment("%u%s entries", count, len ? "+" : "");
+		tprint_dirent_count_end(count, len);
 	}
 }
 
