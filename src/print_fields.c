@@ -1638,6 +1638,14 @@ tprint_perf_precise_ip(unsigned int val, const char *desc, const char *skid)
 }
 
 void
+tprint_reserved_bits(unsigned long long val, unsigned int from,
+		     unsigned int to)
+{
+	PRINT_VAL_X(val);
+	tprintf_comment("Bits %u..%u", from, to);
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {

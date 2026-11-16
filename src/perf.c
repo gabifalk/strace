@@ -333,8 +333,8 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	 */
 	if (attr->__reserved_1) {
 		tprint_struct_next();
-		PRINT_FIELD_X_CAST(*attr, __reserved_1, uint64_t);
-		tprints_comment("Bits 63..38");
+		tprints_field_name("__reserved_1");
+		tprint_reserved_bits(attr->__reserved_1, 63, 38);
 	}
 
 	if (abbrev(tcp))
@@ -444,8 +444,8 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	 */
 	if (attr->__reserved_3) {
 		tprint_struct_next();
-		PRINT_FIELD_X_CAST(*attr, __reserved_3, uint32_t);
-		tprintf_comment("Bits 931..959");
+		tprints_field_name("__reserved_3");
+		tprint_reserved_bits(attr->__reserved_3, 931, 959);
 	}
 
 	STRACE_PERF_CHECK_FIELD(sig_data);
