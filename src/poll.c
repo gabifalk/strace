@@ -46,8 +46,85 @@ decode_poll_entering(struct tcb *tcp)
 	PRINT_VAL_U(nfds);
 }
 
+/* The size of the buffer the result of poll was formatted into. */
+#define POLL_RESULT_BUFSIZE 1024
+/* The maximum number of entries that fit into that buffer. */
+#define POLL_RESULT_MAX_ENTRIES \
+	(POLL_RESULT_BUFSIZE / sizeof("{fd=0, revents=}"))
+
+struct poll_result {
+	print_obj_by_addr_fn print_ts;
+	kernel_ulong_t pts;
+	kernel_ulong_t fault_addr;
+	enum { POLL_RESULT_END, POLL_RESULT_FAULT, POLL_RESULT_MORE } tail;
+	bool left;
+	bool left_more;
+	unsigned int n;
+	struct {
+		int fd;
+		unsigned short revents;
+	} entries[POLL_RESULT_MAX_ENTRIES];
+};
+
+static void
+print_poll_timeout(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_result_begin(val);
+	tprints_sysret_result_note("Timeout");
+	tprint_sysret_result_end();
+}
+
+static void
+print_poll_result(struct tcb *const tcp, const unsigned long long val)
+{
+	const struct poll_result *const r = get_tcb_priv_data(tcp);
+
+	tprint_sysret_result_begin(val);
+	if (r->n || r->tail != POLL_RESULT_END) {
+		tprints_sysret_result_field("fds", false);
+		tprint_array_begin();
+		for (unsigned int i = 0; i < r->n; ++i) {
+			if (i)
+				tprint_array_next();
+			tprint_object_begin();
+			tprint_struct_begin();
+			tprints_field_name("fd");
+			tprint_fd_num(r->entries[i].fd);
+			tprint_struct_next();
+			tprints_field_name("revents");
+			printflags(pollflags, r->entries[i].revents, NULL);
+			tprint_struct_end();
+			tprint_object_end();
+		}
+		if (r->tail != POLL_RESULT_END) {
+			if (r->n)
+				tprint_array_next();
+			if (r->tail == POLL_RESULT_FAULT) {
+				tprint_object_begin();
+				printaddr(r->fault_addr);
+				tprint_object_end();
+			} else {
+				tprint_more_data_follows();
+			}
+		}
+		tprint_array_end();
+	}
+	if (r->left) {
+		tprints_sysret_result_field("left", true);
+		r->print_ts(tcp, r->pts);
+	} else if (r->left_more) {
+		tprints_sysret_result_note("...");
+	}
+	tprint_sysret_result_end();
+}
+
+/*
+ * Fetch the descriptors with returned events and select the ones to print,
+ * applying the limits of the buffer the result used to be formatted into.
+ */
 static int
-decode_poll_exiting(struct tcb *const tcp, const sprint_obj_by_addr_fn sprint_ts,
+decode_poll_exiting(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
+		    const sprint_obj_by_addr_fn sprint_ts,
 		    const kernel_ulong_t pts)
 {
 	struct pollfd fds;
@@ -55,43 +132,37 @@ decode_poll_exiting(struct tcb *const tcp, const sprint_obj_by_addr_fn sprint_ts
 	const unsigned long size = sizeof(fds) * nfds;
 	const kernel_ulong_t start = tcp->u_arg[0];
 	const kernel_ulong_t end = start + size;
-	unsigned int printed = 0;
-
-	static char outstr[1024];
-	char *outptr;
-#define end_outstr (outstr + sizeof(outstr))
+	size_t len = 0;
 
 	if (syserror(tcp))
 		return 0;
 	if (tcp->u_rval == 0) {
-		tcp->auxstr = "Timeout";
-		return RVAL_STR;
+		tcp->rval_result_printer = print_poll_timeout;
+		return RVAL_RESULT;
 	}
 
 	if (!verbose(tcp) || !start || !nfds ||
 	    size / sizeof(fds) != nfds || end < start)
 		return 0;
 
-	outptr = outstr;
+	struct poll_result *const r = xzalloc(sizeof(*r));
+	r->print_ts = print_ts;
+	r->pts = pts;
 
 	for (kernel_ulong_t cur = start; cur < end; cur += sizeof(fds)) {
 		if (umove(tcp, cur, &fds) < 0) {
-			if (outptr == outstr)
-				*outptr++ = '[';
-			else
-				outptr = stpcpy(outptr, ", ");
-			outptr = xappendstr(outstr, outptr, "%#" PRI_klx, cur);
+			len += len ? 2 : 1;
+			r->tail = POLL_RESULT_FAULT;
+			r->fault_addr = cur;
 			break;
 		}
 		if (!fds.revents)
 			continue;
-		if (outptr == outstr)
-			*outptr++ = '[';
-		else
-			outptr = stpcpy(outptr, ", ");
+		len += len ? 2 : 1;
 		/* printed starts with 0, hence printed + 1 */
-		if (sequence_truncation_needed(tcp, printed + 1)) {
-			outptr = stpcpy(outptr, "...");
+		if (sequence_truncation_needed(tcp, r->n + 1)) {
+			len += 3;
+			r->tail = POLL_RESULT_MORE;
 			break;
 		}
 
@@ -102,38 +173,40 @@ decode_poll_exiting(struct tcb *const tcp, const sprint_obj_by_addr_fn sprint_ts
 		const char *flagstr = sprintflags("", pollflags,
 						  (unsigned short) fds.revents);
 
-		if (outptr + strlen(fdstr) + strlen(flagstr) + 1 >=
-		    end_outstr - (2 + 2 * sizeof(long) + sizeof(", ], ..."))) {
-			outptr = stpcpy(outptr, "...");
+		if (len + strlen(fdstr) + strlen(flagstr) + 1 >=
+		    POLL_RESULT_BUFSIZE
+		    - (2 + 2 * sizeof(long) + sizeof(", ], ..."))
+		    || r->n >= ARRAY_SIZE(r->entries)) {
+			len += 3;
+			r->tail = POLL_RESULT_MORE;
 			break;
 		}
-		outptr = stpcpy(outptr, fdstr);
-		outptr = stpcpy(outptr, flagstr);
-		*outptr++ = '}';
-		++printed;
+		len += strlen(fdstr) + strlen(flagstr) + 1;
+		r->entries[r->n].fd = fds.fd;
+		r->entries[r->n].revents = fds.revents;
+		++r->n;
 	}
 
-	if (outptr != outstr)
-		*outptr++ = ']';
+	if (len)
+		++len;
 
-	*outptr = '\0';
 	if (pts) {
 		const char *str = sprint_ts(tcp, pts);
 
-		if (outptr + sizeof(", left ") + strlen(str) < end_outstr) {
-			outptr = stpcpy(outptr, outptr == outstr ? "left " : ", left ");
-			outptr = stpcpy(outptr, str);
-		} else {
-			outptr = stpcpy(outptr, ", ...");
-		}
+		if (len + sizeof(", left ") + strlen(str) < POLL_RESULT_BUFSIZE)
+			r->left = true;
+		else
+			r->left_more = true;
 	}
 
-	if (outptr == outstr)
+	if (!len && !r->left && !r->left_more) {
+		free(r);
 		return 0;
+	}
 
-	tcp->auxstr = outstr;
-	return RVAL_STR;
-#undef end_outstr
+	set_tcb_priv_data(tcp, r, free);
+	tcp->rval_result_printer = print_poll_result;
+	return RVAL_RESULT;
 }
 
 #if HAVE_ARCH_TIME32_SYSCALLS || HAVE_ARCH_OLD_TIME64_SYSCALLS
@@ -149,7 +222,7 @@ do_poll(struct tcb *const tcp, const sprint_obj_by_addr_fn sprint_ts)
 
 		return 0;
 	} else {
-		return decode_poll_exiting(tcp, sprint_ts, 0);
+		return decode_poll_exiting(tcp, NULL, sprint_ts, 0);
 	}
 }
 #endif /* HAVE_ARCH_TIME32_SYSCALLS || HAVE_ARCH_OLD_TIME64_SYSCALLS */
@@ -190,7 +263,8 @@ do_ppoll(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 
 		return 0;
 	} else {
-		return decode_poll_exiting(tcp, sprint_ts, tcp->u_arg[2]);
+		return decode_poll_exiting(tcp, print_ts, sprint_ts,
+					   tcp->u_arg[2]);
 	}
 }
 
