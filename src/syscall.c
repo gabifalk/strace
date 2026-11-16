@@ -847,6 +847,7 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			tprints_sysret_next("return");
 			tprints_string("<unavailable>");
 			tprint_sysret_end();
+			tprint_event_end();
 			tprint_newline();
 			if (status_filtering)
 				strace_close_memstream(tcp, publish);
@@ -1060,6 +1061,7 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 	if (Tflag)
 		print_syscall_duration(tcp, ts);
 	tprint_sysret_end();
+	tprint_event_end();
 	tprint_newline();
 	dumpio(tcp);
 	line_ended();

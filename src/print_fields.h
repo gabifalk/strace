@@ -62,6 +62,11 @@
 # define structured_output 0
 
 static inline void
+tprint_event_end(void)
+{
+}
+
+static inline void
 tprints_object_type(const char *type)
 {
 	(void) type;
