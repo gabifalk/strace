@@ -2310,31 +2310,41 @@ void
 tprint_net_xval(const void *raw, unsigned int size, const struct xlat *xlat,
 		unsigned long long val, const char *dflt)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		print_quoted_string(raw, size, QUOTE_FORCE_HEX);
+	if (structured_output) {
+		printxval_ex(xlat, val, dflt, XLAT_STYLE_ABBREV);
+		tprint_fn_hton_end(size);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			print_quoted_string(raw, size, QUOTE_FORCE_HEX);
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return;
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
 
-	tprint_fn_hton_begin(size);
-	printxval_ex(xlat, val, dflt, XLAT_STYLE_ABBREV);
-	tprint_fn_hton_end(size);
+		tprint_fn_hton_begin(size);
+		printxval_ex(xlat, val, dflt, XLAT_STYLE_ABBREV);
+		tprint_fn_hton_end(size);
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	}
 }
 
 void
 tprint_hton_xlat(unsigned long long stored, unsigned long long val,
 		 const char *sym, unsigned int size)
 {
-	char *str = xasprintf("%s(%s)", hton_fn_name(size), sym);
+	if (structured_output) {
+		print_xlat_ex(val, sym, XLAT_STYLE_DEFAULT);
+		tprint_fn_hton_end(size);
+	} else {
+		char *str = xasprintf("%s(%s)", hton_fn_name(size), sym);
 
-	print_xlat_ex(stored, str, XLAT_STYLE_DEFAULT);
-	free(str);
+		print_xlat_ex(stored, str, XLAT_STYLE_DEFAULT);
+		free(str);
+	}
 }
 
 void
