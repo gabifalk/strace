@@ -580,6 +580,7 @@ jsonl-merged-getsockname	-e trace=getsockname
 jsonl-merged-group_req	-e trace=setsockopt
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
@@ -692,6 +693,7 @@ jsonl-split-getsockname	-e trace=getsockname
 jsonl-split-group_req	-e trace=setsockopt
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
