@@ -148,32 +148,53 @@ tprints_field_exiting_name(const char *name)
 bool
 tprints_field_exiting_value(const char *name, bool on_entering, bool changed)
 {
-	if (on_entering && changed)
-		tprint_value_changed();
+	bool printed = true;
 
-	return !on_entering || changed;
+	if (structured_output) {
+		tprints_field_name(name);
+		if (on_entering && changed)
+			tprint_arg_changed();
+	} else {
+		if (on_entering && changed)
+			tprint_value_changed();
+		printed = !on_entering || changed;
+	}
+
+	return printed;
 }
 
 void
 tprint_addr_exiting(unsigned long long entering_addr,
 		    unsigned long long exiting_addr)
 {
-	printaddr64(entering_addr);
-	if (entering_addr != exiting_addr) {
-		tprint_value_changed();
+	if (structured_output) {
 		printaddr64(exiting_addr);
+	} else {
+		printaddr64(entering_addr);
+		if (entering_addr != exiting_addr) {
+			tprint_value_changed();
+			printaddr64(exiting_addr);
+		}
 	}
 }
 
 void
 tprint_ifc_len(int len, unsigned int ifreq_count)
 {
-	PRINT_VAL_D(len);
-	if (ifreq_count) {
-		tprint_comment_begin();
-		PRINT_VAL_U(ifreq_count);
-		tprints_string(" * sizeof(struct ifreq)");
-		tprint_comment_end();
+	if (structured_output) {
+		tprints_object_type("ifc_len");
+		tprintf_object_field_string("raw", "%d", len);
+		if (ifreq_count)
+			tprintf_object_field_string("ifreq_count", "%u",
+						    ifreq_count);
+	} else {
+		PRINT_VAL_D(len);
+		if (ifreq_count) {
+			tprint_comment_begin();
+			PRINT_VAL_U(ifreq_count);
+			tprints_string(" * sizeof(struct ifreq)");
+			tprint_comment_end();
+		}
 	}
 }
 
