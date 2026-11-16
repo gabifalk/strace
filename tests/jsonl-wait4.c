@@ -1,6 +1,6 @@
 /*
  * Check JSONL output of wait4 syscall: the status argument is
- * a wait_status value.
+ * a wait_status value of an exited, signaled, stopped, or continued child.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -24,13 +24,14 @@
 static bool merged;
 
 static void
-test_wait4(const pid_t pid)
+test_wait4(const pid_t pid, const int options, const char *const options_sym,
+	   const char *const sig_sym)
 {
 	const char *const entry = merged ? "entry" : NULL;
 	const char *const exit = merged ? "exit" : NULL;
 	int status;
 
-	long rc = syscall(__NR_wait4, pid, &status, 0, 0);
+	long rc = syscall(__NR_wait4, pid, &status, options, 0);
 	if (rc != pid)
 		perror_msg_and_fail("wait4");
 
@@ -53,16 +54,26 @@ test_wait4(const pid_t pid)
 	if (WIFEXITED(status)) {
 		printf(", \"status\": \"exited\", \"exit_code\": \"%d\"",
 		       WEXITSTATUS(status));
-	} else {
+	} else if (WIFSIGNALED(status)) {
 		printf(", \"status\": \"signaled\", \"signal\": {");
-		jsonl_signal(WTERMSIG(status), "SIGUSR1");
+		jsonl_signal(WTERMSIG(status), sig_sym);
 		printf("}");
+	} else if (WIFSTOPPED(status)) {
+		printf(", \"status\": \"stopped\", \"signal\": {");
+		jsonl_signal(WSTOPSIG(status), sig_sym);
+		printf("}");
+	} else if (WIFCONTINUED(status)) {
+		printf(", \"status\": \"continued\"");
+	} else {
+		error_msg_and_fail("unexpected status %#x", status);
 	}
 	jsonl_indirect();
 	jsonl_arg_close(exit);
 	printf(", ");
 	jsonl_arg_open(2, "options", exit);
-	jsonl_flags_open(0);
+	jsonl_flags_open(options);
+	if (options_sym)
+		jsonl_flags_const(options, options_sym, true);
 	jsonl_flags_close();
 	jsonl_arg_close(exit);
 	printf(", ");
@@ -84,7 +95,7 @@ main(int argc, char *argv[])
 		perror_msg_and_fail("fork");
 	if (!pid)
 		_exit(42);
-	test_wait4(pid);
+	test_wait4(pid, 0, NULL, NULL);
 
 	pid = fork();
 	if (pid < 0)
@@ -93,7 +104,24 @@ main(int argc, char *argv[])
 		raise(SIGUSR1);
 		_exit(1);
 	}
-	test_wait4(pid);
+	test_wait4(pid, 0, NULL, "SIGUSR1");
+
+	pid = fork();
+	if (pid < 0)
+		perror_msg_and_fail("fork");
+	if (!pid) {
+		for (;;)
+			pause();
+	}
+	if (kill(pid, SIGSTOP))
+		perror_msg_and_fail("kill");
+	test_wait4(pid, WSTOPPED, "WSTOPPED", "SIGSTOP");
+	if (kill(pid, SIGCONT))
+		perror_msg_and_fail("kill");
+	test_wait4(pid, WCONTINUED, "WCONTINUED", NULL);
+	if (kill(pid, SIGKILL))
+		perror_msg_and_fail("kill");
+	test_wait4(pid, 0, NULL, "SIGKILL");
 
 	jsonl_exit_event(0);
 	return 0;
