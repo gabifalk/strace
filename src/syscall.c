@@ -806,6 +806,13 @@ print_erestart(unsigned long u_error, const char *err_long)
 	print_sysret_errno(u_error, err_long);
 }
 
+static void
+print_syscall_duration(struct tcb *tcp, struct timespec *ts)
+{
+	ts_sub(ts, ts, &tcp->etime);
+	tprint_syscall_duration(ts->tv_sec, ts->tv_nsec);
+}
+
 int
 syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 {
@@ -1050,17 +1057,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 	if ((sys_res & RVAL_STR) && tcp->auxstr)
 		tprints_sysret_string("retstr", tcp->auxstr);
 	print_injected_note(tcp);
-	if (Tflag) {
-		tprints_sysret_next("time");
-		tprint_associated_info_begin();
-		ts_sub(ts, ts, &tcp->etime);
-		PRINT_VAL_D(ts->tv_sec);
-		if (Tflag_width) {
-			tprintf_string(".%0*ld", Tflag_width,
-				       (long) ts->tv_nsec / Tflag_scale);
-		}
-		tprint_associated_info_end();
-	}
+	if (Tflag)
+		print_syscall_duration(tcp, ts);
 	tprint_sysret_end();
 	tprint_newline();
 	dumpio(tcp);

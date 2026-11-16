@@ -451,6 +451,19 @@ tprint_addr(unsigned long long addr)
 }
 
 void
+tprint_syscall_duration(long long sec, long nsec)
+{
+	tprints_sysret_next("time");
+	tprint_associated_info_begin();
+	PRINT_VAL_D(sec);
+	if (Tflag_width) {
+		tprintf_string(".%0*ld", Tflag_width,
+			       nsec / Tflag_scale);
+	}
+	tprint_associated_info_end();
+}
+
+void
 tprint_sysret_end(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
