@@ -1170,6 +1170,25 @@ tprints_flags_value_const(unsigned long long val, const char *sym)
 }
 
 void
+tprints_arg_inout_entering_u(unsigned int index, const char *name,
+			     unsigned long long val)
+{
+}
+
+void
+tprint_arg_inout_exiting_u(unsigned long long entering_val,
+			   unsigned long long exiting_val)
+{
+	tprint_indirect_begin();
+	PRINT_VAL_U(entering_val);
+	if (entering_val != exiting_val) {
+		tprint_value_changed();
+		PRINT_VAL_U(exiting_val);
+	}
+	tprint_indirect_end();
+}
+
+void
 tprints_shift_value(unsigned long long raw, unsigned long long val,
 		    const char *shift)
 {
