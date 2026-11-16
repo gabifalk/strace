@@ -275,6 +275,8 @@ extern void tprints_field_exiting_d(const char *name, long long entering_val,
 extern void tprints_field_exiting_u(const char *name,
 				    unsigned long long entering_val,
 				    unsigned long long exiting_val);
+extern void tprints_field_repeated_u(const char *name,
+				     unsigned long long val);
 extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
 extern void tprint_union_end(void);

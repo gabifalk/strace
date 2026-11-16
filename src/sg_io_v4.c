@@ -139,8 +139,7 @@ decode_response(struct tcb *const tcp, const kernel_ulong_t arg)
 	PRINT_FIELD_FLAGS(sg_io, info, sg_io_info, "SG_INFO_???");
 	tprint_struct_next();
 	PRINT_FIELD_U(sg_io, duration);
-	tprint_struct_next();
-	PRINT_FIELD_U(sg_io, response_len);
+	tprints_field_repeated_u("response_len", sg_io.response_len);
 	tprint_struct_next();
 	PRINT_FIELD_D(sg_io, din_resid);
 	tprint_struct_next();

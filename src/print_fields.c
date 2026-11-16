@@ -172,6 +172,14 @@ tprints_field_exiting_u(const char *name, unsigned long long entering_val,
 }
 
 void
+tprints_field_repeated_u(const char *name, unsigned long long val)
+{
+	tprint_struct_next();
+	tprints_field_name(name);
+	PRINT_VAL_U(val);
+}
+
+void
 tprint_union_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
