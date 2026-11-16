@@ -1625,10 +1625,16 @@ tprint_signal(int nr, const char *name)
 }
 
 void
-tprint_perf_precise_ip(unsigned int val, const char *desc)
+tprint_perf_precise_ip(unsigned int val, const char *desc, const char *skid)
 {
-	PRINT_VAL_U(val);
-	tprints_comment(desc);
+	if (structured_output) {
+		tprints_object_type("perf_precise_ip");
+		tprintf_object_field_string("raw", "%u", val);
+		tprints_object_field_string("skid", skid);
+	} else {
+		PRINT_VAL_U(val);
+		tprints_comment(desc);
+	}
 }
 
 void

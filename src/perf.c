@@ -100,6 +100,12 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 		"requested to have 0 skid",
 		"must have 0 skid",
 	};
+	static const char *precise_ip_skid[] = {
+		"arbitrary",
+		"constant",
+		"requested_zero",
+		"zero",
+	};
 
 	struct pea_desc *desc;
 	struct perf_event_attr *attr;
@@ -297,7 +303,8 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	tprint_struct_next();
 	tprints_field_name("precise_ip");
 	tprint_perf_precise_ip(attr->precise_ip,
-			       precise_ip_desc[attr->precise_ip]);
+			       precise_ip_desc[attr->precise_ip],
+			       precise_ip_skid[attr->precise_ip]);
 	STRACE_PERF_PRINT_FLAG(mmap_data);
 	STRACE_PERF_PRINT_FLAG(sample_id_all);
 	STRACE_PERF_PRINT_FLAG(exclude_host);
