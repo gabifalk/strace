@@ -372,6 +372,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_unix_diag_msg \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
+	jsonl-pidfd_send_signal \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
 	jsonl-prctl-no-args \
@@ -1135,6 +1136,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_unix_diag_msg.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
+	jsonl-pidfd_send_signal.c \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
 	jsonl-prctl-no-args.c \

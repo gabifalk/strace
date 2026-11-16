@@ -629,6 +629,7 @@ jsonl-nlattr_tcmsg
 jsonl-nlattr_unix_diag_msg
 jsonl-pause
 jsonl-pidfd_getfd-yy
+jsonl-pidfd_send_signal
 jsonl-prctl-dumpable
 jsonl-prctl-mce-kill
 jsonl-prctl-no-args
