@@ -321,25 +321,45 @@ tprint_bitset_end(void)
 void
 tprint_cpu_set_begin(void)
 {
-	tprint_bitset_begin();
+	if (structured_output) {
+		tprints_object_type("cpu_set_t");
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else {
+		tprint_bitset_begin();
+	}
 }
 
 void
 tprint_cpu_set_next(void)
 {
-	tprint_bitset_next();
+	if (!structured_output)
+		tprint_bitset_next();
 }
 
 void
 tprint_cpu_set_cpu(int cpu)
 {
-	PRINT_VAL_D(cpu);
+	if (structured_output) {
+		tprint_list_element_begin();
+		char buf[sizeof(cpu) * 3];
+
+		xsprintf(buf, "%d", cpu);
+		tprints_string_value(buf);
+		tprint_list_element_end();
+	} else {
+		PRINT_VAL_D(cpu);
+	}
 }
 
 void
 tprint_cpu_set_end(void)
 {
-	tprint_bitset_end();
+	if (structured_output) {
+		tprint_array_end();
+	} else {
+		tprint_bitset_end();
+	}
 }
 
 static unsigned long long
