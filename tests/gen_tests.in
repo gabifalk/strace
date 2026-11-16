@@ -563,6 +563,7 @@ jsonl-merged-access-secontext	--secontext --trace-path=access_sample -e trace=ac
 jsonl-merged-adjtimex	-e trace=adjtimex
 jsonl-merged-aio	-e trace=io_submit
 jsonl-merged-chdir	-e trace=chdir
+jsonl-merged-clock_gettime	-e trace=clock_gettime
 jsonl-merged-close_range	-e trace=close_range
 jsonl-merged-copy_file_range	-e trace=copy_file_range
 jsonl-merged-dup-y	-y -e trace=dup
@@ -575,6 +576,7 @@ jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-merged-get_mempolicy	-s3 -e trace=get_mempolicy
 jsonl-merged-getcpu	-e trace=getcpu
+jsonl-merged-getdents64	-e trace=getdents64
 jsonl-merged-getegid	-e trace=getegid
 jsonl-merged-geteuid	-e trace=geteuid
 jsonl-merged-getgid	-e trace=getgid
@@ -583,6 +585,7 @@ jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-getsockname	-e trace=getsockname
 jsonl-merged-group_req	-e trace=setsockopt
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
@@ -597,6 +600,8 @@ jsonl-merged-memfd_secret	-e trace=memfd_secret
 jsonl-merged-mincore	-e trace=mincore
 jsonl-merged-mknodat	-e trace=mknodat,umask
 jsonl-merged-mlockall	-e trace=mlockall
+jsonl-merged-mmap	--trace=/^mmap2?$ "QUIRK:START-OF-TEST-OUTPUT-REGEX:.length., [^}]*.raw.: .12345."
+jsonl-merged-mount	-e trace=mount
 jsonl-merged-move_pages	-s3 -e trace=move_pages
 jsonl-merged-mseal	-e trace=mseal
 jsonl-merged-net-packet_mreq	-e trace=setsockopt
@@ -663,9 +668,11 @@ jsonl-merged-prctl-pdeathsig	-e trace=prctl
 jsonl-merged-prctl-sched-core	-e trace=prctl
 jsonl-merged-prctl-tsc	-e trace=prctl
 jsonl-merged-printsignal	-e signal=none -e trace=kill
+jsonl-merged-prlimit64	-e trace=prlimit64 "QUIRK:START-OF-TEST-OUTPUT-REGEX:.pid., [^}]*.raw.: .2147483647."
 jsonl-merged-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-merged-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-merged-pwritev	-s7 -e trace=pwritev
+jsonl-merged-quotactl	-e trace=quotactl
 jsonl-merged-rt_sigprocmask	-e trace=rt_sigprocmask
 jsonl-merged-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
@@ -675,8 +682,10 @@ jsonl-merged-setxattr	-e trace=setxattr
 jsonl-merged-sigchld	-e trace=none
 jsonl-merged-signal	-e trace=none
 jsonl-merged-status-none	-e trace=all --status=none
+jsonl-merged-statx	-e trace=statx --trace-fds=9
 jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-merged-superseded	-qq -f -e trace=none
+jsonl-merged-swapon	-e trace=swapon
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-ustat	-e trace=ustat
 jsonl-merged-utime	-e trace=utime
@@ -689,6 +698,7 @@ jsonl-split-access-secontext	--secontext --trace-path=access_sample -e trace=acc
 jsonl-split-adjtimex	-e trace=adjtimex
 jsonl-split-aio	-e trace=io_submit
 jsonl-split-chdir	-e trace=chdir
+jsonl-split-clock_gettime	-e trace=clock_gettime
 jsonl-split-close_range	-e trace=close_range
 jsonl-split-copy_file_range	-e trace=copy_file_range
 jsonl-split-dup-y	-y -e trace=dup
@@ -701,6 +711,7 @@ jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-split-get_mempolicy	-s3 -e trace=get_mempolicy
 jsonl-split-getcpu	-e trace=getcpu
+jsonl-split-getdents64	-e trace=getdents64
 jsonl-split-getegid	-e trace=getegid
 jsonl-split-geteuid	-e trace=geteuid
 jsonl-split-getgid	-e trace=getgid
@@ -709,6 +720,7 @@ jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-getsockname	-e trace=getsockname
 jsonl-split-group_req	-e trace=setsockopt
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
@@ -723,6 +735,8 @@ jsonl-split-memfd_secret	-e trace=memfd_secret
 jsonl-split-mincore	-e trace=mincore
 jsonl-split-mknodat	-e trace=mknodat,umask
 jsonl-split-mlockall	-e trace=mlockall
+jsonl-split-mmap	--trace=/^mmap2?$ "QUIRK:START-OF-TEST-OUTPUT-REGEX:.length., [^}]*.raw.: .12345."
+jsonl-split-mount	-e trace=mount
 jsonl-split-move_pages	-s3 -e trace=move_pages
 jsonl-split-mseal	-e trace=mseal
 jsonl-split-net-packet_mreq	-e trace=setsockopt
@@ -789,9 +803,11 @@ jsonl-split-prctl-pdeathsig	-e trace=prctl
 jsonl-split-prctl-sched-core	-e trace=prctl
 jsonl-split-prctl-tsc	-e trace=prctl
 jsonl-split-printsignal	-e signal=none -e trace=kill
+jsonl-split-prlimit64	-e trace=prlimit64 "QUIRK:START-OF-TEST-OUTPUT-REGEX:.pid., [^}]*.raw.: .2147483647."
 jsonl-split-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-split-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-split-pwritev	-s7 -e trace=pwritev
+jsonl-split-quotactl	-e trace=quotactl
 jsonl-split-rt_sigprocmask	-e trace=rt_sigprocmask
 jsonl-split-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
@@ -801,8 +817,10 @@ jsonl-split-setxattr	-e trace=setxattr
 jsonl-split-sigchld	-e trace=none
 jsonl-split-signal	-e trace=none
 jsonl-split-status-none	-e trace=all --status=none
+jsonl-split-statx	-e trace=statx --trace-fds=9
 jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-split-superseded	-qq -f -e trace=none
+jsonl-split-swapon	-e trace=swapon
 jsonl-split-sysinfo	-e trace=sysinfo
 jsonl-split-ustat	-e trace=ustat
 jsonl-split-utime	-e trace=utime

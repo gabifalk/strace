@@ -287,6 +287,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-adjtimex \
 	jsonl-aio \
 	jsonl-chdir \
+	jsonl-clock_gettime \
 	jsonl-close_range \
 	jsonl-copy_file_range \
 	jsonl-dup-y \
@@ -299,6 +300,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-fsconfig \
 	jsonl-get_mempolicy \
 	jsonl-getcpu \
+	jsonl-getdents64 \
 	jsonl-getegid \
 	jsonl-geteuid \
 	jsonl-getgid \
@@ -307,6 +309,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getsockname \
 	jsonl-group_req \
 	jsonl-ioctl \
+	jsonl-ioctl_evdev \
 	jsonl-ioctl_gpio \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
@@ -321,6 +324,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-mincore \
 	jsonl-mknodat \
 	jsonl-mlockall \
+	jsonl-mmap \
+	jsonl-mount \
 	jsonl-move_pages \
 	jsonl-mseal \
 	jsonl-net-packet_mreq \
@@ -387,9 +392,11 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prctl-sched-core \
 	jsonl-prctl-tsc \
 	jsonl-printsignal \
+	jsonl-prlimit64 \
 	jsonl-process_vm_readv \
 	jsonl-process_vm_writev \
 	jsonl-pwritev \
+	jsonl-quotactl \
 	jsonl-rt_sigprocmask \
 	jsonl-rt_tgsigqueueinfo \
 	jsonl-sched_get_priority_mxx \
@@ -399,8 +406,10 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sigchld \
 	jsonl-signal \
 	jsonl-status-none \
+	jsonl-statx \
 	jsonl-stopped \
 	jsonl-superseded \
+	jsonl-swapon \
 	jsonl-sysinfo \
 	jsonl-ustat \
 	jsonl-utime \
@@ -1066,6 +1075,7 @@ EXTRA_DIST = \
 	jsonl-adjtimex.c \
 	jsonl-aio.c \
 	jsonl-chdir.c \
+	jsonl-clock_gettime.c \
 	jsonl-close_range.c \
 	jsonl-copy_file_range.c \
 	jsonl-dup-y.c \
@@ -1078,6 +1088,7 @@ EXTRA_DIST = \
 	jsonl-fsconfig.c \
 	jsonl-get_mempolicy.c \
 	jsonl-getcpu.c \
+	jsonl-getdents64.c \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \
 	jsonl-getgid.c \
@@ -1085,6 +1096,7 @@ EXTRA_DIST = \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
 	jsonl-group_req.c \
+	jsonl-ioctl_evdev.c \
 	jsonl-ioctl_gpio.c \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \
@@ -1099,6 +1111,8 @@ EXTRA_DIST = \
 	jsonl-mincore.c \
 	jsonl-mknodat.c \
 	jsonl-mlockall.c \
+	jsonl-mmap.c \
+	jsonl-mount.c \
 	jsonl-move_pages.c \
 	jsonl-mseal.c \
 	jsonl-net-packet_mreq.c \
@@ -1165,9 +1179,11 @@ EXTRA_DIST = \
 	jsonl-prctl-sched-core.c \
 	jsonl-prctl-tsc.c \
 	jsonl-printsignal.c \
+	jsonl-prlimit64.c \
 	jsonl-process_vm_readv.c \
 	jsonl-process_vm_writev.c \
 	jsonl-pwritev.c \
+	jsonl-quotactl.c \
 	jsonl-rt_sigprocmask.c \
 	jsonl-rt_tgsigqueueinfo.c \
 	jsonl-sched_get_priority_mxx.c \
@@ -1177,8 +1193,10 @@ EXTRA_DIST = \
 	jsonl-sigchld.c \
 	jsonl-signal.c \
 	jsonl-status-none.c \
+	jsonl-statx.c \
 	jsonl-stopped.c \
 	jsonl-superseded.c \
+	jsonl-swapon.c \
 	jsonl-sysinfo.c \
 	jsonl-ustat.c \
 	jsonl-utime.c \

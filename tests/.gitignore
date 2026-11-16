@@ -544,6 +544,7 @@ jsonl-access-secontext
 jsonl-adjtimex
 jsonl-aio
 jsonl-chdir
+jsonl-clock_gettime
 jsonl-close_range
 jsonl-copy_file_range
 jsonl-dup-y
@@ -556,6 +557,7 @@ jsonl-fork-f
 jsonl-fsconfig
 jsonl-get_mempolicy
 jsonl-getcpu
+jsonl-getdents64
 jsonl-getegid
 jsonl-geteuid
 jsonl-getgid
@@ -564,6 +566,7 @@ jsonl-getresuid
 jsonl-getsockname
 jsonl-group_req
 jsonl-ioctl
+jsonl-ioctl_evdev
 jsonl-ioctl_gpio
 jsonl-ioctl_lirc
 jsonl-ioctl_random
@@ -578,6 +581,8 @@ jsonl-memfd_secret
 jsonl-mincore
 jsonl-mknodat
 jsonl-mlockall
+jsonl-mmap
+jsonl-mount
 jsonl-move_pages
 jsonl-mseal
 jsonl-net-packet_mreq
@@ -644,9 +649,11 @@ jsonl-prctl-pdeathsig
 jsonl-prctl-sched-core
 jsonl-prctl-tsc
 jsonl-printsignal
+jsonl-prlimit64
 jsonl-process_vm_readv
 jsonl-process_vm_writev
 jsonl-pwritev
+jsonl-quotactl
 jsonl-rt_sigprocmask
 jsonl-rt_tgsigqueueinfo
 jsonl-sched_get_priority_mxx
@@ -656,8 +663,10 @@ jsonl-setxattr
 jsonl-sigchld
 jsonl-signal
 jsonl-status-none
+jsonl-statx
 jsonl-stopped
 jsonl-superseded
+jsonl-swapon
 jsonl-sysinfo
 jsonl-ustat
 jsonl-utime

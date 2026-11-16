@@ -562,6 +562,41 @@ jsonl_flags_close(void)
 }
 
 /*
+ * Open a flags value of several groups, up to the groups array:
+ * "type": "flags", "raw": "<raw>", "groups": [
+ */
+static inline void
+jsonl_flags_groups_open(uint64_t raw)
+{
+	printf("\"type\": \"flags\", \"raw\": ");
+	jsonl_xlat_raw(raw);
+	printf(", \"groups\": [");
+}
+
+/* Open a group up to its elems array: {"raw": "<raw>", ..., "elems": [ */
+static inline void
+jsonl_flags_group_open(uint64_t raw, bool first)
+{
+	printf("%s{\"raw\": ", first ? "" : ", ");
+	jsonl_xlat_raw(raw);
+	printf(", \"group_type\": \"flags\", \"elems\": [");
+}
+
+/* Close the elems array and the group: ]}. */
+static inline void
+jsonl_flags_group_close(void)
+{
+	printf("]}");
+}
+
+/* Close the groups array of a flags value: ]. */
+static inline void
+jsonl_flags_groups_close(void)
+{
+	printf("]");
+}
+
+/*
  * The fields of a flags value: the entries of the known table that are set
  * in raw (a zero entry matches a zero raw only), in the order of the table,
  * followed by a remainder with the leftover bits; dflt is the "sym" of the

@@ -1,6 +1,6 @@
 /*
  * Check JSONL output of an environment that is not printed in full:
- * the envp argument of execve without -v (var_count).
+ * the envp argument of execve without -v (addr_count of vars).
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -49,7 +49,8 @@ test_execve(char *const *envp, unsigned int count)
 	jsonl_arg_close(side);
 	printf(", ");
 	jsonl_arg_open(2, "envp", side);
-	printf("\"type\": \"var_count\", \"raw\": \"%#lx\", \"count\": \"%u\"",
+	printf("\"type\": \"addr_count\", \"raw\": \"%#lx\","
+	       " \"count\": \"%u\", \"unit\": \"vars\"",
 	       (unsigned long) (uintptr_t) envp, count);
 	jsonl_arg_close(side);
 	if (!merged) {
