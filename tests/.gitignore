@@ -583,6 +583,7 @@ jsonl-ioctl_lirc
 jsonl-ioctl_random
 jsonl-ioctl_block
 jsonl-ioctl_dm
+jsonl-ioctl_perf
 jsonl-ioctl_ptp
 jsonl-ioctl_scsi
 jsonl-ioprio_get

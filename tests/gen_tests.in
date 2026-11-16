@@ -602,6 +602,7 @@ jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_dm	+jsonl-ioctl.sh -v -e trace=ioctl
+jsonl-merged-ioctl_perf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_ptp	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-merged-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
@@ -769,6 +770,7 @@ jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_dm	+jsonl-ioctl.sh -v -e trace=ioctl
+jsonl-split-ioctl_perf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_ptp	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-split-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
