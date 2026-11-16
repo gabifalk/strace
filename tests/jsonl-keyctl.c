@@ -310,8 +310,10 @@ p_caps(const struct arg *a, long rc)
 #define A_DEC(name_, val_)	ARG(p_dec, name_, val_)
 #define A_UNSIGNED(name_, val_)	ARG(p_unsigned, name_, val_)
 #define A_U32(name_, val_)	ARG(p_u32, name_, val_)
-#define A_UID(val_)		ARG(p_id, "uid", (uint32_t) (val_), .sym = "uid")
-#define A_GID(val_)		ARG(p_id, "gid", (uint32_t) (val_), .sym = "gid")
+#define A_UID(val_)		\
+	ARG(p_id, "uid", (uint32_t) (val_), .sym = "uid")
+#define A_GID(val_)		\
+	ARG(p_id, "gid", (uint32_t) (val_), .sym = "gid")
 #define A_ADDR(name_, ptr_)	ARG(p_addr, name_, (uintptr_t) (ptr_))
 #define A_STR(name_, ptr_)	ARG(p_str, name_, (uintptr_t) (ptr_))
 #define A_MEM(name_, ptr_, size_) \
@@ -920,18 +922,18 @@ main(int argc, char *argv[])
 	TAIL_ALLOC_OBJECT_CONST_PTR(struct keyctl_pkey_params, pkey_params);
 
 	for (size_t i = 0; i < ARRAY_SIZE(pkey_ops); ++i) {
-		if (!pkey_ops[i].out) {
-			do_keyctl(pkey_ops[i].op, pkey_ops[i].str, 4,
-				  A_ADDR("params", NULL),
-				  A_ADDR("info", NULL),
-				  A_ADDR("in", NULL),
-				  A_ADDR("in2", NULL));
-			do_keyctl(pkey_ops[i].op, pkey_ops[i].str, 4,
-				  A_ADDR("params", (uint32_t *) pkey_params + 1),
-				  A_STR("info", "x\377\0\1"),
-				  A_ADDR("in", pkey1),
-				  A_ADDR("in2", pkey2));
-		}
+		const char *op2_name = pkey_ops[i].out ? "out" : "in2";
+
+		do_keyctl(pkey_ops[i].op, pkey_ops[i].str, 4,
+			  A_ADDR("params", NULL),
+			  A_ADDR("info", NULL),
+			  A_ADDR("in", NULL),
+			  A_ADDR(op2_name, NULL));
+		do_keyctl(pkey_ops[i].op, pkey_ops[i].str, 4,
+			  A_ADDR("params", (uint32_t *) pkey_params + 1),
+			  A_STR("info", "x\377\0\1"),
+			  A_ADDR("in", pkey1),
+			  A_ADDR(op2_name, pkey2));
 
 		for (size_t j = 0; j < ARRAY_SIZE(pkey_vecs); j++) {
 			memcpy(pkey_params, &pkey_vecs[j].params,

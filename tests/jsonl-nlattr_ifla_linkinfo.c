@@ -253,6 +253,12 @@ pr_uid(const void *p, unsigned int sz)
 }
 
 static void
+pr_gid(const void *p, unsigned int sz)
+{
+	jsonl_gid(get_uint(p, sz, 4));
+}
+
+static void
 pr_ifindex(const void *p, unsigned int sz)
 {
 	const uint32_t idx = get_uint(p, sz, 4);
@@ -1145,6 +1151,14 @@ main(int argc, char *argv[])
 		   { 3, pr_bytes },
 		   { 4, pr_uid },
 		   { 5, pr_uid });
+	CHECK_DATA("tun", 2, "IFLA_TUN_GROUP", NULL, u32_val,
+		   { 3, pr_bytes },
+		   { 4, pr_gid },
+		   { 5, pr_gid });
+	CHECK_DATA("tun", 2, "IFLA_TUN_GROUP", NULL, minus_one,
+		   { 3, pr_bytes },
+		   { 4, pr_gid },
+		   { 5, pr_gid });
 
 	static const struct strval32 tun_types[] = {
 		{ 1, "IFF_TUN" },

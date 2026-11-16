@@ -18,6 +18,10 @@
 #include "xlat.h"
 #include "xlat/mpol_modes.h"
 
+#define MAX_STRLEN 3
+#define NLONGS(n) ((n + 8 * sizeof(long) - 2) \
+		     / (8 * sizeof(long)))
+
 static bool merged;
 
 static void
@@ -42,10 +46,14 @@ arg_addr(unsigned int index, const char *name, unsigned long addr)
 	arg_close();
 }
 
-/* The mode is printed as a pointer unless mode_readable is set. */
+/*
+ * The mode and the nodemask are printed as pointers unless mode_readable
+ * and nodemask_readable are set, respectively.
+ */
 static long
 test_get_mempolicy(const int *mode, bool mode_readable,
-		   const unsigned long *nodemask, unsigned long maxnode,
+		   const unsigned long *nodemask, bool nodemask_readable,
+		   unsigned long maxnode,
 		   unsigned long addr, unsigned long flags)
 {
 	static const struct strval32 known[] = {
@@ -76,7 +84,23 @@ test_get_mempolicy(const int *mode, bool mode_readable,
 		arg_addr(0, "mode", (unsigned long) mode);
 	}
 
-	arg_addr(1, "nodemask", (unsigned long) nodemask);
+	if (nodemask_readable && rc == 0) {
+		unsigned int nlongs = NLONGS(maxnode);
+
+		arg_open(1, "nodemask");
+		jsonl_array_open();
+		for (unsigned int i = 0; i < nlongs && i < MAX_STRLEN; ++i) {
+			printf("%s{", i ? ", " : "");
+			jsonl_hex(nodemask[i]);
+			printf("}");
+		}
+		jsonl_array_close();
+		if (nlongs > MAX_STRLEN)
+			jsonl_truncated();
+		arg_close();
+	} else {
+		arg_addr(1, "nodemask", (unsigned long) nodemask);
+	}
 
 	arg_open(2, "maxnode");
 	jsonl_unsigned(maxnode);
@@ -96,12 +120,20 @@ test_get_mempolicy(const int *mode, bool mode_readable,
 	return rc;
 }
 
+static void
+print_nodes(unsigned long maxnode)
+{
+	TAIL_ALLOC_OBJECT_CONST_ARR(unsigned long, nodemask, NLONGS(maxnode));
+
+	test_get_mempolicy(NULL, false, nodemask, true, maxnode, 0, 0);
+}
+
 int
 main(int argc, char *argv[])
 {
 	merged = argc > 1 && !strcmp(argv[1], "merged");
 
-	if (test_get_mempolicy(NULL, false, NULL, 0, 0, 0))
+	if (test_get_mempolicy(NULL, false, NULL, false, 0, 0, 0))
 		perror_msg_and_skip("get_mempolicy");
 
 	int *mode = (void *) 0xdefaced1baddeed2;
@@ -109,18 +141,40 @@ main(int argc, char *argv[])
 	const unsigned long *nodemask = (void *) 0xfacedad3bebefed4ULL;
 	const unsigned long addr = (unsigned long) 0xfacefeeddeadbeefULL;
 	const unsigned long flags = -1U;
-	test_get_mempolicy(mode, false, nodemask, maxnode, addr, flags);
+	test_get_mempolicy(mode, false, nodemask, false, maxnode, addr,
+			   flags);
 
 	mode = tail_alloc(sizeof(*mode));
-	test_get_mempolicy(mode, true, NULL, 0, 0, 0);
+	test_get_mempolicy(mode, true, NULL, false, 0, 0, 0);
 
 	*mode = -1;
-	test_get_mempolicy(mode, true, NULL, 0, (unsigned long) (mode - 1), 2);
+	test_get_mempolicy(mode, true, NULL, false, 0,
+			   (unsigned long) (mode - 1), 2);
+
+	maxnode = get_page_size() * 8;
+
+	print_nodes(maxnode);
+	print_nodes(maxnode + 1);
+	print_nodes(maxnode + 2);
+
+	maxnode = sizeof(*nodemask) * 8;
+	print_nodes(maxnode - 1);
+	print_nodes(maxnode    );
+	print_nodes(maxnode + 1);
+	print_nodes(maxnode + 2);
+	print_nodes(maxnode * 2 - 1);
+	print_nodes(maxnode * 2    );
+	print_nodes(maxnode * 2 + 1);
+	print_nodes(maxnode * 2 + 2);
+	print_nodes(maxnode * 3 - 1);
+	print_nodes(maxnode * 3    );
+	print_nodes(maxnode * 3 + 1);
+	print_nodes(maxnode * 3 + 2);
 
 	/* The nodemask is not writable. */
 	nodemask = (const unsigned long *) (mode + 1);
 	maxnode = sizeof(*nodemask) * 8;
-	if (!test_get_mempolicy(NULL, false, nodemask, maxnode, 0, 0))
+	if (!test_get_mempolicy(NULL, false, nodemask, false, maxnode, 0, 0))
 		error_msg_and_fail("get_mempolicy: unexpected success");
 
 	jsonl_exit_event(0);
