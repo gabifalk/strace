@@ -88,6 +88,8 @@ decode_request(struct tcb *const tcp, const kernel_ulong_t arg)
 	struct sg_io_v4 *entering_sg_io = xobjdup(&sg_io);
 	set_tcb_priv_data(tcp, entering_sg_io, free);
 
+	tprint_struct_mark_split();
+	tprint_struct_entering_end();
 	return 0;
 }
 
@@ -98,9 +100,11 @@ decode_response(struct tcb *const tcp, const kernel_ulong_t arg)
 	struct sg_io_v4 sg_io;
 	uint32_t din_len;
 
+	tprint_struct_exiting_begin(2, "argp");
+
 	if (umove(tcp, arg, &sg_io) < 0) {
 		/* print i/o fields fetched on entering syscall */
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_X(*entering_sg_io, response);
 		tprint_struct_next();
 		PRINT_FIELD_X(*entering_sg_io, din_xferp);
@@ -113,7 +117,7 @@ decode_response(struct tcb *const tcp, const kernel_ulong_t arg)
 		return RVAL_IOCTL_DECODED;
 	}
 
-	tprint_struct_next();
+	tprint_struct_exiting_next();
 	PRINT_FIELD_U(sg_io, response_len);
 	tprint_struct_next();
 	PRINT_FIELD_SG_IO_BUFFER(sg_io, response, sg_io.response_len, 0, tcp);
