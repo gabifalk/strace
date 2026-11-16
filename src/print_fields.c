@@ -2317,23 +2317,31 @@ tprint_pit_count(unsigned long long count, unsigned int freq)
 void
 tprint_kd_tone(unsigned int ticks, unsigned int count, unsigned int freq)
 {
-	tprint_flags_begin();
-	if (ticks) {
-		tprint_shift_begin();
-		PRINT_VAL_U(ticks);
-		tprint_shift();
-		PRINT_VAL_U(16);
-		tprint_shift_end();
-		tprint_flags_or();
-	}
-	PRINT_VAL_U(count);
-	tprint_flags_end();
+	if (structured_output) {
+		tprints_object_type("kd_tone");
+		tprintf_object_field_string("raw", "%#x", ticks << 16 | count);
+		tprintf_object_field_string("ticks", "%u", ticks);
+		tprintf_object_field_string("count", "%u", count);
+		tprintf_object_field_string("freq_hz", "%u", freq);
+	} else {
+		tprint_flags_begin();
+		if (ticks) {
+			tprint_shift_begin();
+			PRINT_VAL_U(ticks);
+			tprint_shift();
+			PRINT_VAL_U(16);
+			tprint_shift_end();
+			tprint_flags_or();
+		}
+		PRINT_VAL_U(count);
+		tprint_flags_end();
 
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (freq)
-			tprintf_comment("%u Hz, %u ms", freq, ticks);
-		else
-			tprints_comment("off");
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (freq)
+				tprintf_comment("%u Hz, %u ms", freq, ticks);
+			else
+				tprints_comment("off");
+		}
 	}
 }
 
