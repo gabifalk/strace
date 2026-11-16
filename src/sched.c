@@ -271,7 +271,7 @@ SYS_FUNC(sched_setattr)
 
 		if (verbose(tcp) && tcp->u_error == E2BIG
 		    && umove(tcp, tcp->u_arg[1], &attr.size) == 0) {
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(1, "attr");
 			tprint_struct_begin();
 			PRINT_FIELD_U(attr, size);
 			tprint_struct_end();
