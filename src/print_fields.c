@@ -1173,19 +1173,34 @@ void
 tprints_arg_inout_entering_u(unsigned int index, const char *name,
 			     unsigned long long val)
 {
+	if (structured_output) {
+		tprints_arg_next_name_at(index, name);
+		tprint_indirect_begin();
+		PRINT_VAL_U(val);
+		tprint_indirect_end();
+		tprint_arg_inout();
+	}
 }
 
 void
 tprint_arg_inout_exiting_u(unsigned long long entering_val,
 			   unsigned long long exiting_val)
 {
-	tprint_indirect_begin();
-	PRINT_VAL_U(entering_val);
-	if (entering_val != exiting_val) {
-		tprint_value_changed();
+	if (structured_output) {
+		tprint_indirect_begin();
 		PRINT_VAL_U(exiting_val);
+		tprint_indirect_end();
+		if (entering_val != exiting_val)
+			tprint_arg_changed();
+	} else {
+		tprint_indirect_begin();
+		PRINT_VAL_U(entering_val);
+		if (entering_val != exiting_val) {
+			tprint_value_changed();
+			PRINT_VAL_U(exiting_val);
+		}
+		tprint_indirect_end();
 	}
-	tprint_indirect_end();
 }
 
 void
