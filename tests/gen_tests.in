@@ -690,6 +690,7 @@ jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-merged-superseded	-qq -f -e trace=none
 jsonl-merged-swapon	-e trace=swapon
 jsonl-merged-sysinfo	-e trace=sysinfo
+jsonl-merged-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
 jsonl-merged-ustat	-e trace=ustat
 jsonl-merged-utime	-e trace=utime
 jsonl-merged-v4l2	+jsonl-ioctl.sh -e trace=ioctl
@@ -828,6 +829,7 @@ jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-split-superseded	-qq -f -e trace=none
 jsonl-split-swapon	-e trace=swapon
 jsonl-split-sysinfo	-e trace=sysinfo
+jsonl-split-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
 jsonl-split-ustat	-e trace=ustat
 jsonl-split-utime	-e trace=utime
 jsonl-split-v4l2	+jsonl-ioctl.sh -e trace=ioctl

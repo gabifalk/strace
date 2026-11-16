@@ -380,6 +380,22 @@ jsonl_decimal(int64_t val)
 	printf("\"type\": \"decimal\", \"raw\": \"%" PRId64 "\"", val);
 }
 
+/* The fields of a timespec_t value. */
+static inline void
+jsonl_timespec(long long sec, long long nsec)
+{
+	printf("\"type\": \"timespec_t\", \"fields\": {\"tv_sec\": \"%lld\","
+	       " \"tv_nsec\": \"%lld\"}", sec, nsec);
+}
+
+/* The fields of a timeval_t value. */
+static inline void
+jsonl_timeval(long long sec, unsigned long long usec)
+{
+	printf("\"type\": \"timeval_t\", \"fields\": {\"tv_sec\": \"%lld\","
+	       " \"tv_usec\": \"%llu\"}", sec, usec);
+}
+
 /* The fields of a pid value of the given type: tid, tgid, pgid, or sid. */
 static inline void
 jsonl_pid(const char *type, int pid)

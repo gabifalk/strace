@@ -671,6 +671,7 @@ jsonl-stopped
 jsonl-superseded
 jsonl-swapon
 jsonl-sysinfo
+jsonl-timespec
 jsonl-ustat
 jsonl-utime
 jsonl-v4l2

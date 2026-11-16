@@ -414,6 +414,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-superseded \
 	jsonl-swapon \
 	jsonl-sysinfo \
+	jsonl-timespec \
 	jsonl-ustat \
 	jsonl-utime \
 	jsonl-v4l2 \
@@ -1204,6 +1205,7 @@ EXTRA_DIST = \
 	jsonl-superseded.c \
 	jsonl-swapon.c \
 	jsonl-sysinfo.c \
+	jsonl-timespec.c \
 	jsonl-ustat.c \
 	jsonl-utime.c \
 	jsonl-v4l2.c \
