@@ -560,14 +560,17 @@ printpid_translation(struct tcb *tcp, int pid, enum pid_type type)
 	if (print_ns_translation || print_comm) {
 		int strace_pid = translate_pid(tcp, pid, type, NULL);
 		if (strace_pid) {
+			char comm[PROC_COMM_LEN] = "";
+
 			if (print_comm) {
 				int proc_pid = get_proc_pid(strace_pid);
 				if (proc_pid)
-					print_pid_comm(proc_pid);
+					load_pid_comm(proc_pid, comm,
+						      sizeof(comm));
 			}
-			if (print_ns_translation && strace_pid != pid)
-				tprintf_comment("%d in strace's PID NS",
-						strace_pid);
+			tprints_pid_info(comm,
+					 print_ns_translation
+					 && strace_pid != pid ? strace_pid : 0);
 		}
 	}
 }

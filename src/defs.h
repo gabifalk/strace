@@ -1662,8 +1662,8 @@ extern void kvm_run_structure_decode(struct tcb *);
 extern void namespace_auxstr_init(void);
 
 extern void maybe_load_task_comm(struct tcb *tcp);
-/* Print the contents of /proc/$pid/comm. */
-extern void print_pid_comm(int pid);
+/* Load the contents of /proc/$pid/comm into `buf'. */
+extern void load_pid_comm(int pid, char *buf, size_t buf_size);
 
 static inline int
 printstrn(struct tcb *tcp, kernel_ulong_t addr, kernel_ulong_t len)

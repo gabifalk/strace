@@ -430,6 +430,16 @@ tprints_assoc_type_string(const char *type, const char *str, size_t len,
 }
 
 void
+tprints_pid_info(const char *comm, int strace_pid)
+{
+	if (comm[0])
+		tprints_assoc_type_string("pid_info", comm, strlen(comm),
+					  false);
+	if (strace_pid)
+		tprintf_comment("%d in strace's PID NS", strace_pid);
+}
+
+void
 tprint_more_data_follows(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);

@@ -1026,8 +1026,7 @@ strip_trailing_newlines(char *str)
 	return str;
 }
 
-/* Load the contents of /proc/$pid/comm into `buf'. */
-static void
+void
 load_pid_comm(int pid, char *buf, size_t buf_size)
 {
 	static const char comm_path[] = "/proc/%d/comm";
@@ -1041,14 +1040,6 @@ load_pid_comm(int pid, char *buf, size_t buf_size)
 			strip_trailing_newlines(buf);
 		fclose(fp);
 	}
-}
-
-void
-print_pid_comm(int pid)
-{
-	char buf[PROC_COMM_LEN];
-	load_pid_comm(pid, buf, sizeof(buf));
-	print_assoc_type_string("pid_info", buf, strlen(buf), false);
 }
 
 void
