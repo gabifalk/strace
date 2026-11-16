@@ -1090,7 +1090,12 @@ tprint_var_count(unsigned long long addr, unsigned int count,
 void
 tprints_uuid(const char *str)
 {
-	tprints_string(str);
+	if (structured_output) {
+		tprints_object_type("uuid");
+		tprints_object_field_string("value", str);
+	} else {
+		tprints_string(str);
+	}
 }
 
 static void
