@@ -1010,6 +1010,20 @@ tprints_shift_value_xlat_u(unsigned long long raw, unsigned long long val,
 }
 
 void
+tprint_shift_value_begin(unsigned long long raw)
+{
+	tprint_shift_begin();
+}
+
+void
+tprint_shift_value_end_u(unsigned int amount)
+{
+	tprint_shift();
+	PRINT_VAL_U(amount);
+	tprint_shift_end();
+}
+
+void
 tprint_newline(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);

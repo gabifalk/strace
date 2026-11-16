@@ -333,6 +333,8 @@ extern void tprints_shift_value(unsigned long long raw, unsigned long long val,
 extern void tprints_shift_value_xlat_u(unsigned long long raw,
 				      unsigned long long val,
 				      unsigned int amount, const char *shift);
+extern void tprint_shift_value_begin(unsigned long long raw);
+extern void tprint_shift_value_end_u(unsigned int amount);
 extern void tprint_mac_addr(const void *addr, unsigned int size,
 			    const char *str);
 extern void tprint_fn_hton_begin(unsigned int size);

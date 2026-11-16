@@ -181,20 +181,18 @@ decode_nlmsg_type_netfilter(struct tcb *tcp, const struct xlat *const xlat,
 	const uint8_t subsys_id = (uint8_t) (type >> 8);
 	const uint8_t msg_type = (uint8_t) type;
 
-	tprint_flags_begin();
-	tprint_shift_begin();
+	tprint_flags_value_begin(type);
+	tprint_shift_value_begin(subsys_id << 8);
 	printxval(xlat, subsys_id, dflt);
-	tprint_shift();
-	PRINT_VAL_U(8);
-	tprint_shift_end();
+	tprint_shift_value_end_u(8);
 
-	tprint_flags_or();
+	tprint_flags_value_or();
 	if (subsys_id < ARRAY_SIZE(nf_nlmsg_types))
 		printxval(nf_nlmsg_types[subsys_id].xlat,
 			  msg_type, nf_nlmsg_types[subsys_id].dflt);
 	else
 		PRINT_VAL_X(msg_type);
-	tprint_flags_end();
+	tprint_flags_value_end();
 }
 
 typedef void (*nlmsg_types_decoder_t)(struct tcb *, const struct xlat *,
