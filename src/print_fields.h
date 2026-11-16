@@ -288,6 +288,7 @@ extern void tprint_clockid_aux(int clockid, unsigned int index);
 extern void tprint_qcmd_next(void);
 extern void tprint_qcmd_end(void);
 extern void tprint_signal(int nr, const char *name);
+extern void tprint_perf_precise_ip(unsigned int val, const char *desc);
 extern void tprint_syscall_duration(long long sec, long nsec);
 extern void tprint_sysret_end(void);
 extern void tprint_sysret_errno(unsigned long u_error, const char *sym,

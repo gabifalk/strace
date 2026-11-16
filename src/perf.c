@@ -295,8 +295,9 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	STRACE_PERF_PRINT_FLAG(task);
 	STRACE_PERF_PRINT_FLAG(watermark);
 	tprint_struct_next();
-	PRINT_FIELD_U_CAST(*attr, precise_ip, unsigned int);
-	tprints_comment(precise_ip_desc[attr->precise_ip]);
+	tprints_field_name("precise_ip");
+	tprint_perf_precise_ip(attr->precise_ip,
+			       precise_ip_desc[attr->precise_ip]);
 	STRACE_PERF_PRINT_FLAG(mmap_data);
 	STRACE_PERF_PRINT_FLAG(sample_id_all);
 	STRACE_PERF_PRINT_FLAG(exclude_host);

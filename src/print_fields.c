@@ -1625,6 +1625,13 @@ tprint_signal(int nr, const char *name)
 }
 
 void
+tprint_perf_precise_ip(unsigned int val, const char *desc)
+{
+	PRINT_VAL_U(val);
+	tprints_comment(desc);
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {
