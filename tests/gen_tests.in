@@ -585,6 +585,7 @@ jsonl-merged-netlink_netfilter	-e trace=sendto
 jsonl-merged-netlink_protocol	-e trace=sendto
 jsonl-merged-netlink_route	-e trace=sendto
 jsonl-merged-nlattr	-e trace=sendto
+jsonl-merged-nlattr_ndmsg	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-prctl-dumpable	-e trace=prctl
@@ -634,6 +635,7 @@ jsonl-split-netlink_netfilter	-e trace=sendto
 jsonl-split-netlink_protocol	-e trace=sendto
 jsonl-split-netlink_route	-e trace=sendto
 jsonl-split-nlattr	-e trace=sendto
+jsonl-split-nlattr_ndmsg	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-prctl-dumpable	-e trace=prctl

@@ -566,6 +566,7 @@ jsonl-netlink_netfilter
 jsonl-netlink_protocol
 jsonl-netlink_route
 jsonl-nlattr
+jsonl-nlattr_ndmsg
 jsonl-pause
 jsonl-pidfd_getfd-yy
 jsonl-prctl-dumpable
