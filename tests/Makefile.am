@@ -342,6 +342,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_ifla_xdp \
 	jsonl-nlattr_mdba_router_port \
 	jsonl-nlattr_ndmsg \
+	jsonl-nlattr_ndtmsg \
 	jsonl-nlattr_netconfmsg \
 	jsonl-nlattr_netlink_diag_msg \
 	jsonl-nlattr_nlmsgerr \
@@ -1082,6 +1083,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_ifla_xdp.c \
 	jsonl-nlattr_mdba_router_port.c \
 	jsonl-nlattr_ndmsg.c \
+	jsonl-nlattr_ndtmsg.c \
 	jsonl-nlattr_netconfmsg.c \
 	jsonl-nlattr_netlink_diag_msg.c \
 	jsonl-nlattr_nlmsgerr.c \
