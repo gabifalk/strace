@@ -310,6 +310,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-group_req \
 	jsonl-ioctl \
 	jsonl-ioctl_evdev \
+	jsonl-ioctl_kd \
 	jsonl-ioctl_gpio \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
@@ -1097,6 +1098,7 @@ EXTRA_DIST = \
 	jsonl-getsockname.c \
 	jsonl-group_req.c \
 	jsonl-ioctl_evdev.c \
+	jsonl-ioctl_kd.c \
 	jsonl-ioctl_gpio.c \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \

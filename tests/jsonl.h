@@ -452,6 +452,13 @@ jsonl_byteorder_big(size_t size)
 	printf(", \"byteorder\": \"big\", \"size\": %zu", size);
 }
 
+/* The fields of a char value. */
+static inline void
+jsonl_char(unsigned char c)
+{
+	printf("\"type\": \"char\", \"raw\": \"%u\"", c);
+}
+
 /* Open a struct value up to its first field: "type": "struct", "fields": { */
 static inline void
 jsonl_struct_open(void)
@@ -653,6 +660,15 @@ jsonl_field_unsigned(const char *name, bool first, uint64_t val)
 {
 	jsonl_field_open(name, first);
 	jsonl_unsigned(val);
+	jsonl_field_close();
+}
+
+/* A struct field with a char value. */
+static inline void
+jsonl_field_char(const char *name, bool first, unsigned char c)
+{
+	jsonl_field_open(name, first);
+	jsonl_char(c);
 	jsonl_field_close();
 }
 

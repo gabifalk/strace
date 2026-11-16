@@ -567,6 +567,7 @@ jsonl-getsockname
 jsonl-group_req
 jsonl-ioctl
 jsonl-ioctl_evdev
+jsonl-ioctl_kd
 jsonl-ioctl_gpio
 jsonl-ioctl_lirc
 jsonl-ioctl_random
