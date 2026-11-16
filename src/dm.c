@@ -592,7 +592,7 @@ dm_known_ioctl(struct tcb *const tcp, const unsigned int code,
 	if (entering(tcp))
 		tprints_arg_next_name("argp");
 	else
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 
 	tprint_array_begin();
 	tprint_object_begin();
