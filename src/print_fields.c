@@ -847,9 +847,15 @@ tprints_xlat_const(uint64_t val, enum xlat_style style, const char *str)
 	if (!str || !*str)
 		return;
 
-	tprint_color_seq(COLOR_CONST);
-	tprints_string(str);
-	tprint_color_seq(COLOR_ARGVAL);
+	if (structured_output) {
+		tprint_type_const();
+		tprints_object_field_string("raw", sprint_xlat_val(val, style));
+		tprints_object_field_string("sym", str);
+	} else {
+		tprint_color_seq(COLOR_CONST);
+		tprints_string(str);
+		tprint_color_seq(COLOR_ARGVAL);
+	}
 }
 
 void
