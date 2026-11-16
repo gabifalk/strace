@@ -301,6 +301,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getgid \
 	jsonl-getresuid \
 	jsonl-getsockname \
+	jsonl-group_req \
 	jsonl-ioctl \
 	jsonl-ip_mreq \
 	jsonl-killed \
@@ -1056,6 +1057,7 @@ EXTRA_DIST = \
 	jsonl-getgid.c \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
+	jsonl-group_req.c \
 	jsonl-ip_mreq.c \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \

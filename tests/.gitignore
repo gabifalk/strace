@@ -558,6 +558,7 @@ jsonl-geteuid
 jsonl-getgid
 jsonl-getresuid
 jsonl-getsockname
+jsonl-group_req
 jsonl-ioctl
 jsonl-ip_mreq
 jsonl-killed
