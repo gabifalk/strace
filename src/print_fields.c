@@ -602,7 +602,10 @@ void
 tprint_unavailable_error(const char *msg)
 {
 	tprint_unavailable();
-	tprints_comment(msg);
+	if (structured_output)
+		tprints_object_field_string("decode_error", msg);
+	else
+		tprints_comment(msg);
 }
 
 void
