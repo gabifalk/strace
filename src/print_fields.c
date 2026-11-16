@@ -408,7 +408,10 @@ void
 tprints_sysret_string(const char *name, const char *str)
 {
 	tprints_sysret_next(name);
-	STRACE_PRINTF("(%s)", str);
+	if (structured_output)
+		tprints_object_field_string(name, str);
+	else
+		STRACE_PRINTF("(%s)", str);
 }
 
 void
