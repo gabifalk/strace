@@ -2037,6 +2037,12 @@ tprint_superseded(int pid, const char *comm, int old_pid)
 	}
 }
 
+void
+tprint_personality(int pid, unsigned int personality, const char *name)
+{
+	tprintf_string("[ Process PID=%d runs in %s mode. ]\n", pid, name);
+}
+
 static bool exit_args_lost;
 
 void

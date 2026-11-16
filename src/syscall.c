@@ -259,8 +259,8 @@ update_personality(struct tcb *tcp, unsigned int personality)
 
 	if (!is_number_in_set(QUIET_PERSONALITY, quiet_set)) {
 		printleader(tcp);
-		tprintf_string("[ Process PID=%d runs in %s mode. ]\n",
-			       tcp->pid, personality_names[personality]);
+		tprint_personality(tcp->pid, personality,
+				   personality_names[personality]);
 		line_ended();
 	}
 
