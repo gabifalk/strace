@@ -538,6 +538,9 @@ ipc_shm-Xabbrev
 ipc_shm-Xraw
 ipc_shm-Xverbose
 is_linux_mips_n64
+jsonl-getegid
+jsonl-geteuid
+jsonl-getgid
 jsonl-getresuid
 jsonl-sysinfo
 kcmp
