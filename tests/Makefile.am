@@ -318,6 +318,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getsockname \
 	jsonl-group_req \
 	jsonl-injected \
+	jsonl-io_uring_register \
 	jsonl-ioctl \
 	jsonl-ioctl_evdev \
 	jsonl-ioctl_evdev_bitset \
@@ -1168,6 +1169,7 @@ EXTRA_DIST = \
 	jsonl-getsockname.c \
 	jsonl-group_req.c \
 	jsonl-injected.c \
+	jsonl-io_uring_register.c \
 	jsonl-ioctl_evdev.c \
 	jsonl-ioctl_evdev_bitset.c \
 	jsonl-ioctl_kd.c \
