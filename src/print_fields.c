@@ -836,10 +836,17 @@ tprint_extra_data_end(bool truncated)
 void
 tprint_ticks(unsigned long long val, long freq, unsigned int precision)
 {
-	PRINT_VAL_U(val);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
-	    && freq > 0 && val > 0)
-		print_ticks_comment(val, freq, precision, false);
+	if (structured_output) {
+		tprints_object_type("ticks");
+		tprintf_object_field_string("raw", "%llu", val);
+		tprintf_object_field_string("hz", "%ld", freq);
+		tprintf_object_field_string("precision", "%u", precision);
+	} else {
+		PRINT_VAL_U(val);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
+		    && freq > 0 && val > 0)
+			print_ticks_comment(val, freq, precision, false);
+	}
 }
 
 void
