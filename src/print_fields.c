@@ -4017,6 +4017,29 @@ tprint_sysret_injected(void)
 }
 
 void
+tprint_sysret_injected_args(bool retval)
+{
+	tprints_sysret_string("inject", retval ? "INJECTED: args, retval"
+					       : "INJECTED: args");
+}
+
+void
+tprint_sysret_sanitized(void)
+{
+	tprints_sysret_string("sanitize", "SANITIZED");
+}
+
+void
+tprint_syscall_poked_args(unsigned int poked)
+{
+}
+
+void
+tprint_value_sanitized(void)
+{
+}
+
+void
 tprint_sysret_end(void)
 {
 }

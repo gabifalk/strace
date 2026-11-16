@@ -231,6 +231,8 @@ SYS_FUNC(clone)
 		} else {
 			printsignal(sig);
 		}
+		if (syscall_tampered_sanitized(tcp))
+			tprint_value_sanitized();
 		/*
 		 * TODO on syscall entry:
 		 * We can clear CLONE_PTRACE here since it is an ancient hack
@@ -319,6 +321,8 @@ SYS_FUNC(clone3)
 		printflags_ex(arg.flags, "CLONE_???", XLAT_STYLE_DEFAULT,
 			      clone_flags, clone3_flags, NULL);
 		tprint_flags_end();
+		if (syscall_tampered_sanitized(tcp))
+			tprint_value_sanitized();
 
 		if (arg.flags & CLONE_PIDFD) {
 			tprint_struct_next();

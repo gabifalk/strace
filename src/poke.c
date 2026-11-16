@@ -98,8 +98,10 @@ poke_tcb(struct tcb *tcp, uint16_t poke_idx, bool is_enter)
 			error_func_msg("Failed to tamper with process %d:"
 				       " couldn't set argument(s)",
 				       tcp->pid);
-		else
+		else {
 			poked = true;
+			tcp->poked_args |= arg_mask;
+		}
 	}
 
 	list_foreach(i, &poke_data_vec[poke_idx], l) {
@@ -116,8 +118,10 @@ poke_tcb(struct tcb *tcp, uint16_t poke_idx, bool is_enter)
 					       " process %d:"
 					       " couldn't poke",
 					       tcp->pid);
-			else
+			else {
 				poked = true;
+				tcp->poked_args |= 1U << (i->arg_no - 1);
+			}
 		}
 	}
 

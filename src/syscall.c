@@ -671,6 +671,7 @@ syscall_entering_trace(struct tcb *tcp, unsigned int *sig)
 
 	printleader(tcp);
 	tprints_arg_begin(tcp_sysent(tcp)->sys_name);
+	tprint_syscall_poked_args(tcp->poked_args);
 	int res = raw(tcp) ? printargs(tcp) : tcp_sysent(tcp)->sys_func(tcp);
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
 	fflush(tcp->outf);
@@ -768,10 +769,8 @@ print_syscall_resume(struct tcb *tcp)
 static void
 print_injected_note(struct tcb *tcp)
 {
-	if (syscall_tampered(tcp) && syscall_tampered_poked(tcp))
-		tprints_sysret_string("inject", "INJECTED: args, retval");
-	else if (syscall_tampered_poked(tcp))
-		tprints_sysret_string("inject", "INJECTED: args");
+	if (syscall_tampered_poked(tcp))
+		tprint_sysret_injected_args(syscall_tampered(tcp));
 	else if (syscall_tampered(tcp))
 		tprint_sysret_injected();
 }
@@ -782,7 +781,7 @@ print_delay_sanitize_notes(struct tcb *tcp)
 	if (syscall_tampered_delayed(tcp))
 		tprints_sysret_string("delay", "DELAYED");
 	if (syscall_tampered_sanitized(tcp))
-		tprints_sysret_string("sanitize", "SANITIZED");
+		tprint_sysret_sanitized();
 }
 
 static void
@@ -861,6 +860,7 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 
 	int sys_res = 0;
 	if (cflag != CFLAG_ONLY_STATS) {
+		tprint_syscall_poked_args(tcp->poked_args);
 		if (raw(tcp)) {
 			/* sys_res = printargs(tcp); - but it's nop on sysexit */
 		} else {
@@ -1105,6 +1105,7 @@ syscall_exiting_finish(struct tcb *tcp)
 			TCB_INJECT_POKE_EXIT | TCB_TAMPERED_DELAYED |
 			TCB_TAMPERED_POKED | TCB_DECODED_SUBCALL |
 			TCB_TAMPERED_SANITIZED);
+	tcp->poked_args = 0;
 	tcp->sys_func_rval = 0;
 	free_tcb_priv_data(tcp);
 

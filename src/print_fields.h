@@ -605,6 +605,10 @@ extern void tprint_relative_timestamp(long long sec, long nsec,
 				      bool with_absolute);
 extern void tprint_syscall_duration(long long sec, long nsec);
 extern void tprint_sysret_injected(void);
+extern void tprint_sysret_injected_args(bool retval);
+extern void tprint_sysret_sanitized(void);
+extern void tprint_syscall_poked_args(unsigned int poked);
+extern void tprint_value_sanitized(void);
 extern void tprint_sysret_end(void);
 extern void tprint_sysret_errno(unsigned long u_error, const char *sym,
 				const char *str);
