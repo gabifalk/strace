@@ -4365,8 +4365,13 @@ terminate(void)
 	int sig = interrupted;
 
 	cleanup(sig);
-	if (cflag)
+	if (cflag) {
+		struct tcb summary_tcp = { .outf = shared_log };
+
+		current_tcp = &summary_tcp;
 		call_summary(shared_log);
+		current_tcp = NULL;
+	}
 	fflush(NULL);
 	if (shared_log != stderr)
 		fclose(shared_log);
