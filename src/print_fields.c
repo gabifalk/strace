@@ -842,6 +842,88 @@ tprints_xlat_dflt(const char *dflt)
 }
 
 void
+tprints_xlat_const(const char *str)
+{
+	if (!str || !*str)
+		return;
+
+	tprint_color_seq(COLOR_CONST);
+	tprints_string(str);
+	tprint_color_seq(COLOR_ARGVAL);
+}
+
+void
+tprint_xlat_flags_begin(uint64_t flags, const char *dflt,
+			enum xlat_style style)
+{
+	if (xlat_verbose(style) == XLAT_STYLE_RAW) {
+		if (flags || dflt)
+			print_xlat_val(flags, style);
+	} else if (xlat_verbose(style) == XLAT_STYLE_VERBOSE && flags) {
+		print_xlat_val(flags, style);
+	}
+}
+
+/*
+ * Print the name `sym' of the constant `val' matched in `flags',
+ * the `n'th one of them counting from zero.
+ */
+void
+tprints_xlat_flags_sym(const char *sym, uint64_t val, uint64_t flags,
+		       unsigned int n, enum xlat_style style)
+{
+	const bool need_comment = xlat_verbose(style) == XLAT_STYLE_VERBOSE;
+
+	if (xlat_verbose(style) == XLAT_STYLE_RAW)
+		return;
+
+	if (need_comment && !flags)
+		PRINT_VAL_U(0);
+	if (n)
+		tprint_flags_or();
+	else if (need_comment)
+		tprint_comment_begin();
+	if (need_comment)
+		tprints_string(sym);
+	else
+		tprints_xlat_const(sym);
+}
+
+/*
+ * Finish printing `orig_flags' after `n' constants have been matched
+ * and `flags' are left unmatched; return the number of items printed.
+ */
+int
+tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags, unsigned int n,
+		      const char *dflt, enum xlat_style style)
+{
+	if (xlat_verbose(style) == XLAT_STYLE_RAW)
+		return orig_flags || dflt;
+
+	if (n) {
+		if (flags) {
+			tprint_flags_or();
+			print_xlat_val(flags, style);
+			n++;
+		}
+
+		if (xlat_verbose(style) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	} else {
+		if (flags) {
+			if (xlat_verbose(style) != XLAT_STYLE_VERBOSE)
+				print_xlat_val(flags, style);
+			tprints_comment(dflt);
+		} else {
+			if (dflt)
+				PRINT_VAL_U(0);
+		}
+	}
+
+	return n;
+}
+
+void
 tprint_sun_path_abstract(void)
 {
 	if (structured_output)

@@ -28,12 +28,22 @@
  */
 #  define STRACE_PRINTF tprintf_string
 #  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
+
+extern void tprint_xlat_flags_begin(uint64_t flags, const char *dflt,
+				    enum xlat_style style);
+extern void tprints_xlat_const(const char *str);
+extern void tprints_xlat_flags_sym(const char *sym, uint64_t val,
+				   uint64_t flags, unsigned int n,
+				   enum xlat_style style);
 extern void tprint_wait_status(int status, const struct xlat *events);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
 			  unsigned int class, unsigned int level);
 extern void tprint_sigmask_begin(const uint32_t *mask, unsigned int nwords,
 				 bool inverted);
+extern int tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags,
+				 unsigned int n, const char *dflt,
+				 enum xlat_style style);
 
 # else /* !IN_STRACE */
 
