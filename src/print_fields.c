@@ -1712,7 +1712,7 @@ tprint_qcmd_end(void)
 void
 tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 	      const struct xlat *class_xlat, unsigned int class,
-	      unsigned int level)
+	      unsigned int level, enum xlat_style style)
 {
 	if (structured_output) {
 		tprints_object_type("ioprio");
@@ -1730,15 +1730,18 @@ tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 		tprint_object_field_end();
 		tprintf_object_field_string("level", "%u", level);
 	} else {
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
+		if (xlat_verbose(style) == XLAT_STYLE_DEFAULT)
+			style = xlat_verbosity;
+
+		if (xlat_verbose(style) != XLAT_STYLE_ABBREV) {
 			if (signed_raw)
 				PRINT_VAL_D((int) ioprio);
 			else
 				PRINT_VAL_X(ioprio);
 		}
 
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-			if (xlat_verbose(xlat_verbosity)
+		if (xlat_verbose(style) != XLAT_STYLE_RAW) {
+			if (xlat_verbose(style)
 			    == XLAT_STYLE_VERBOSE)
 				tprints_comment(str);
 			else

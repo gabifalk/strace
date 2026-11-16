@@ -58,7 +58,8 @@ extern void tprint_ax25_addr(const void *call, unsigned int size,
 			     enum xlat_style style, const char *str);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
-			  unsigned int class, unsigned int level);
+			  unsigned int class, unsigned int level,
+			  enum xlat_style style);
 extern void tprint_sigmask_begin(const uint32_t *mask, unsigned int nwords,
 				 bool inverted);
 extern int tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags,

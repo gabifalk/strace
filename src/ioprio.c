@@ -35,16 +35,24 @@ sprint_ioprio(unsigned int ioprio)
 }
 
 static void
-print_ioprio_value(unsigned int ioprio, bool signed_raw)
+print_ioprio_value(unsigned int ioprio, bool signed_raw,
+		   enum xlat_style style)
 {
 	tprint_ioprio(ioprio, signed_raw, sprint_ioprio(ioprio), ioprio_class,
-		      IOPRIO_PRIO_CLASS(ioprio), IOPRIO_PRIO_DATA(ioprio));
+		      IOPRIO_PRIO_CLASS(ioprio), IOPRIO_PRIO_DATA(ioprio),
+		      style);
 }
 
 void
 print_ioprio(unsigned int ioprio)
 {
-	print_ioprio_value(ioprio, false);
+	print_ioprio_value(ioprio, false, XLAT_STYLE_DEFAULT);
+}
+
+static void
+print_ioprio_rval(const unsigned long long val, const enum xlat_style style)
+{
+	print_ioprio_value(val, false, style);
 }
 
 static void
@@ -78,11 +86,8 @@ SYS_FUNC(ioprio_get)
 	} else {
 		if (syserror(tcp))
 			return 0;
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-			tcp->auxstr = NULL;
-		else
-			tcp->auxstr = sprint_ioprio(tcp->u_rval);
-		return RVAL_STR;
+		tcp->rval_printer = print_ioprio_rval;
+		return RVAL_PRINTER;
 	}
 }
 
@@ -98,7 +103,7 @@ SYS_FUNC(ioprio_set)
 
 	/* ioprio */
 	tprints_arg_next_name("ioprio");
-	print_ioprio_value(tcp->u_arg[2], true);
+	print_ioprio_value(tcp->u_arg[2], true, XLAT_STYLE_DEFAULT);
 
 	return RVAL_DECODED;
 }
