@@ -430,6 +430,8 @@ print_struct_msghdr(struct tcb *tcp, const struct msghdr *msg,
 		? *p_user_msg_namelen : (int) msg->msg_namelen;
 
 	tprint_struct_begin();
+	if (p_user_msg_namelen)
+		tprint_struct_mark_split();
 	tprints_field_name("msg_name");
 	const int family =
 		decode_sockaddr(tcp, ptr_to_kulong(msg->msg_name), msg_namelen);
@@ -443,11 +445,9 @@ print_struct_msghdr(struct tcb *tcp, const struct msghdr *msg,
 
 	tprint_struct_next();
 	tprints_field_name("msg_namelen");
-	if (p_user_msg_namelen && *p_user_msg_namelen != (int) msg->msg_namelen) {
-		PRINT_VAL_D(*p_user_msg_namelen);
-		tprint_value_changed();
-	}
-	PRINT_VAL_D(msg->msg_namelen);
+	tprint_val_exiting_d(p_user_msg_namelen ? *p_user_msg_namelen
+						: (int) msg->msg_namelen,
+			     msg->msg_namelen);
 
 	tprint_struct_next();
 	tprints_field_name("msg_iov");
@@ -532,6 +532,10 @@ SYS_FUNC(recvmsg)
 
 		if (fetch_msghdr_namelen(tcp, tcp->u_arg[1], &msg_namelen)) {
 			set_tcb_priv_ulong(tcp, msg_namelen);
+
+			/* msg */
+			tprints_arg_split_entering_d(1, "msg", "msg_namelen",
+						     msg_namelen);
 			return 0;
 		}
 		/* msg */
@@ -541,13 +545,11 @@ SYS_FUNC(recvmsg)
 		msg_namelen = get_tcb_priv_ulong(tcp);
 
 		/* msg */
-		tprints_arg_next_name("msg");
 		if (syserror(tcp)) {
-			tprint_struct_begin();
-			tprints_field_name("msg_namelen");
-			PRINT_VAL_D(msg_namelen);
-			tprint_struct_end();
+			tprints_arg_split_failed_d("msg", "msg_namelen",
+						   msg_namelen);
 		} else {
+			tprints_arg_next_name("msg");
 			decode_msghdr(tcp, &msg_namelen, tcp->u_arg[1],
 				      tcp->u_rval);
 		}

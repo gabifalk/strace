@@ -343,6 +343,13 @@ extern void tprints_fn_begin(const char *name);
 extern void tprint_fn_next(void);
 extern void tprint_fn_end(void);
 
+extern void tprints_arg_split_entering_d(unsigned int index,
+					 const char *name,
+					 const char *field, int val);
+extern void tprints_arg_split_failed_d(const char *name, const char *field,
+				       int val);
+extern void tprint_val_exiting_d(int entering_val, int exiting_val);
+
 static inline void
 tprints_ioctl_cmd_begin(const char *name)
 {

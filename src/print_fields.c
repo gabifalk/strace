@@ -1306,6 +1306,32 @@ tprint_flags_value_or(void)
 }
 
 void
+tprints_arg_split_entering_d(unsigned int index, const char *name,
+			     const char *field, int val)
+{
+}
+
+void
+tprints_arg_split_failed_d(const char *name, const char *field, int val)
+{
+	tprints_arg_next_name(name);
+	tprint_struct_begin();
+	tprints_field_name(field);
+	PRINT_VAL_D(val);
+	tprint_struct_end();
+}
+
+void
+tprint_val_exiting_d(int entering_val, int exiting_val)
+{
+	if (entering_val != exiting_val) {
+		PRINT_VAL_D(entering_val);
+		tprint_value_changed();
+	}
+	PRINT_VAL_D(exiting_val);
+}
+
+void
 tprint_flags_value_end(void)
 {
 	if (structured_output) {
