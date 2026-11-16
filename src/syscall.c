@@ -1057,10 +1057,10 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 	}
 	if ((sys_res & RVAL_STR) && tcp->auxstr)
 		tprints_sysret_string("retstr", tcp->auxstr);
+	tprint_sysret_end();
 	print_injected_note(tcp);
 	if (Tflag)
 		print_syscall_duration(tcp, ts);
-	tprint_sysret_end();
 	tprint_event_end();
 	tprint_newline();
 	dumpio(tcp);

@@ -64,6 +64,7 @@
 static inline void
 tprint_event_end(void)
 {
+	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
 }
 
 static inline void
