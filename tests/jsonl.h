@@ -167,6 +167,26 @@ jsonl_xlat_raw(uint64_t val)
 }
 
 /*
+ * The fields of a const value: "type": "const", "raw": <raw>, and a "sym"
+ * (when sym is non-NULL) or "sym_pattern" (when sym is NULL and sym_pattern
+ * is not).  The raw value is formatted as an xlat value (hex) when hex is
+ * set, and as a decimal value otherwise.
+ */
+static inline void
+jsonl_const(uint64_t val, bool hex, const char *sym, const char *sym_pattern)
+{
+	printf("\"type\": \"const\", \"raw\": ");
+	if (hex)
+		jsonl_xlat_raw(val);
+	else
+		printf("\"%" PRIu64 "\"", val);
+	if (sym)
+		printf(", \"sym\": \"%s\"", sym);
+	else if (sym_pattern)
+		printf(", \"sym_pattern\": \"%s\"", sym_pattern);
+}
+
+/*
  * Open a flags value with its single implicit group, up to the elems array:
  * "type": "flags", "raw": "<raw>", "groups": [{"raw": "<raw>",
  * "group_type": "flags", "elems": [
