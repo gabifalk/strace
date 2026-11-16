@@ -228,7 +228,7 @@ MPERS_PRINTER_DECL(int, rtc_ioctl, struct tcb *const tcp,
 		if (entering(tcp))
 			tprints_arg_next_name("argp");
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 		return decode_rtc_param(tcp, arg, code == RTC_PARAM_GET);
 	case RTC_AIE_ON:
 	case RTC_AIE_OFF:
