@@ -368,6 +368,7 @@ decode_msg_control(struct tcb *const tcp, const kernel_ulong_t addr,
 
 		if (u.ptr != buf)
 			tprint_array_next();
+		tprint_object_begin();
 		tprint_struct_begin();
 		tprints_field_name("cmsg_len");
 		PRINT_VAL_U(cmsg_len);
@@ -383,6 +384,7 @@ decode_msg_control(struct tcb *const tcp, const kernel_ulong_t addr,
 				     (const void *) (u.ptr + cmsg_size),
 				     len > cmsg_size ? len - cmsg_size : 0);
 		tprint_struct_end();
+		tprint_object_end();
 
 		if (len < cmsg_size) {
 			buf_len -= cmsg_size;
@@ -399,8 +401,8 @@ decode_msg_control(struct tcb *const tcp, const kernel_ulong_t addr,
 	}
 	if (buf_len) {
 		tprint_array_next();
-		tprint_more_data_follows();
-		printaddr_comment(addr + (control_len - buf_len));
+		tprint_array_element_fetch_failed(addr +
+						  (control_len - buf_len));
 	} else if (control_len < in_control_len) {
 		tprint_array_next();
 		tprint_more_data_follows();
