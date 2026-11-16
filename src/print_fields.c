@@ -1700,12 +1700,21 @@ tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 void
 tprint_port_range(unsigned int ports)
 {
-	PRINT_VAL_X(ports);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		unsigned short lo = ports & 0xffff;
-		unsigned short hi = ports >> 16;
+	const unsigned short lo = ports & 0xffff;
+	const unsigned short hi = ports >> 16;
+	const bool well_formed = ports && (!lo || !hi || lo <= hi);
 
-		if (ports && (!lo || !hi || lo <= hi))
+	if (structured_output) {
+		tprints_object_type("port_range");
+		tprintf_object_field_string("raw", "%#x", ports);
+		if (well_formed) {
+			tprintf_object_field_string("lo", "%hu", lo);
+			tprintf_object_field_string("hi", "%hu", hi);
+		}
+	} else {
+		PRINT_VAL_X(ports);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
+		    && well_formed)
 			tprintf_comment("%.0hu..%.0hu", lo, hi);
 	}
 }
