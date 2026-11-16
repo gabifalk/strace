@@ -1246,6 +1246,29 @@ timescale_to_unit(int scale)
 }
 
 /*
+ * Print a value that has `flags' described by `xlat' set on top of it:
+ * tprint_flags_with_value_begin prints the flags, the caller prints
+ * the value proper, and tprint_flags_with_value_end finishes the job.
+ * `raw' is the value with the flags.
+ */
+void
+tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,
+			      const struct xlat *xlat, const char *dflt)
+{
+	tprint_flags_begin();
+	if (flags) {
+		printflags64_in(xlat, flags, dflt);
+		tprint_flags_or();
+	}
+}
+
+void
+tprint_flags_with_value_end(uint64_t flags)
+{
+	tprint_flags_end();
+}
+
+/*
  * Print a syscall number `nr' followed by its `name', if known,
  * prefixed with `nr_prefix', if any.
  */

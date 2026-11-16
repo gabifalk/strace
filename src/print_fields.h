@@ -38,6 +38,10 @@ extern void tprints_xlat_flags_sym(const char *sym, uint64_t val,
 				   enum xlat_style style);
 extern bool tprint_xlat_flags_value_begin(unsigned long long raw);
 extern void tprint_xlat_flags_value_end(void);
+extern void tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,
+					  const struct xlat *xlat,
+					  const char *dflt);
+extern void tprint_flags_with_value_end(uint64_t flags);
 extern void tprint_wait_status(int status, const struct xlat *events);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,

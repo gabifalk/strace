@@ -940,30 +940,12 @@ print_v4l2_input(struct tcb *const tcp, const kernel_ulong_t arg)
 #include "xlat/v4l2_control_query_flags.h"
 
 static void
-print_v4l2_cid(uint32_t cid, bool next_flags)
+print_v4l2_cid_name(uint32_t cid)
 {
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
-		PRINT_VAL_X(cid);
-		return;
-	}
-
-	tprint_flags_begin();
-	if (next_flags) {
-		uint32_t flags = cid & v4l2_control_query_flags->flags_mask;
-
-		if (flags) {
-			printflags_in(v4l2_control_query_flags, flags,
-				      "V4L2_CTRL_FLAG_NEXT_???");
-			tprint_flags_or();
-			cid &= ~flags;
-		}
-	}
-
 	const char *id_name = xlookup(v4l2_control_ids, cid);
 
 	if (id_name) {
 		print_xlat_ex(cid, id_name, XLAT_STYLE_DEFAULT);
-		tprint_flags_end();
 		return;
 	}
 
@@ -972,7 +954,6 @@ print_v4l2_cid(uint32_t cid, bool next_flags)
 
 	if (!class_str || (cid - class_id) >= 0x10000) {
 		print_xlat_ex(cid, "V4L2_CID_???", PXF_DEFAULT_STR);
-		tprint_flags_end();
 		return;
 	}
 
@@ -984,7 +965,23 @@ print_v4l2_cid(uint32_t cid, bool next_flags)
 
 	xsprintf(tmp_str, "%s+%#" PRIx64, class_str, cid - class_id);
 	print_xlat_ex(cid, tmp_str, XLAT_STYLE_DEFAULT);
-	tprint_flags_end();
+}
+
+static void
+print_v4l2_cid(uint32_t cid, bool next_flags)
+{
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
+		PRINT_VAL_X(cid);
+		return;
+	}
+
+	const uint32_t flags =
+		next_flags ? cid & v4l2_control_query_flags->flags_mask : 0;
+
+	tprint_flags_with_value_begin(cid, flags, v4l2_control_query_flags,
+				      "V4L2_CTRL_FLAG_NEXT_???");
+	print_v4l2_cid_name(cid & ~flags);
+	tprint_flags_with_value_end(flags);
 }
 
 #define PRINT_FIELD_V4L2_CID(where_, field_, next_)		\
