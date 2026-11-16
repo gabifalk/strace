@@ -448,6 +448,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-setxattr \
 	jsonl-sigchld \
 	jsonl-signal \
+	jsonl-sockopt-icmp_filter \
+	jsonl-sockopt-port_range \
 	jsonl-status-none \
 	jsonl-statx \
 	jsonl-stopped \
@@ -1287,6 +1289,8 @@ EXTRA_DIST = \
 	jsonl-setxattr.c \
 	jsonl-sigchld.c \
 	jsonl-signal.c \
+	jsonl-sockopt-icmp_filter.c \
+	jsonl-sockopt-port_range.c \
 	jsonl-status-none.c \
 	jsonl-statx.c \
 	jsonl-stopped.c \
@@ -1315,6 +1319,7 @@ EXTRA_DIST = \
 	jsonl_netlink.h \
 	jsonl_nlattr_ifla.h \
 	jsonl_nlattr_ifla_af_inet6.h \
+	jsonl_setsockopt.h \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \
 	kill-on-exit.sh \
