@@ -57,6 +57,12 @@ extern void tprint_ioctl_op_end(bool unknown, unsigned int dir,
 				const struct xlat *dir_xlat);
 extern void tprint_ioctl_cmd_xval(const struct xlat *xlat,
 				  unsigned long long val, const char *dflt);
+extern void tprints_field_xval_entering(const char *name, uint64_t val,
+					const struct xlat *xlat,
+					const char *dflt);
+extern void tprint_xval_exiting(const struct xlat *xlat, const char *dflt,
+				uint64_t entering_val, uint64_t exiting_val,
+				int exiting_state);
 extern void tprint_flags_value_or_flags(const struct xlat *xlat,
 					uint64_t flags);
 extern void tprint_net_xval(const void *raw, unsigned int size,
@@ -569,6 +575,10 @@ extern void tprint_qcmd_end(void);
 extern void tprint_signal(int nr, const char *name);
 extern void tprint_perf_precise_ip(unsigned int val, const char *desc,
 				   const char *skid);
+extern void tprint_reserved_bytes_inline(const char *name,
+					 unsigned long long val,
+					 unsigned int first, unsigned int last);
+extern void tprint_struct_split_entering_begin(void);
 extern void tprint_reserved_bits(unsigned long long val, unsigned int from,
 				 unsigned int to);
 extern void tprint_unused_bits(unsigned long long val, unsigned int first,

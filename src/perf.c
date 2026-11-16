@@ -91,6 +91,21 @@ fetch_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	return 0;
 }
 
+/* Print the PMU type ID in the upper 32 bits of the config field. */
+static void
+print_perf_config_pmu_type(const uint64_t config)
+{
+	if (!(config >> 32))
+		return;
+
+	tprint_flags_shift_group_begin(config >> 32 << 32);
+	tprint_shift_value_begin(config >> 32 << 32);
+	PRINT_VAL_X(config >> 32);
+	tprint_shift_value_end_u(32);
+	tprint_flags_group_end();
+	tprint_flags_groups_next();
+}
+
 void
 print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 {
@@ -110,7 +125,7 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	struct pea_desc *desc;
 	struct perf_event_attr *attr;
 	uint32_t size;
-	uint32_t new_size;
+	uint32_t new_size = 0;
 	int use_new_size = 0;
 
 	/*
@@ -140,19 +155,13 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 	}
 
 	tprint_struct_begin();
+	if (exiting(tcp))
+		tprint_struct_mark_split();
 	PRINT_FIELD_XVAL(*attr, type, perf_type_id, "PERF_TYPE_???");
 	tprint_struct_next();
-	PRINT_FIELD_XVAL(*attr, size, perf_attr_size, "PERF_ATTR_SIZE_???");
-
-	if (use_new_size) {
-		tprint_value_changed();
-
-		if (use_new_size > 0)
-			printxval(perf_attr_size, new_size,
-				  "PERF_ATTR_SIZE_???");
-		else
-			tprint_unavailable();
-	}
+	tprints_field_name("size");
+	tprint_xval_exiting(perf_attr_size, "PERF_ATTR_SIZE_???",
+			    attr->size, new_size, use_new_size);
 
 	switch (attr->type) {
 	case PERF_TYPE_HARDWARE:
@@ -163,18 +172,19 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 		 */
 		tprint_struct_next();
 		tprints_field_name("config");
-		tprint_flags_begin();
-		if (attr->config >> 32) {
-			tprint_shift_begin();
-			PRINT_VAL_X(attr->config >> 32);
-			tprint_shift();
-			PRINT_VAL_U(32);
-			tprint_shift_end();
-			tprint_flags_or();
+		if (!(attr->config >> 32)) {
+			printxval(perf_hw_id,
+				  attr->config & PERF_HW_EVENT_MASK,
+				  "PERF_COUNT_HW_???");
+			break;
 		}
+		tprint_flags_groups_begin(attr->config);
+		print_perf_config_pmu_type(attr->config);
+		tprint_flags_group_begin(attr->config & PERF_HW_EVENT_MASK);
 		printxval(perf_hw_id, attr->config & PERF_HW_EVENT_MASK,
 			   "PERF_COUNT_HW_???");
-		tprint_flags_end();
+		tprint_flags_group_end();
+		tprint_flags_groups_end();
 		break;
 	case PERF_TYPE_SOFTWARE:
 		tprint_struct_next();
@@ -200,43 +210,41 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 		 */
 		tprint_struct_next();
 		tprints_field_name("config");
-		tprint_flags_begin();
-		if (attr->config >> 32){
-			tprint_shift_begin();
-			PRINT_VAL_X(attr->config >> 32);
-			tprint_shift();
-			PRINT_VAL_U(32);
-			tprint_shift_end();
-			tprint_flags_or();
-		}
+		tprint_flags_groups_begin(attr->config);
+		print_perf_config_pmu_type(attr->config);
 		if ((attr->config & PERF_HW_EVENT_MASK) >> 24) {
-			tprint_shift_begin();
-			PRINT_VAL_X((attr->config & PERF_HW_EVENT_MASK) >> 24);
-			tprint_shift();
-			PRINT_VAL_U(24);
-			tprint_shift_end();
-			tprint_flags_or();
+			const uint64_t val =
+				(attr->config & PERF_HW_EVENT_MASK) >> 24;
+
+			tprint_flags_shift_group_begin(val << 24);
+			tprint_shift_value_begin(val << 24);
+			PRINT_VAL_X(val);
+			tprint_shift_value_end_u(24);
+			tprint_flags_group_end();
+			tprint_flags_groups_next();
 		}
-		tprint_shift_begin();
+		tprint_flags_shift_group_begin(attr->config & 0xFF0000);
+		tprint_shift_value_begin(attr->config & 0xFF0000);
 		printxval(perf_hw_cache_op_result_id,
 			  (attr->config >> 16) & 0xFF,
 			  "PERF_COUNT_HW_CACHE_RESULT_???");
-		tprint_shift();
-		PRINT_VAL_U(16);
-		tprint_shift_end();
+		tprint_shift_value_end_u(16);
+		tprint_flags_group_end();
 
-		tprint_flags_or();
-		tprint_shift_begin();
+		tprint_flags_groups_next();
+		tprint_flags_shift_group_begin(attr->config & 0xFF00);
+		tprint_shift_value_begin(attr->config & 0xFF00);
 		printxval(perf_hw_cache_op_id, (attr->config >> 8) & 0xFF,
 			   "PERF_COUNT_HW_CACHE_OP_???");
-		tprint_shift();
-		PRINT_VAL_U(8);
-		tprint_shift_end();
+		tprint_shift_value_end_u(8);
+		tprint_flags_group_end();
 
-		tprint_flags_or();
+		tprint_flags_groups_next();
+		tprint_flags_group_begin(attr->config & 0xFF);
 		printxval(perf_hw_cache_id, attr->config & 0xFF,
 			  "PERF_COUNT_HW_CACHE_???");
-		tprint_flags_end();
+		tprint_flags_group_end();
+		tprint_flags_groups_end();
 		break;
 	case PERF_TYPE_RAW:
 		/*
@@ -428,7 +436,8 @@ print_perf_event_attr(struct tcb *const tcp, const kernel_ulong_t addr)
 
 	STRACE_PERF_CHECK_FIELD(__reserved_2);
 	if (attr->__reserved_2)
-		tprintf_comment("bytes 110..111: %#hx", attr->__reserved_2);
+		tprint_reserved_bytes_inline("__reserved_2",
+					     attr->__reserved_2, 110, 111);
 
 	STRACE_PERF_CHECK_FIELD(aux_sample_size);
 	tprint_struct_next();
@@ -481,27 +490,36 @@ SYS_FUNC(perf_event_open)
 	if (entering(tcp)) {
 		/* attr */
 		tprints_arg_name("attr");
-		if (!fetch_perf_event_attr(tcp, tcp->u_arg[0]))
+		if (!fetch_perf_event_attr(tcp, tcp->u_arg[0])) {
+			const struct pea_desc *desc = get_tcb_priv_data(tcp);
+
+			tprint_struct_split_entering_begin();
+			tprints_field_xval_entering("size", desc->attr->size,
+						    perf_attr_size,
+						    "PERF_ATTR_SIZE_???");
+			tprint_struct_entering_end();
 			return 0;
+		}
 	} else {
 		/* attr */
+		tprints_arg_exiting_name(0, "attr");
 		print_perf_event_attr(tcp, tcp->u_arg[0]);
 	}
 
 	/* pid */
-	tprints_arg_next_name("pid");
+	tprints_arg_next_name_at(1, "pid");
 	PRINT_VAL_D((int) tcp->u_arg[1]);
 
 	/* cpu */
-	tprints_arg_next_name("cpu");
+	tprints_arg_next_name_at(2, "cpu");
 	PRINT_VAL_D((int) tcp->u_arg[2]);
 
 	/* group_fd */
-	tprints_arg_next_name("group_fd");
+	tprints_arg_next_name_at(3, "group_fd");
 	printfd(tcp, tcp->u_arg[3]);
 
 	/* flags */
-	tprints_arg_next_name("flags");
+	tprints_arg_next_name_at(4, "flags");
 	printflags64(perf_event_open_flags, tcp->u_arg[4], "PERF_FLAG_???");
 
 	return RVAL_DECODED | RVAL_FD;

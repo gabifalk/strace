@@ -3512,6 +3512,39 @@ tprint_perf_precise_ip(unsigned int val, const char *desc, const char *skid)
 }
 
 void
+tprint_reserved_bytes_inline(const char *name, unsigned long long val,
+			     unsigned int first, unsigned int last)
+{
+	tprintf_comment("bytes %u..%u: %#llx", first, last, val);
+}
+
+void
+tprint_struct_split_entering_begin(void)
+{
+}
+
+void
+tprints_field_xval_entering(const char *name, uint64_t val,
+			    const struct xlat *xlat, const char *dflt)
+{
+}
+
+void
+tprint_xval_exiting(const struct xlat *xlat, const char *dflt,
+		    uint64_t entering_val, uint64_t exiting_val,
+		    int exiting_state)
+{
+	printxval64(xlat, entering_val, dflt);
+	if (exiting_state) {
+		tprint_value_changed();
+		if (exiting_state > 0)
+			printxval64(xlat, exiting_val, dflt);
+		else
+			tprint_unavailable();
+	}
+}
+
+void
 tprint_reserved_bits(unsigned long long val, unsigned int from,
 		     unsigned int to)
 {
