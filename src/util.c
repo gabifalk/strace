@@ -589,7 +589,7 @@ print_uuid(const unsigned char *uuid)
 		'\0'
 	};
 
-	tprints_string(str);
+	tprints_uuid(str);
 }
 
 enum sock_proto

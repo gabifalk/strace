@@ -250,6 +250,7 @@ extern void tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
 				 unsigned int style);
 extern void tprint_var_count(unsigned long long addr, unsigned int count,
 			     bool unterminated);
+extern void tprints_uuid(const char *str);
 extern void tprint_char(unsigned char c);
 extern void tprint_timespec(long long sec, unsigned long long nsec);
 extern void tprint_timespec_signed(long long sec, long long nsec);

@@ -1087,6 +1087,12 @@ tprint_var_count(unsigned long long addr, unsigned int count,
 	}
 }
 
+void
+tprints_uuid(const char *str)
+{
+	tprints_string(str);
+}
+
 static void
 tprint_time_fields(const char *type, long long sec, const char *frac_name,
 		   const char *frac)
