@@ -569,25 +569,59 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 void
 tprint_syscall_exit_line_end(void)
 {
-	tprint_event_end();
-	tprint_newline();
+	if (!structured_output) {
+		tprint_event_end();
+		tprint_newline();
+	}
 }
 
 void
 tprint_syscall_exit_event_end(void)
 {
+	if (structured_output) {
+		tprint_event_end();
+		tprint_newline();
+	}
 }
+
+static struct {
+	bool iov;
+	bool fetch_failed;
+	unsigned long long size;
+	unsigned long long addr;
+} io_dump;
 
 void
 tprint_io_dump_begin(void)
 {
+	if (structured_output) {
+		if (io_dump.iov)
+			tprint_list_element_begin();
+		else
+			tprints_object_field_begin("io_dump");
+		tprint_object_begin();
+		tprints_object_type("bytes");
+		tprints_object_field_begin("value");
+		tprint_list_begin();
+	}
 }
 
 void
 tprint_io_dump_line(const char *text, unsigned long long offset,
 		    int offset_width, const void *data, unsigned int size)
 {
-	tprintf_string(" | %0*llx  %s |\n", offset_width, offset, text);
+	if (structured_output) {
+		const unsigned char *const bytes = data;
+
+		for (unsigned int i = 0; i < size; ++i) {
+			tprint_list_element_begin();
+			STRACE_PRINTF("%u", bytes[i]);
+			tprint_list_element_end();
+		}
+	} else {
+		tprintf_string(" | %0*llx  %s |\n", offset_width, offset,
+			       text);
+	}
 }
 
 void
@@ -595,37 +629,72 @@ tprint_io_dump_fetch_failed(unsigned long long size,
 			    unsigned long long fetch_size, int pid,
 			    unsigned long long addr, unsigned long long fetched)
 {
-	/*
-	 * Don't silently abort if something has been printed already.
-	 */
-	if (fetched)
+	if (structured_output) {
+		io_dump.fetch_failed = true;
+		io_dump.size = size;
+		io_dump.addr = addr;
+	} else if (fetched) {
+		/*
+		 * Don't silently abort if something has been printed already.
+		 */
 		tprintf_string(" | <Cannot fetch %llu byte%s from pid %d"
 			       " @%#llx>\n",
 			       fetch_size, fetch_size == 1 ? "" : "s",
 			       pid, addr);
+	}
 }
 
 void
 tprint_io_dump_end(void)
 {
+	if (structured_output) {
+		tprint_list_end();
+		tprint_object_field_end();
+		if (io_dump.fetch_failed) {
+			tprintf_object_field_string("size", "%llu",
+						    io_dump.size);
+			tprintf_object_field_string("fetch_failed_addr",
+						    "%#llx", io_dump.addr);
+			io_dump.fetch_failed = false;
+		}
+		tprint_object_end();
+		if (io_dump.iov)
+			tprint_list_element_end();
+		else
+			tprint_object_field_end();
+	}
 }
 
 void
 tprint_io_dump_iov_begin(void)
 {
+	if (structured_output) {
+		tprints_object_field_begin("io_dump");
+		tprint_object_begin();
+		tprint_array_begin();
+		io_dump.iov = true;
+	}
 }
 
 void
 tprint_io_dump_iov_buffer(unsigned long long size, unsigned int index)
 {
-	/*
-	 * Include the buffer number to make it easy to match up the trace
-	 * with the source.
-	 */
-	tprintf_string(" * %llu bytes in buffer %u\n", size, index);
+	if (!structured_output) {
+		/*
+		 * Include the buffer number to make it easy to match up
+		 * the trace with the source.
+		 */
+		tprintf_string(" * %llu bytes in buffer %u\n", size, index);
+	}
 }
 
 void
 tprint_io_dump_iov_end(void)
 {
+	if (structured_output) {
+		io_dump.iov = false;
+		tprint_array_end();
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
