@@ -54,7 +54,10 @@ print_quoted_cstring_sequence(struct tcb *const tcp, const char *str,
 			return;
 		}
 
+		tprint_object_begin();
+		tprints_object_type("string");
 		print_quoted_cstring(str, size);
+		tprint_object_end();
 
 		unsigned int len = strnlen(str, size);
 		if (len < size)
@@ -66,7 +69,9 @@ print_quoted_cstring_sequence(struct tcb *const tcp, const char *str,
 	if (i < nelem) {
 		if (i)
 			tprint_array_next();
+		tprint_object_begin();
 		tprint_unavailable();
+		tprint_object_end();
 	}
 
 	tprint_array_end();
