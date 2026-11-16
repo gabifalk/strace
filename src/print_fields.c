@@ -31,30 +31,527 @@ tprints_object_field_bytes(const char *field, const char *raw, size_t len)
 	tprint_object_field_end();
 }
 
+struct structured_output_data *structured_output = NULL;
+
+static const char *
+json_container_type_name(enum json_container_type type)
+{
+	switch (type) {
+	case JSON_CONTAINER_OBJECT:
+		return "object";
+	case JSON_CONTAINER_ARRAY:
+		return "array";
+	default:
+		return "unknown";
+	}
+}
+
+static void
+json_stack_push(enum json_container_type type)
+{
+	if (!structured_output)
+		return;
+
+	if (structured_output->state.depth >= JSON_STACK_MAX)
+		error_func_msg_and_die("structured output stack overflow"
+				       " (limit=%u)", JSON_STACK_MAX);
+
+	unsigned int depth = structured_output->state.depth;
+	structured_output->state.stack[depth] =
+		(struct json_stack_frame) { .type = type };
+	structured_output->state.depth++;
+}
+
+static void
+json_stack_pop(void)
+{
+	if (!structured_output)
+		return;
+
+	if (structured_output->state.depth == 0)
+		error_func_msg_and_die("structured output stack underflow");
+
+	structured_output->state.depth--;
+}
+
+static enum json_container_type
+json_stack_top_type(void)
+{
+	if (!structured_output)
+		return JSON_CONTAINER_OBJECT;
+
+	if (structured_output->state.depth == 0)
+		return JSON_CONTAINER_OBJECT;
+
+	const struct json_stack *state = &structured_output->state;
+	return state->stack[state->depth - 1].type;
+}
+
+static void
+json_stack_set_needs_sep(enum json_container_type type)
+{
+	struct json_stack *state = &structured_output->state;
+
+	if (state->depth == 0)
+		error_func_msg_and_die("tried to enable %s separator"
+				       " on an empty stack",
+				       json_container_type_name(type));
+
+	enum json_container_type top = json_stack_top_type();
+	if (top != type)
+		error_func_msg_and_die("tried to enable %s separator"
+				       " but the context is %s",
+				       json_container_type_name(type),
+				       json_container_type_name(top));
+
+	state->stack[state->depth - 1].needs_sep = true;
+}
+
+static bool
+json_stack_needs_sep(enum json_container_type type)
+{
+	const struct json_stack *state = &structured_output->state;
+
+	if (state->depth == 0)
+		error_func_msg_and_die("tried to query %s separator"
+				       " on an empty stack",
+				       json_container_type_name(type));
+
+	enum json_container_type top = json_stack_top_type();
+	if (top != type)
+		error_func_msg_and_die("tried to print %s separator"
+				       " but the context is %s",
+				       json_container_type_name(type),
+				       json_container_type_name(top));
+
+	return state->stack[state->depth - 1].needs_sep;
+}
+
+static void
+json_stack_mark_truncated(void)
+{
+	struct json_stack *state = &structured_output->state;
+
+	if (state->depth == 0)
+		error_func_msg_and_die("tried to mark truncation"
+				       " on an empty stack");
+
+	state->stack[state->depth - 1].truncated = true;
+}
+
+static void
+json_stack_reset(void)
+{
+	if (!structured_output)
+		return;
+
+	structured_output->state.depth = 0;
+}
+
+void
+json_print_quoted_string_begin(void)
+{
+	if (!structured_output)
+		return;
+
+	STRACE_PRINTS("\"");
+}
+
+void
+json_print_quoted_string_end(void)
+{
+	if (!structured_output)
+		return;
+
+	STRACE_PRINTS("\"");
+}
+
+void
+tprints_string_value(const char *str)
+{
+	if (structured_output)
+		json_print_quoted_string_begin();
+	STRACE_PRINTS(str);
+	if (structured_output)
+		json_print_quoted_string_end();
+}
+
+ATTRIBUTE_FORMAT((printf, 1, 0))
+void
+tprintv_string_value(const char *fmt, va_list args)
+{
+	json_print_quoted_string_begin();
+	STRACE_PRINTV(fmt, args);
+	json_print_quoted_string_end();
+}
+
+ATTRIBUTE_FORMAT((printf, 1, 2))
+void
+tprintf_string_value(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	tprintv_string_value(fmt, args);
+	va_end(args);
+}
+
+static void
+json_stack_flush_array_sep(void)
+{
+	struct json_stack *state = &structured_output->state;
+
+	if (state->depth == 0
+	    || state->stack[state->depth - 1].type != JSON_CONTAINER_ARRAY
+	    || !state->stack[state->depth - 1].needs_sep)
+		return;
+
+	STRACE_PRINTS(JSON_SEP);
+	state->stack[state->depth - 1].needs_sep = false;
+}
+
+void
+tprint_object_begin(void)
+{
+	if (structured_output) {
+		json_stack_flush_array_sep();
+		STRACE_PRINTS(JSON_OBJ_BEGIN);
+		json_stack_push(JSON_CONTAINER_OBJECT);
+	}
+}
+
+void
+tprints_object_field_begin(const char *field)
+{
+	if (!structured_output)
+		return;
+
+	if (structured_output->state.depth == 0
+	    || json_stack_top_type() != JSON_CONTAINER_OBJECT)
+		error_func_msg_and_die("structured output field \"%s\" outside"
+				       " of an object", field);
+
+	if (json_stack_needs_sep(JSON_CONTAINER_OBJECT))
+		STRACE_PRINTS(JSON_SEP);
+
+	STRACE_PRINTF("\"%s\"", field);
+	STRACE_PRINTS(JSON_FIELD_SEP);
+}
+
+void
+tprint_object_field_end(void)
+{
+	if (structured_output)
+		json_stack_set_needs_sep(JSON_CONTAINER_OBJECT);
+}
+
+void
+tprints_object_field_string(const char *field, const char *s)
+{
+	tprints_object_field_begin(field);
+	tprints_string_value(s);
+	tprint_object_field_end();
+}
+
+void
+tprints_object_field_bool(const char *field, bool val)
+{
+	if (!structured_output)
+		return;
+
+	tprints_object_field_begin(field);
+	STRACE_PRINTS(val ? JSON_TRUE : JSON_FALSE);
+	tprint_object_field_end();
+}
+
+void
+tprints_object_field_null(const char *field)
+{
+	if (!structured_output)
+		return;
+
+	tprints_object_field_begin(field);
+	STRACE_PRINTS(JSON_NULL);
+	tprint_object_field_end();
+}
+
+void
+tprints_object_type(const char *type)
+{
+	if (structured_output)
+		tprints_object_field_string("type", type);
+}
+
+/*
+ * ioctl command identifiers.  In structured output an ioctl op carries an
+ * optional "cmds" array of ioctl_cmd value objects; the array is opened
+ * lazily on the first command so it is absent when no command resolves.
+ * Traditional output is unchanged: the command name(s), joined with " or ".
+ */
+static void
+tprint_ioctl_cmds_lazy_open(void)
+{
+	if (structured_output->ioctl_cmds_open)
+		return;
+	tprints_object_field_begin("cmds");
+	tprint_list_begin();
+	structured_output->ioctl_cmds_open = true;
+}
+
+void
+tprint_ioctl_cmds_reset(void)
+{
+	if (structured_output)
+		structured_output->ioctl_cmds_open = false;
+}
+
+void
+tprint_ioctl_cmds_finish(void)
+{
+	if (structured_output && structured_output->ioctl_cmds_open) {
+		tprint_list_end();
+		tprint_object_field_end();
+		structured_output->ioctl_cmds_open = false;
+	}
+}
+
+void
+tprints_ioctl_cmd(const char *name)
+{
+	if (structured_output) {
+		tprint_ioctl_cmds_lazy_open();
+		tprint_list_element_begin();
+		tprint_object_begin();
+		tprints_object_type("ioctl_cmd");
+		tprints_object_field_string("name", name);
+		tprint_object_end();
+		tprint_list_element_end();
+	} else {
+		STRACE_PRINTS(name);
+	}
+}
+
+void
+tprints_ioctl_cmd_begin(const char *name)
+{
+	if (structured_output) {
+		tprint_ioctl_cmds_lazy_open();
+		tprint_list_element_begin();
+		tprint_object_begin();
+		tprints_object_type("ioctl_cmd");
+		tprints_object_field_string("name", name);
+		tprints_object_field_begin("args");
+		tprint_list_begin();
+		tprint_list_element_begin();
+		tprint_object_begin();
+	} else {
+		tprints_fn_begin(name);
+	}
+}
+
+void
+tprint_ioctl_cmd_next(void)
+{
+	if (structured_output) {
+		tprint_object_end();
+		tprint_list_element_end();
+		tprint_list_element_begin();
+		tprint_object_begin();
+	} else {
+		tprint_fn_next();
+	}
+}
+
+void
+tprint_ioctl_cmd_end(void)
+{
+	if (structured_output) {
+		tprint_object_end();
+		tprint_list_element_end();
+		tprint_list_end();
+		tprint_object_field_end();
+		tprint_object_end();
+		tprint_list_element_end();
+	} else {
+		tprint_fn_end();
+	}
+}
+
+void
+tprint_type_const(void)
+{
+	if (structured_output)
+		tprints_object_field_string("type", "const");
+}
+
+ATTRIBUTE_FORMAT((printf, 2, 3))
+void
+tprintf_object_field_string(const char *field, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	if (structured_output) {
+		tprints_object_field_begin(field);
+		tprintv_string_value(fmt, args);
+		tprint_object_field_end();
+	} else {
+		STRACE_PRINTV(fmt, args);
+	}
+	va_end(args);
+}
+
+void
+tprint_object_end(void)
+{
+	if (structured_output) {
+		if (structured_output->state.depth == 0
+		    || json_stack_top_type() != JSON_CONTAINER_OBJECT)
+			error_func_msg_and_die("structured output object"
+					       " end outside of an object");
+		if (structured_output->state.stack[structured_output->state.depth - 1].truncated)
+			tprints_object_field_bool("truncated", true);
+		json_stack_pop();
+		STRACE_PRINTS(JSON_OBJ_END);
+	}
+}
+
 void
 tprint_struct_begin(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("{");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprints_object_field_begin("type");
+		tprintf_string_value("%s", "struct");
+		tprint_object_field_end();
+		tprints_object_field_begin("fields");
+		tprint_object_begin();
+		structured_output->state.stack[structured_output->state.depth - 1]
+			.struct_fields = true;
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("{");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+static void
+json_close_struct_field(void)
+{
+	const struct json_stack *state = &structured_output->state;
+
+	if (state->depth && !state->stack[state->depth - 1].struct_fields)
+		tprint_object_end();
 }
 
 void
 tprint_struct_next(void)
 {
+	if (structured_output) {
+		json_close_struct_field();
+		json_stack_set_needs_sep(JSON_CONTAINER_OBJECT);
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS(", ");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+static void
+json_end_struct_fields(void)
+{
+	bool do_split = structured_output->state.depth > 0
+		&& structured_output->state
+		       .stack[structured_output->state.depth - 1].split;
+	bool fetch_failed = structured_output->state.depth > 0
+		&& structured_output->state
+		       .stack[structured_output->state.depth - 1]
+		       .fetch_failed;
+	unsigned long long fetch_failed_addr = fetch_failed
+		? structured_output->state
+		       .stack[structured_output->state.depth - 1]
+		       .fetch_failed_addr : 0;
+	const char *decode_error = structured_output->state.depth > 0
+		? structured_output->state
+		       .stack[structured_output->state.depth - 1]
+		       .decode_error : NULL;
+	bool truncated = false;
+	if (structured_output->state.depth > 0) {
+		struct json_stack_frame *fields =
+			&structured_output->state.stack
+				[structured_output->state.depth - 1];
+
+		truncated = fields->truncated;
+		fields->truncated = false;
+	}
 	tprint_object_end();
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS(", ");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (truncated)
+		tprints_object_field_bool("truncated", true);
+	if (do_split)
+		tprints_object_field_bool("split", true);
+	if (fetch_failed)
+		tprintf_object_field_string("fetch_failed_addr", "%#llx",
+					    fetch_failed_addr);
+	if (decode_error)
+		tprints_object_field_string("decode_error", decode_error);
+}
+
+void
+tprint_flags_element_mark(void)
+{
+	if (structured_output && structured_output->state.depth)
+		structured_output->state
+			.stack[structured_output->state.depth - 1]
+			.flags_element = true;
+}
+
+bool
+tprint_flags_element_open(void)
+{
+	if (!structured_output || !structured_output->state.depth)
+		return false;
+
+	const struct json_stack_frame *top = &structured_output->state.stack
+		[structured_output->state.depth - 1];
+
+	return top->type == JSON_CONTAINER_OBJECT && top->flags_element;
+}
+
+bool
+tprint_struct_fields_end(void)
+{
+	if (!structured_output)
+		return false;
+
+	struct json_stack *state = &structured_output->state;
+
+	if (state->depth > 1 && !state->stack[state->depth - 1].struct_fields
+	    && state->stack[state->depth - 2].struct_fields)
+		json_close_struct_field();
+	if (!state->depth || !state->stack[state->depth - 1].struct_fields)
+		return false;
+
+	json_end_struct_fields();
+	state->stack[state->depth - 1].fields_ended = true;
+	return true;
 }
 
 void
 tprint_struct_end(void)
 {
-	tprint_object_end();
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("}");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		struct json_stack *state = &structured_output->state;
+
+		if (state->depth
+		    && state->stack[state->depth - 1].fields_ended) {
+			state->stack[state->depth - 1].fields_ended = false;
+		} else {
+			json_close_struct_field();
+			json_end_struct_fields();
+		}
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("}");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
@@ -293,37 +790,82 @@ tprints_field_repeated_u(const char *name, unsigned long long val)
 }
 
 void
+tprint_struct_mark_split(void)
+{
+	if (!structured_output)
+		return;
+
+	/* Mark the innermost open struct, skipping any field value object
+	 * that is still open on top of it, so that the caller may mark the
+	 * struct split either right after opening it or after a field. */
+	for (unsigned int depth = structured_output->state.depth;
+	     depth > 0; --depth) {
+		if (structured_output->state.stack[depth - 1].struct_fields) {
+			structured_output->state.stack[depth - 1].split = true;
+			return;
+		}
+	}
+}
+
+void
 tprint_union_begin(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("{");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	tprint_struct_begin();
 }
 
 void
 tprint_union_next(void)
 {
-	tprint_object_end();
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS(", ");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	tprint_struct_next();
 }
 
 void
 tprint_union_end(void)
 {
-	tprint_object_end();
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("}");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	tprint_struct_end();
 }
 
 void
 tprint_array_begin(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("[");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprints_object_field_string("type", "array");
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("[");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+void
+tprint_list_begin(void)
+{
+	if (!structured_output)
+		return;
+
+	STRACE_PRINTS(JSON_ARR_BEGIN);
+	json_stack_push(JSON_CONTAINER_ARRAY);
+}
+
+void
+tprint_list_element_begin(void)
+{
+	if (!structured_output)
+		return;
+
+	if (json_stack_needs_sep(JSON_CONTAINER_ARRAY))
+		json_stack_flush_array_sep();
+}
+
+void
+tprint_list_element_end(void)
+{
+	if (!structured_output)
+		return;
+
+	json_stack_set_needs_sep(JSON_CONTAINER_ARRAY);
 }
 
 void
@@ -341,24 +883,79 @@ tprint_pair_begin(void)
 void
 tprint_array_next(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS(", ");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		json_stack_set_needs_sep(JSON_CONTAINER_ARRAY);
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS(", ");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
 tprint_array_end(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("]");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		bool truncated = false;
+		bool fetch_failed = false;
+		unsigned long long fetch_failed_addr = 0;
+
+		if (structured_output->state.depth > 0) {
+			const struct json_stack_frame *top =
+				&structured_output->state.stack
+					[structured_output->state.depth - 1];
+
+			truncated = top->truncated;
+			fetch_failed = top->fetch_failed;
+			fetch_failed_addr = top->fetch_failed_addr;
+		}
+		tprint_list_end();
+		tprint_object_field_end();
+		if (truncated)
+			tprints_object_field_bool("truncated", true);
+		if (fetch_failed) {
+			tprints_object_field_begin("fetch_failed_addr");
+			tprintf_string_value("%#llx", fetch_failed_addr);
+			tprint_object_field_end();
+		}
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("]");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+void
+tprint_list_end(void)
+{
+	if (!structured_output)
+		return;
+
+	if (structured_output->state.depth == 0
+	    || json_stack_top_type() != JSON_CONTAINER_ARRAY)
+		error_func_msg_and_die("structured output array"
+				       " end outside of an array");
+	STRACE_PRINTS(JSON_ARR_END);
+	json_stack_pop();
 }
 
 void
 tprint_array_element_fetch_failed(unsigned long long addr)
 {
-	if (structured_output)
+	if (structured_output) {
+		if (structured_output->state.depth == 0
+		    || json_stack_top_type() != JSON_CONTAINER_ARRAY)
+			error_func_msg_and_die("structured output array element"
+					       " fetch failure outside of"
+					       " an array");
+
+		struct json_stack_frame *top = &structured_output->state.stack
+			[structured_output->state.depth - 1];
+
+		top->fetch_failed = true;
+		top->fetch_failed_addr = addr;
 		return;
+	}
 
 	tprint_more_data_follows();
 	printaddr_comment(addr);
@@ -430,46 +1027,308 @@ tprints_syscall_name(const char *name)
 	free(url);
 }
 
-void
-tprints_arg_begin(const char *name)
+/* Emit a NUL-terminated string as a "field": [b0, b1, ...] decimal array. */
+static void
+tprint_event_time(const char *name, const char *type,
+		  struct structured_time *t)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_SYSCALL);
-	tprints_syscall_name(name);
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("(");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (!t->set)
+		return;
+	tprints_object_field_begin(name);
+	tprint_object_begin();
+	tprints_object_type(type);
+	tprintf_object_field_string("seconds", "%lld", t->sec);
+	tprintf_object_field_string("nanoseconds", "%ld", t->nsec);
+	tprintf_object_field_string("precision", "%u", t->precision);
+	tprint_object_end();
+	tprint_object_field_end();
+	t->set = false;
+}
+
+void
+tprints_event_pid(int pid, const char *comm)
+{
+	tprints_object_field_begin("pid");
+	tprint_object_begin();
+	tprints_object_field_string("type", "tid");
+	tprints_object_field_begin("raw");
+	tprintf_string_value("%d", pid);
+	tprint_object_field_end();
+	if (comm && *comm) {
+		tprints_object_field_begin("pid_info");
+		tprint_object_begin();
+		tprints_object_field_bytes("comm", comm, strlen(comm));
+		tprint_object_end();
+		tprint_object_field_end();
+	}
+	tprint_object_end();
+	tprint_object_field_end();
+
+	tprint_event_time("timestamp", "time", &structured_output->timestamp);
+	tprint_event_time("relative_timestamp", "duration",
+			  &structured_output->relative_timestamp);
+	if (structured_output->ip[0]) {
+		tprints_object_field_string("ip", structured_output->ip);
+		structured_output->ip[0] = '\0';
+	}
+	if (structured_output->pid_secontext) {
+		tprints_object_field_begin("secontext");
+		tprint_object_begin();
+		char *ctx = structured_output->pid_secontext;
+
+		tprints_object_field_bytes("context", ctx,
+					   structured_output->pid_secontext_len);
+		tprint_object_end();
+		tprint_object_field_end();
+		free(ctx);
+		structured_output->pid_secontext = NULL;
+	}
+}
+
+static void
+emit_syscall_event_start(const char *name, kernel_ulong_t scno,
+			 unsigned int personality, int entry,
+			 int pid, int entering_pid, const char *comm)
+{
+	tprintf_event_start("syscall");
+	tprints_event_pid(pid, comm);
+	if (entering_pid && entering_pid != pid) {
+		tprints_object_field_begin("entering_pid");
+		tprint_object_begin();
+		tprints_object_type("tid");
+		tprintf_object_field_string("raw", "%d", entering_pid);
+		tprint_object_end();
+		tprint_object_field_end();
+	}
+	tprints_object_field_begin("syscall");
+	tprint_object_begin();
+	tprints_object_field_string("type", "syscall");
+	tprints_object_field_begin("name");
+	tprintf_string_value("%s", name);
+	tprint_object_field_end();
+	if (scno != (kernel_ulong_t) -1) {
+		tprints_object_field_begin("scno");
+		tprintf_string_value("%llu",
+				     (unsigned long long) scno);
+		tprint_object_field_end();
+	}
+	tprints_object_field_begin("personality");
+	STRACE_PRINTF("%u", personality);
+	tprint_object_field_end();
+	tprint_object_end();
+	tprint_object_field_end();
+	if (!structured_output->merged) {
+		tprints_object_field_begin("entering");
+		STRACE_PRINTS(entry ? JSON_TRUE : JSON_FALSE);
+		tprint_object_field_end();
+		tprints_object_field_begin("args");
+		tprint_list_begin();
+	}
+	if (entry)
+		structured_output->arg_index = 0;
+	structured_output->arg_open = false;
+}
+
+void
+tprints_arg_begin(const char *name, unsigned long long scno,
+		  unsigned int personality, bool entering,
+		  int pid, int entering_pid, const char *comm)
+{
+	if (structured_output) {
+		emit_syscall_event_start(name, scno, personality, entering,
+					 pid, entering_pid, comm);
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_SYSCALL);
+		tprints_syscall_name(name);
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("(");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+void
+structured_capture_begin(struct arg_capture *cap, unsigned int arg_index_start)
+{
+	if (!structured_output)
+		return;
+
+	json_stack_reset();
+	structured_output->capture = cap;
+	structured_output->arg_index = arg_index_start;
+	structured_output->arg_open = false;
+}
+
+void
+structured_capture_end(void)
+{
+	if (!structured_output)
+		return;
+
+	structured_output->capture = NULL;
+}
+
+/*
+ * Redirect the current argument's output to a per-argument memory stream in
+ * the capture context, choosing the entry or exit buffer according to the
+ * syscall phase, so the two renderings can later be paired.
+ */
+static void
+capture_arg_open(unsigned int index, const char *name)
+{
+	struct arg_capture *cap = structured_output->capture;
+
+	if (!cap || index >= MAX_ARGS)
+		return;
+
+	free(cap->name[index]);
+	cap->name[index] = xstrdup(name);
+
+	char **bufp = cap->exiting ? &cap->exit_buf[index]
+				   : &cap->entry_buf[index];
+	size_t *lenp = cap->exiting ? &cap->exit_len[index]
+				    : &cap->entry_len[index];
+
+	free(*bufp);
+	*bufp = NULL;
+	*lenp = 0;
+
+	FILE *fp = open_memstream(bufp, lenp);
+	if (fp) {
+		cap->saved_outf = *cap->outfp;
+		cap->memstream = fp;
+		*cap->outfp = fp;
+	}
+}
+
+static void
+capture_arg_close(void)
+{
+	struct arg_capture *cap = structured_output->capture;
+
+	if (cap && cap->memstream) {
+		fclose(cap->memstream);
+		cap->memstream = NULL;
+		*cap->outfp = cap->saved_outf;
+		cap->saved_outf = NULL;
+	}
+}
+
+static void
+close_arg(void)
+{
+	if (!structured_output)
+		return;
+
+	if (!structured_output->arg_open)
+		return;
+	structured_output->arg_open = false;
+
+	while (structured_output->state.depth
+	       > structured_output->arg_open_depth) {
+		bool do_split = structured_output->state.depth > 0
+			&& structured_output->state
+			       .stack[structured_output->state.depth - 1].split;
+		tprint_object_end();
+		if (do_split)
+			tprints_object_field_bool("split", true);
+	}
+
+	tprint_object_end();
+
+	if (structured_output->capture)
+		capture_arg_close();
+	else
+		tprint_list_element_end();
 }
 
 void
 tprint_arg_next(void)
 {
+	if (structured_output) {
+		close_arg();
+		return;
+	}
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS(", ");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
 }
 
 void
-tprint_arg_end(void)
+tprint_arg_skip(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS(")");
-	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+	if (structured_output)
+		structured_output->arg_index++;
 }
 
 void
-tprints_arg_name_unconditionally(const char *name)
+tprint_union_field_value_end(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGNAME);
-	STRACE_PRINTF("%s", name);
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("=");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (!structured_output)
+		return;
+
+	const struct json_stack *state = &structured_output->state;
+
+	if (state->depth > 1
+	    && !state->stack[state->depth - 2].struct_fields)
+		tprint_object_end();
+}
+
+void
+tprint_arg_end(void)
+{
+	if (structured_output) {
+		close_arg();
+		if (structured_output->capture)
+			return;
+		tprint_list_end();
+		tprint_object_field_end();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS(")");
+		STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+	}
 }
 
 void
 tprints_arg_name_unconditionally_at(unsigned int index, const char *name)
 {
-	tprints_arg_name_unconditionally(name);
+	if (structured_output) {
+		close_arg();
+
+		if (structured_output->capture) {
+			capture_arg_open(index, name);
+			tprint_object_begin();
+		} else {
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_field_begin("index");
+			STRACE_PRINTF("%u", index);
+			tprint_object_field_end();
+			tprints_object_field_begin("arg");
+			tprintf_string_value("%s", name);
+			tprint_object_field_end();
+		}
+		if (index < 32 && (structured_output->injected_args >> index) & 1)
+			tprints_object_field_bool("injected", true);
+		structured_output->arg_open = true;
+		structured_output->arg_open_depth =
+			structured_output->state.depth;
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGNAME);
+		STRACE_PRINTF("%s", name);
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("=");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
+}
+
+void
+tprints_arg_name_unconditionally(const char *name)
+{
+	unsigned int index =
+		structured_output ? structured_output->arg_index++ : 0;
+	tprints_arg_name_unconditionally_at(index, name);
 }
 
 void
@@ -482,14 +1341,15 @@ tprints_arg_next_name_unconditionally_at(unsigned int index, const char *name)
 void
 tprints_arg_name(const char *name)
 {
-	if (Nflag)
+	if (Nflag || structured_output)
 		tprints_arg_name_unconditionally(name);
 }
 
 void
 tprints_arg_name_at(unsigned int index, const char *name)
 {
-	tprints_arg_name(name);
+	if (Nflag || structured_output)
+		tprints_arg_name_unconditionally_at(index, name);
 }
 
 void
@@ -539,8 +1399,33 @@ tprint_arg_inout_exiting_d(int entering_val, int exiting_val)
 }
 
 void
+tprint_arg_inout(void)
+{
+	if (!structured_output)
+		return;
+
+	tprints_object_field_begin("inout");
+	STRACE_PRINTS(JSON_TRUE);
+	tprint_object_field_end();
+}
+
+void
+tprint_arg_changed(void)
+{
+	if (!structured_output)
+		return;
+
+	tprints_object_field_begin("changed");
+	STRACE_PRINTS(JSON_TRUE);
+	tprint_object_field_end();
+}
+
+void
 tprints_fn_begin(const char *name)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_CALL);
 	STRACE_PRINTF("%s", name);
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
@@ -551,6 +1436,9 @@ tprints_fn_begin(const char *name)
 void
 tprint_fn_next(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS(", ");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -559,6 +1447,9 @@ tprint_fn_next(void)
 void
 tprint_fn_end(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS(")");
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
@@ -917,6 +1808,9 @@ tprint_skf_off_end(void)
 void
 tprint_comment_begin(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_COMMENT);
 	STRACE_PRINTS(" /* ");
 }
@@ -924,6 +1818,9 @@ tprint_comment_begin(void)
 void
 tprint_comment_end(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_COMMENT);
 	STRACE_PRINTS(" */");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -932,6 +1829,9 @@ tprint_comment_end(void)
 void
 tprint_indirect_begin(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("[");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -940,9 +1840,15 @@ tprint_indirect_begin(void)
 void
 tprint_indirect_end(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("]");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprints_object_field_begin("indirect");
+		STRACE_PRINTS(JSON_TRUE);
+		tprint_object_field_end();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("]");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
@@ -964,6 +1870,9 @@ tprint_attribute_end(void)
 void
 tprint_associated_info_begin(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("<");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -972,6 +1881,9 @@ tprint_associated_info_begin(void)
 void
 tprint_associated_info_end(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS(">");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -1187,6 +2099,11 @@ tprints_pid_info(const char *comm, int strace_pid)
 void
 tprint_more_data_follows(void)
 {
+	if (structured_output) {
+		json_stack_mark_truncated();
+		return;
+	}
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("...");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -1195,6 +2112,9 @@ tprint_more_data_follows(void)
 void
 tprint_value_changed(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS(" => ");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -1203,17 +2123,25 @@ tprint_value_changed(void)
 void
 tprint_alternative_value(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS(" or ");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprint_array_next();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS(" or ");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
 tprint_unavailable(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_ERROR);
-	STRACE_PRINTS("???");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprints_object_type("unavailable");
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_ERROR);
+		STRACE_PRINTS("???");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
@@ -1238,12 +2166,23 @@ tprint_struct_addr(unsigned long long addr)
 void
 tprint_struct_decode_error(const char *msg)
 {
-	tprints_comment(msg);
+	if (structured_output) {
+		json_close_struct_field();
+		if (structured_output->state.depth > 0)
+			structured_output->state
+				.stack[structured_output->state.depth - 1]
+				.decode_error = msg;
+	} else {
+		tprints_comment(msg);
+	}
 }
 
 void
 tprint_flags_or(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("|");
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
@@ -1687,11 +2626,15 @@ tprint_newline(void)
 void
 tprints_field_name(const char *name)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGNAME);
-	STRACE_PRINTF("%s", name);
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("=");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprints_object_field_begin(name);
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGNAME);
+		STRACE_PRINTF("%s", name);
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("=");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 	tprint_object_begin();
 }
 
@@ -1882,6 +2825,8 @@ tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags, unsigned int n,
 	return n;
 }
 
+static bool sockaddr_fields;
+
 void
 tprint_sockaddr_begin(void)
 {
@@ -1914,15 +2859,30 @@ tprint_sockaddr_family_end(void)
 void
 tprint_sockaddr_next(void)
 {
-	if (!structured_output)
+	if (structured_output) {
+		struct json_stack *state = &structured_output->state;
+
+		tprints_object_field_begin("fields");
+		tprint_object_begin();
+		state->stack[state->depth - 1].struct_fields = true;
+		sockaddr_fields = true;
+	} else {
 		tprint_struct_next();
+	}
 }
 
 void
 tprint_sockaddr_end(void)
 {
-	if (!structured_output)
+	if (structured_output) {
+		if (sockaddr_fields) {
+			json_close_struct_field();
+			json_end_struct_fields();
+			sockaddr_fields = false;
+		}
+	} else {
 		tprint_struct_end();
+	}
 }
 
 static void
@@ -2040,7 +3000,9 @@ tprint_superseded(int pid, const char *comm, int old_pid)
 void
 tprint_personality(int pid, unsigned int personality, const char *name)
 {
-	tprintf_string("[ Process PID=%d runs in %s mode. ]\n", pid, name);
+	if (!structured_output)
+		tprintf_string("[ Process PID=%d runs in %s mode. ]\n",
+			       pid, name);
 }
 
 static bool exit_args_lost;
@@ -2059,10 +3021,16 @@ tprint_exit_args_lost(void)
 void
 tprint_sysret_begin(void)
 {
-	if (structured_output && exit_args_lost) {
-		tprints_object_field_bool("exit_args_lost", true);
-		exit_args_lost = false;
+	if (structured_output) {
+		if (exit_args_lost) {
+			tprints_object_field_bool("exit_args_lost", true);
+			exit_args_lost = false;
+		}
+		tprints_object_field_begin("return");
+		tprint_object_begin();
+		return;
 	}
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("=");
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
@@ -2071,6 +3039,9 @@ tprint_sysret_begin(void)
 void
 tprints_sysret_next(const char *name)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
 	tprint_space();
 	if (color_is_enabled && name) {
@@ -3325,6 +4296,17 @@ tprint_net_port(const void *raw, unsigned int port)
 void
 tprint_addr(unsigned long long addr)
 {
+	if (structured_output && structured_output->state.depth > 0) {
+		struct json_stack_frame *top = &structured_output->state.stack
+			[structured_output->state.depth - 1];
+
+		if (top->struct_fields) {
+			top->fetch_failed = true;
+			top->fetch_failed_addr = addr;
+			return;
+		}
+	}
+
 	PRINT_VAL_ADDR(addr);
 }
 
@@ -3359,10 +4341,17 @@ void
 tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
 		     unsigned int style)
 {
-	tprint_attribute_begin();
-	print_quoted_string_ex(ctx, ctx_len, style, "[]!");
-	tprint_attribute_end();
-	tprint_space();
+	if (structured_output) {
+		free(structured_output->pid_secontext);
+		structured_output->pid_secontext = xmalloc(ctx_len + 1);
+		memcpy(structured_output->pid_secontext, ctx, ctx_len);
+		structured_output->pid_secontext_len = ctx_len;
+	} else {
+		tprint_attribute_begin();
+		print_quoted_string_ex(ctx, ctx_len, style, "[]!");
+		tprint_attribute_end();
+		tprint_space();
+	}
 }
 
 void
@@ -4046,28 +5035,44 @@ void
 tprint_timestamp(long long sec, long nsec, const char *format,
 		 unsigned int width, unsigned int scale)
 {
-	time_t local = sec;
-	char str[MAX(sizeof("HH:MM:SS"), sizeof(local) * 3)];
-	struct tm *tm = localtime(&local);
+	if (structured_output) {
+		structured_output->timestamp = (struct structured_time) {
+			.set = true, .sec = sec, .nsec = nsec,
+			.precision = width
+		};
+	} else {
+		time_t local = sec;
+		char str[MAX(sizeof("HH:MM:SS"), sizeof(local) * 3)];
+		struct tm *tm = localtime(&local);
 
-	if (tm)
-		strftime(str, sizeof(str), format, tm);
-	else
-		xsprintf(str, "%lld", (long long) local);
-	if (width)
-		tprintf_string("%s.%0*ld ", str, width, (long) (nsec / scale));
-	else
-		tprintf_string("%s ", str);
+		if (tm)
+			strftime(str, sizeof(str), format, tm);
+		else
+			xsprintf(str, "%lld", (long long) local);
+		if (width)
+			tprintf_string("%s.%0*ld ", str, width,
+				       (long) (nsec / scale));
+		else
+			tprintf_string("%s ", str);
+	}
 }
 
 void
 tprint_relative_timestamp(long long sec, long nsec, unsigned int width,
 			  unsigned int scale, bool with_absolute)
 {
-	tprintf_string("%s%6ld", with_absolute ? "(+" : "", (long) sec);
-	if (width)
-		tprintf_string(".%0*ld", width, (long) (nsec / scale));
-	tprints_string(with_absolute ? ") " : " ");
+	if (structured_output) {
+		structured_output->relative_timestamp =
+			(struct structured_time) {
+				.set = true, .sec = sec, .nsec = nsec,
+				.precision = width
+			};
+	} else {
+		tprintf_string("%s%6ld", with_absolute ? "(+" : "", (long) sec);
+		if (width)
+			tprintf_string(".%0*ld", width, (long) (nsec / scale));
+		tprints_string(with_absolute ? ") " : " ");
+	}
 }
 
 void
@@ -4082,10 +5087,14 @@ tprint_instruction_pointer(bool known, unsigned long long ip,
 		xsprintf(str, "%s", wordsize == 4 ? "????????"
 						  : "????????????????");
 
-	tprint_attribute_begin();
-	tprints_string(str);
-	tprint_attribute_end();
-	tprint_space();
+	if (structured_output) {
+		strcpy(structured_output->ip, str);
+	} else {
+		tprint_attribute_begin();
+		tprints_string(str);
+		tprint_attribute_end();
+		tprint_space();
+	}
 }
 
 void
@@ -4146,6 +5155,9 @@ tprint_sysret_sanitized(void)
 void
 tprint_syscall_poked_args(unsigned int poked)
 {
+	if (structured_output) {
+		structured_output->injected_args = poked;
+	}
 }
 
 void
@@ -4158,12 +5170,26 @@ tprint_value_sanitized(void)
 void
 tprint_sysret_end(void)
 {
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
 
 void
 tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 {
-	if (sym) {
+	if (structured_output) {
+		tprints_object_field_begin("errno");
+		tprint_object_begin();
+		tprints_object_type("errno");
+		tprintf_object_field_string("raw", "%lu", u_error);
+		if (sym)
+			tprints_object_field_string("sym", sym);
+		tprints_object_field_string("strerror", str);
+		tprint_object_end();
+		tprint_object_field_end();
+	} else if (sym) {
 		tprints_sysret_next("error");
 		STRACE_PRINTS(sym);
 		tprints_sysret_string("strerror", str);
@@ -4716,4 +5742,37 @@ tprint_io_dump_mmsg_end(void)
 		tprint_object_end();
 		tprint_object_field_end();
 	}
+}
+
+void
+trad_prints(const char *s)
+{
+	if (!structured_output)
+		STRACE_PRINTS(s);
+}
+
+void
+tprintf_event_start(const char *type)
+{
+	if (!structured_output)
+		return;
+
+	json_stack_reset();
+	tprint_object_begin();
+	tprints_object_field_begin("event");
+	tprintf_string_value("%s", type);
+	tprint_object_field_end();
+}
+
+void
+tprint_event_end(void)
+{
+	if (!structured_output) {
+		STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
+		return;
+	}
+
+	structured_output->injected_args = 0;
+	STRACE_PRINTS(JSON_OBJ_END);
+	json_stack_pop();
 }

@@ -263,6 +263,22 @@ struct inject_opts {
 
 # define MAX_ERRNO_VALUE			4095
 
+/*
+ * Per-tracee state for capturing each syscall argument's jsonl-merged
+ * rendering.
+ */
+struct arg_capture {
+	char *name[MAX_ARGS];		/* argument names */
+	char *entry_buf[MAX_ARGS];	/* buffered entry argument JSON */
+	size_t entry_len[MAX_ARGS];	/* entry_buf lengths */
+	char *exit_buf[MAX_ARGS];	/* buffered exit argument JSON */
+	size_t exit_len[MAX_ARGS];	/* exit_buf lengths */
+	FILE *memstream;		/* current per-argument memstream */
+	FILE *saved_outf;		/* outf saved while capturing */
+	FILE **outfp;			/* where to redirect output */
+	bool exiting;			/* fill exit_buf, not entry_buf */
+};
+
 /* Trace Control Block */
 struct tcb {
 	int flags;		/* See below for TCB_ values */
@@ -336,8 +352,14 @@ struct tcb {
 	struct unwind_queue_t *unwind_queue;
 # endif
 
+	/* Per-argument JSONL renderings captured for jsonl-merged mode. */
+	struct arg_capture arg_capture;
+	unsigned int entry_arg_next;	/* arg_index after entry decoding */
+
 # define PROC_COMM_LEN 16
 	char comm[PROC_COMM_LEN];
+	/* The pid the syscall in progress was entered under, if changed.  */
+	int entering_pid;
 };
 
 /* TCB flags */
@@ -615,6 +637,9 @@ extern void print_syscall_number(struct tcb *);
 
 extern void print_syscall_resume(struct tcb *tcp);
 
+extern void syscall_arg_begin(struct tcb *);
+extern void emit_merged_args(struct tcb *);
+extern void free_merged_arg_bufs(struct tcb *);
 extern int syscall_entering_decode(struct tcb *);
 extern int syscall_entering_trace(struct tcb *, unsigned int *);
 extern void syscall_entering_finish(struct tcb *, int);
@@ -1851,6 +1876,8 @@ extern struct tcb *printing_tcp;
 extern void printleader(struct tcb *);
 extern void line_ended(void);
 extern void tabto(void);
+extern void tvprintf(const char *const fmt, va_list args)
+	ATTRIBUTE_FORMAT((printf, 1, 0));
 extern void tprintf_string(const char *fmt, ...) ATTRIBUTE_FORMAT((printf, 1, 2));
 extern void tvprintf(const char *fmt, va_list args) ATTRIBUTE_FORMAT((printf, 1, 0));
 extern void tprints_string(const char *str);

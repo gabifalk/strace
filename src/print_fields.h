@@ -13,6 +13,7 @@
 # include "static_assert.h"
 # include <stdarg.h>
 # include <stdbool.h>
+# include <stdint.h>
 # include <string.h>
 
 # ifdef IN_STRACE
@@ -21,6 +22,7 @@
 
 #  define STRACE_PRINTS(s_) tprints_string(s_)
 #  define STRACE_PRINT_COLOR_SEQ(kind_) tprint_color_seq(kind_)
+#  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
 
 /*
  * The printf-like function to use in header files
@@ -29,6 +31,71 @@
 #  define STRACE_PRINTF tprintf_string
 #  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
 
+#  define JSON_STACK_MAX 64
+
+enum json_container_type {
+	JSON_CONTAINER_OBJECT = 0,
+	JSON_CONTAINER_ARRAY,
+};
+
+struct json_stack_frame {
+	enum json_container_type type;
+	bool needs_sep;
+	bool struct_fields;
+	bool truncated;
+	bool split;
+	bool fetch_failed;
+	bool fields_ended;
+	bool flags_element;
+	unsigned long long fetch_failed_addr;
+	const char *decode_error;
+};
+
+struct json_stack {
+	unsigned int depth;
+	struct json_stack_frame stack[JSON_STACK_MAX];
+};
+
+#  define JSON_OBJ_BEGIN "{"
+#  define JSON_OBJ_END "}"
+#  define JSON_ARR_BEGIN "["
+#  define JSON_ARR_END "]"
+#  define JSON_SEP ", "
+#  define JSON_FIELD_SEP ": "
+#  define JSON_NULL "null"
+#  define JSON_TRUE "true"
+#  define JSON_FALSE "false"
+
+struct arg_capture;
+
+struct structured_output_data {
+	struct json_stack state;
+	bool arg_open;
+	unsigned int arg_open_depth;
+	unsigned int arg_index;
+
+	/* Whether an ioctl op's "cmds" array is currently open. */
+	bool ioctl_cmds_open;
+
+	bool merged;
+	/* The security context of the process the next event is about. */
+	char *pid_secontext;
+	unsigned int pid_secontext_len;
+	struct structured_time {
+		bool set;
+		long long sec;
+		long nsec;
+		unsigned int precision;
+	} timestamp, relative_timestamp;
+	/* The instruction pointer of the next event, empty when not set. */
+	char ip[sizeof("????????????????")];
+	/* Per-tracee capture context, or NULL when not capturing. */
+	struct arg_capture *capture;
+	/* Arguments of the current event tampered with by poke. */
+	unsigned int injected_args;
+};
+
+extern struct structured_output_data *structured_output;
 extern void tprint_xlat_flags_begin(uint64_t flags, const char *dflt,
 				    enum xlat_style style);
 extern void tprints_xlat_const(uint64_t val, enum xlat_style style,
@@ -128,13 +195,13 @@ extern int tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags,
 #  include <stdio.h>
 
 #  define STRACE_PRINTS(s_) fputs((s_), stdout)
+#  define STRACE_PRINTV(fmt_, args_) vprintf(fmt_, args_)
 
 /*
  * The printf-like function to use in header files
  * shared between strace and its tests.
  */
 #  define STRACE_PRINTF printf
-#  define STRACE_PRINTV(fmt_, args_) vprintf(fmt_, args_)
 
 #  define COLOR_ARGNAME 0
 #  define COLOR_ARGVAL 0
@@ -154,26 +221,22 @@ extern int tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags,
 
 # endif /* !IN_STRACE */
 
-# define structured_output 0
+# ifdef IN_STRACE
 
-static inline void
-tprintf_event_start(const char *type)
-{
-	(void) type;
-}
+extern void tprints_object_type(const char *type);
+extern void tprintf_object_field_string(const char *field, const char *fmt, ...)
+	ATTRIBUTE_FORMAT((printf, 2, 3));
+extern void tprint_type_const(void);
+extern void tprint_object_begin(void);
+extern void tprint_object_end(void);
+extern void tprints_object_field_null(const char *field);
+extern void tprints_object_field_bool(const char *field, bool val);
+extern void tprint_arg_inout(void);
+extern void tprint_arg_changed(void);
 
-static inline void
-tprints_event_pid(int pid, const char *comm)
-{
-	(void) pid;
-	(void) comm;
-}
+# else /* !IN_STRACE */
 
-static inline void
-tprint_event_end(void)
-{
-	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
-}
+#  define structured_output 0
 
 static inline void
 tprints_object_type(const char *type)
@@ -194,16 +257,6 @@ tprintf_object_field_string(const char *field, const char *fmt, ...)
 
 static inline void
 tprint_object_begin(void)
-{
-}
-
-static inline void
-tprint_arg_skip(void)
-{
-}
-
-static inline void
-tprint_union_field_value_end(void)
 {
 }
 
@@ -240,88 +293,29 @@ tprint_type_const(void)
 {
 }
 
-static inline void
-tprint_list_begin(void)
-{
-}
+# endif /* !IN_STRACE */
 
-static inline void
-tprint_list_element_begin(void)
-{
-}
+extern void tprint_ioctl_cmds_reset(void);
+extern void tprint_ioctl_cmds_finish(void);
+extern void tprints_ioctl_cmd(const char *name);
+extern void tprints_ioctl_cmd_begin(const char *name);
+extern void tprint_ioctl_cmd_next(void);
+extern void tprint_ioctl_cmd_end(void);
 
-static inline void
-tprint_list_element_end(void)
-{
-}
-
-static inline void
-tprint_list_end(void)
-{
-}
-
-static inline void
-tprints_object_field_begin(const char *field)
-{
-	(void) field;
-}
-
-static inline void
-tprint_object_field_end(void)
-{
-}
-
-static inline void
-tprints_object_field_string(const char *field, const char *s)
-{
-	(void) field;
-	STRACE_PRINTS(s);
-}
-
-static inline void
-tprints_string_value(const char *str)
-{
-	STRACE_PRINTS(str);
-}
-
-static inline void
-tprint_ioctl_cmds_reset(void)
-{
-}
-
-static inline void
-tprint_ioctl_cmds_finish(void)
-{
-}
-
-static inline void
-tprints_ioctl_cmd(const char *name)
-{
-	STRACE_PRINTS(name);
-}
-
-static inline void
-tprint_struct_mark_split(void)
-{
-}
-
-static inline bool
-tprint_struct_fields_end(void)
-{
-	return false;
-}
-
-static inline void
-tprint_flags_element_mark(void)
-{
-}
-
-static inline bool
-tprint_flags_element_open(void)
-{
-	return false;
-}
-
+extern bool tprint_struct_fields_end(void);
+extern void tprint_flags_element_mark(void);
+extern bool tprint_flags_element_open(void);
+extern void tprint_struct_mark_split(void);
+extern void json_print_quoted_string_begin(void);
+extern void json_print_quoted_string_end(void);
+extern void tprints_string_value(const char *str);
+extern void tprintv_string_value(const char *fmt, va_list args)
+	ATTRIBUTE_FORMAT((printf, 1, 0));
+extern void tprintf_string_value(const char *fmt, ...)
+	ATTRIBUTE_FORMAT((printf, 1, 2));
+extern void tprints_object_field_begin(const char *field);
+extern void tprint_object_field_end(void);
+extern void tprints_object_field_string(const char *field, const char *s);
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
@@ -369,6 +363,9 @@ extern void tprint_union_next(void);
 extern void tprint_union_end(void);
 extern void tprint_array_begin(void);
 extern void tprint_pair_begin(void);
+extern void tprint_list_begin(void);
+extern void tprint_list_element_begin(void);
+extern void tprint_list_element_end(void);
 extern void tprint_array_next(void);
 extern void tprint_array_end(void);
 
@@ -380,14 +377,24 @@ tprint_array_element_next(void)
 	tprint_object_begin();
 }
 
+extern void tprint_list_end(void);
 extern void tprint_array_element_fetch_failed(unsigned long long addr);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);
 extern void tprints_array_index_const_u(unsigned long long idx,
 					const char *sym);
 extern void tprints_syscall_name(const char *name);
-extern void tprints_arg_begin(const char *name);
+extern void tprints_event_pid(int pid, const char *comm);
+extern void tprints_arg_begin(const char *name, unsigned long long scno,
+			      unsigned int personality, bool entering,
+			      int pid, int entering_pid, const char *comm);
+struct arg_capture;
+extern void structured_capture_begin(struct arg_capture *,
+				     unsigned int arg_index_start);
+extern void structured_capture_end(void);
 extern void tprint_arg_next(void);
+extern void tprint_arg_skip(void);
+extern void tprint_union_field_value_end(void);
 extern void tprint_arg_end(void);
 extern void tprints_arg_name_unconditionally(const char *name);
 extern void tprints_arg_name_unconditionally_at(unsigned int index,
@@ -426,24 +433,6 @@ extern void tprints_arg_mmsgvec_namelen_entering(unsigned int index,
 						 const char *name,
 						 const int *namelen,
 						 unsigned int count);
-
-static inline void
-tprints_ioctl_cmd_begin(const char *name)
-{
-	tprints_fn_begin(name);
-}
-
-static inline void
-tprint_ioctl_cmd_next(void)
-{
-	tprint_fn_next();
-}
-
-static inline void
-tprint_ioctl_cmd_end(void)
-{
-	tprint_fn_end();
-}
 
 extern void tprint_fd_set_begin(void);
 extern void tprint_fd_set_next(void);
@@ -690,6 +679,11 @@ extern void tprint_io_dump_mmsg_vector_begin(unsigned long long iovlen,
 extern void tprint_io_dump_mmsg_vector_end(void);
 extern void tprint_io_dump_mmsg_end(void);
 
+extern void trad_prints(const char *s);
+
+extern void tprintf_event_start(const char *type);
+extern void tprint_event_end(void);
+
 static inline void
 tprint_array_index_end(void)
 {
@@ -730,6 +724,9 @@ tprint_plus(void)
 static inline void
 tprint_space(void)
 {
+	if (structured_output)
+		return;
+
 	STRACE_PRINTS(" ");
 }
 
@@ -747,12 +744,20 @@ tprint_null(void)
 static inline void
 tprint_sysret_pseudo_rval(void)
 {
+	if (structured_output) {
+		tprints_object_type("unavailable");
+		return;
+	}
 	STRACE_PRINTS("?");
 }
 
 static inline void
 tprint_sysret_interrupted(void)
 {
+	if (structured_output) {
+		tprints_object_type("interrupted");
+		return;
+	}
 	STRACE_PRINTS("?");
 }
 

@@ -239,42 +239,62 @@ strerror(int err_no)
 
 #endif /* HAVE_STERRROR */
 
-static void
-print_version(unsigned int verbosity)
-{
-	static const char features[] =
+struct structured_output_data structured_output_data;
+
+static const struct optional_feature {
+	const char *name;
+	const char *value;
+	bool disabled;
+} optional_features[] = {
 #ifdef ENABLE_STACKTRACE
-		" stack-trace=" USE_UNWINDER
+	{ "stack-trace", USE_UNWINDER, false },
 #endif
 #ifdef USE_DEMANGLE
-		" stack-demangle"
+	{ "stack-demangle", NULL, false },
 #endif
 #if SUPPORTED_PERSONALITIES > 1
 # if defined HAVE_M32_MPERS
-		" m32-mpers"
+	{ "m32-mpers", NULL, false },
 # else
-		" no-m32-mpers"
+	{ "m32-mpers", NULL, true },
 # endif
 #endif /* SUPPORTED_PERSONALITIES > 1 */
 #if SUPPORTED_PERSONALITIES > 2
 # if defined HAVE_MX32_MPERS
-		" mx32-mpers"
+	{ "mx32-mpers", NULL, false },
 # else
-		" no-mx32-mpers"
+	{ "mx32-mpers", NULL, true },
 # endif
 #endif /* SUPPORTED_PERSONALITIES > 2 */
 #ifdef ENABLE_SECONTEXT
-		" secontext"
+	{ "secontext", NULL, false },
 #endif
-		"";
+	{ NULL, NULL, false }
+};
 
+static void
+print_version(unsigned int verbosity)
+{
 	printf("%s -- version %s\n"
 	       "Copyright (c) 1991-%s The strace developers <%s>.\n"
 	       "This is free software; see the source for copying conditions.  There is NO\n"
 	       "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
 	       PACKAGE_NAME, PACKAGE_VERSION, COPYRIGHT_YEAR, PACKAGE_URL);
-	printf("\nOptional features enabled:%s\n",
-	       features[0] ? features : " (none)");
+	printf("\nOptional features enabled:");
+	if (optional_features[0].name) {
+		for (const struct optional_feature *f = optional_features;
+		     f->name; ++f) {
+			if (f->disabled)
+				printf(" no-%s", f->name);
+			else if (f->value)
+				printf(" %s=%s", f->name, f->value);
+			else
+				printf(" %s", f->name);
+		}
+	} else {
+		printf(" (none)");
+	}
+	printf("\n");
 
 	/* Raise strauss awareness */
 	print_strauss(verbosity);
@@ -420,6 +440,10 @@ Output format:\n\
 "\
   -i, --instruction-pointer\n\
                  print instruction pointer at time of syscall\n\
+"
+"\
+  -J, --jsonl[=split|merged]\n\
+                 output events as JSONL (JSON Lines), split by default\n\
 "
 #ifdef ENABLE_STACKTRACE
 "\
@@ -894,7 +918,8 @@ printleader(struct tcb *tcp)
 	set_current_tcp(tcp);
 	current_tcp->curcol = 0;
 
-	if (print_pid_pfx || (nprocs > 1 && !outfname)) {
+	if (!structured_output &&
+	    (print_pid_pfx || (nprocs > 1 && !outfname))) {
 		size_t len = is_number_in_set(DECODE_PID_COMM, decode_pid_set)
 			     ? strlen(tcp->comm) : 0;
 
@@ -941,7 +966,7 @@ printleader(struct tcb *tcp)
 					  rflag_scale, tflag_format != NULL);
 	}
 
-	if (nflag)
+	if (!structured_output && nflag)
 		print_syscall_number(tcp);
 
 	if (iflag)
@@ -1110,6 +1135,13 @@ droptcb(struct tcb *tcp)
 
 	for (int p = 0; p < SUPPORTED_PERSONALITIES; ++p)
 		free(tcp->inject_vec[p]);
+
+	/* Release any jsonl-merged captures for a syscall that never exited. */
+	if (structured_output)
+		for (unsigned int i = 0; i < MAX_ARGS; i++) {
+			free(tcp->arg_capture.entry_buf[i]);
+			free(tcp->arg_capture.exit_buf[i]);
+		}
 
 	free_tcb_priv_data(tcp);
 
@@ -2414,7 +2446,7 @@ init(int argc, char *argv[])
 #endif
 
 	static const char optstring[] =
-		"+a:Ab:cCdDe:E:fFhiI:knNo:O:p:P:qrs:S:tTu:U:vVwxX:yYzZ";
+		"+a:Ab:cCdDe:E:fFhiI:JknNo:O:p:P:qrs:S:tTu:U:vVwxX:yYzZ";
 
 	enum {
 		GETOPT_SECCOMP = 0x100,
@@ -2468,6 +2500,7 @@ init(int argc, char *argv[])
 		{ "help",		no_argument,	   0, 'h' },
 		{ "instruction-pointer", no_argument,      0, 'i' },
 		{ "interruptible",	required_argument, 0, 'I' },
+		{ "jsonl",		optional_argument, 0, 'J' },
 		{ "kill-on-exit",	no_argument,	   0, GETOPT_KILL_ON_EXIT },
 		{ "stack-trace" ,	optional_argument, 0, GETOPT_STACK },
 		{ "stack-traces" ,	optional_argument, 0, GETOPT_STACK },
@@ -2608,6 +2641,17 @@ init(int argc, char *argv[])
 		case 'I':
 			opt_intr = parse_interruptible_arg(optarg);
 			if (opt_intr <= 0)
+				error_opt_arg(c, lopt, optarg);
+			break;
+		case 'J':
+			memset(&structured_output_data, 0,
+			       sizeof(structured_output_data));
+			structured_output = &structured_output_data;
+			if (!optarg || !strcmp(optarg, "split"))
+				structured_output->merged = false;
+			else if (!strcmp(optarg, "merged"))
+				structured_output->merged = true;
+			else
 				error_opt_arg(c, lopt, optarg);
 			break;
 		case 'k':
@@ -3203,6 +3247,9 @@ init(int argc, char *argv[])
 		setvbuf(shared_log, NULL, _IOLBF, 0);
 	}
 
+	if (structured_output)
+		color_mode = COLOR_NEVER;
+
 	color_init(fileno(shared_log), output_separately);
 	hyperlink_init(fileno(shared_log), output_separately);
 
@@ -3544,6 +3591,7 @@ maybe_switch_tcbs(struct tcb *tcp, const int pid)
 	droptcb(tcp);
 	/* Switch to the thread, reusing leader's outfile and pid */
 	tcp = execve_thread;
+	tcp->entering_pid = tcp->pid;
 	tcp->pid = pid;
 	if (cflag != CFLAG_ONLY_STATS) {
 		if (!is_number_in_set(QUIET_THREAD_EXECVE, quiet_set)) {
@@ -3586,9 +3634,22 @@ print_signalled(struct tcb *tcp, const int pid, int status)
 	if (cflag != CFLAG_ONLY_STATS
 	    && is_number_in_set(WTERMSIG(status), signal_set)) {
 		printleader(tcp);
-		tprintf_string("+++ killed by %s %s+++",
-			       sprintsigname(WTERMSIG(status)),
-			       WCOREDUMP(status) ? "(core dumped) " : "");
+		if (structured_output) {
+			tprintf_event_start("killed");
+			tprints_event_pid(tcp->pid, tcp->comm);
+			tprints_object_field_begin("signal");
+			tprint_object_begin();
+			printsignal(WTERMSIG(status));
+			tprint_object_end();
+			tprint_object_field_end();
+			tprints_object_field_bool("coredumped",
+						  !!WCOREDUMP(status));
+			tprint_event_end();
+		} else {
+			tprintf_string("+++ killed by %s %s+++",
+				       sprintsigname(WTERMSIG(status)),
+				       WCOREDUMP(status) ? "(core dumped) " : "");
+		}
 		tprint_newline();
 		line_ended();
 	}
@@ -3605,7 +3666,17 @@ print_exited(struct tcb *tcp, const int pid, int status)
 	if (cflag != CFLAG_ONLY_STATS &&
 	    !is_number_in_set(QUIET_EXIT, quiet_set)) {
 		printleader(tcp);
-		tprintf_string("+++ exited with %d +++", WEXITSTATUS(status));
+		if (structured_output) {
+			tprintf_event_start("exit");
+			tprints_event_pid(tcp->pid, tcp->comm);
+			tprints_object_field_begin("status");
+			tprintf_string("%d", WEXITSTATUS(status));
+			tprint_object_field_end();
+			tprint_event_end();
+		} else {
+			tprintf_string("+++ exited with %d +++",
+				       WEXITSTATUS(status));
+		}
 		tprint_newline();
 		line_ended();
 	}
@@ -3618,17 +3689,40 @@ print_stopped(struct tcb *tcp, const siginfo_t *si, const unsigned int sig)
 	    && !hide_log(tcp)
 	    && is_number_in_set(sig, signal_set)) {
 		printleader(tcp);
-		if (si) {
-			tprintf_string("--- %s ", sprintsigname(sig));
-			printsiginfo(tcp, si);
-			tprints_string(" ---");
-		} else
-			tprintf_string("--- stopped by %s ---", sprintsigname(sig));
+		if (structured_output) {
+			tprintf_event_start(si ? "signal" : "stopped");
+			tprints_event_pid(tcp->pid, tcp->comm);
+			tprints_object_field_begin("signal");
+			tprint_object_begin();
+			printsignal(sig);
+			tprint_object_end();
+			tprint_object_field_end();
+			if (si) {
+				tprints_object_field_begin("info");
+				tprint_object_begin();
+				printsiginfo(tcp, si);
+				tprint_object_end();
+				tprint_object_field_end();
+			}
+#ifdef ENABLE_STACKTRACE
+			if (stack_trace_mode)
+				unwind_tcb_print(tcp);
+#endif
+			tprint_event_end();
+		} else {
+			if (si) {
+				tprintf_string("--- %s ", sprintsigname(sig));
+				printsiginfo(tcp, si);
+				tprints_string(" ---");
+			} else
+				tprintf_string("--- stopped by %s ---",
+					       sprintsigname(sig));
+		}
 		tprint_newline();
 		line_ended();
 
 #ifdef ENABLE_STACKTRACE
-		if (stack_trace_mode)
+		if (!structured_output && stack_trace_mode)
 			unwind_tcb_print(tcp);
 #endif
 	}
@@ -3676,7 +3770,8 @@ print_event_exit(struct tcb *tcp)
 		return;
 	}
 
-	if (!output_separately && printing_tcp && printing_tcp != tcp
+	if (!output_separately
+	    && printing_tcp && printing_tcp != tcp
 	    && printing_tcp->curcol != 0 && !printing_tcp->staged_output_data) {
 		set_current_tcp(printing_tcp);
 		tprint_space();
@@ -3687,7 +3782,19 @@ print_event_exit(struct tcb *tcp)
 		set_current_tcp(tcp);
 	}
 
-	print_syscall_resume(tcp);
+	if (structured_output) {
+		if (structured_output->merged
+		    && !is_complete_set(status_set, NUMBER_OF_STATUSES))
+			strace_open_memstream(tcp);
+		printleader(tcp);
+		syscall_arg_begin(tcp);
+		if (structured_output->merged) {
+			emit_merged_args(tcp);
+			free_merged_arg_bufs(tcp);
+		}
+	} else {
+		print_syscall_resume(tcp);
+	}
 
 	if (!(tcp->sys_func_rval & RVAL_DECODED)) {
 		/*
@@ -3697,9 +3804,11 @@ print_event_exit(struct tcb *tcp)
 		tprint_exit_args_lost();
 	}
 
-	tprint_arg_end();
+	if (!structured_output || !structured_output->merged)
+		tprint_arg_end();
 	tprint_space();
-	tabto();
+	if (!structured_output)
+		tabto();
 	tprint_sysret_begin();
 	tprints_sysret_next("retval");
 	tprint_sysret_pseudo_rval();
@@ -4415,6 +4524,50 @@ main(int argc, char *argv[])
 {
 	setlocale(LC_ALL, "");
 	init(argc, argv);
+
+	if (structured_output && nprocs) {
+		set_current_tcp(tcbtab[0]);
+		tprintf_event_start("header");
+
+		tprints_object_field_begin("version");
+		STRACE_PRINTS("1");
+		tprint_object_field_end();
+		tprints_object_field_string("strace_version", PACKAGE_VERSION);
+		tprints_object_field_string("format",
+					    structured_output->merged
+					    ? "jsonl-merged" : "jsonl-split");
+
+		tprints_object_field_begin("personalities");
+		tprint_list_begin();
+		for (unsigned int i = 0; i < SUPPORTED_PERSONALITIES; ++i) {
+			tprint_list_element_begin();
+			tprints_string_value(personality_names[i]);
+			tprint_list_element_end();
+		}
+		tprint_list_end();
+		tprint_object_field_end();
+
+		tprints_object_field_begin("capabilities");
+		tprint_list_begin();
+		for (const struct optional_feature *f = optional_features;
+		     f->name; ++f) {
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_field_string("name", f->name);
+			if (f->value)
+				tprints_object_field_string("value", f->value);
+			if (f->disabled)
+				tprints_object_field_bool("disabled", true);
+			tprint_object_end();
+			tprint_list_element_end();
+		}
+		tprint_list_end();
+		tprint_object_field_end();
+
+		tprint_event_end();
+		tprint_newline();
+		line_ended();
+	}
 
 	exit_code = !nprocs;
 
