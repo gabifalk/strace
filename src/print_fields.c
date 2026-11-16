@@ -861,22 +861,31 @@ void
 tprint_dev_t(unsigned long long dev, unsigned int dev_major,
 	     unsigned int dev_minor)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(dev);
+	if (structured_output) {
+		tprints_object_type("dev_t");
+		tprintf_object_field_string("raw", "%#llx", dev);
+		tprintf_object_field_string("major", "%u", dev_major);
+		tprintf_object_field_string("minor", "%u", dev_minor);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			PRINT_VAL_X(dev);
 
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			tprint_comment_begin();
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (xlat_verbose(xlat_verbosity)
+			    == XLAT_STYLE_VERBOSE)
+				tprint_comment_begin();
 
-		tprints_fn_begin("makedev");
-		PRINT_VAL_X(dev_major);
+			tprints_fn_begin("makedev");
+			PRINT_VAL_X(dev_major);
 
-		tprint_fn_next();
-		PRINT_VAL_X(dev_minor);
-		tprint_fn_end();
+			tprint_fn_next();
+			PRINT_VAL_X(dev_minor);
+			tprint_fn_end();
 
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			tprint_comment_end();
+			if (xlat_verbose(xlat_verbosity)
+			    == XLAT_STYLE_VERBOSE)
+				tprint_comment_end();
+		}
 	}
 }
 
