@@ -429,6 +429,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sysinfo \
 	jsonl-time \
 	jsonl-timespec \
+	jsonl-timestamps \
 	jsonl-unshare \
 	jsonl-ustat \
 	jsonl-utime \
@@ -1236,6 +1237,7 @@ EXTRA_DIST = \
 	jsonl-sysinfo.c \
 	jsonl-time.c \
 	jsonl-timespec.c \
+	jsonl-timestamps.c \
 	jsonl-unshare.c \
 	jsonl-ustat.c \
 	jsonl-utime.c \
@@ -1245,6 +1247,7 @@ EXTRA_DIST = \
 	jsonl-xattr.c \
 	jsonl.h \
 	jsonl-ioctl.sh \
+	jsonl-timestamps.sh \
 	jsonl.sh \
 	jsonl_ioctl.h \
 	jsonl_netlink.h \
