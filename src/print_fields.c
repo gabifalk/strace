@@ -2693,6 +2693,22 @@ tprint_sigmask_member(unsigned int sig, const char *name)
 }
 
 void
+tprint_sysret_xlat_val(unsigned long long val, bool hex)
+{
+	if (hex)
+		PRINT_VAL_X(val);
+	else
+		PRINT_VAL_U(val);
+}
+
+void
+tprints_sysret_xlat_sym(const char *sym)
+{
+	if (sym)
+		tprints_sysret_string("retstr", sym);
+}
+
+void
 tprint_unused_bits(unsigned long long val, unsigned int first,
 		   unsigned int last)
 {

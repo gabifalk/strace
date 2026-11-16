@@ -789,6 +789,16 @@ print_erestart(unsigned long u_error, const char *err_long)
 	print_sysret_errno(u_error, err_long);
 }
 
+static kernel_ulong_t
+sysret_xlat_val(struct tcb *tcp)
+{
+#if ANY_WORDSIZE_LESS_THAN_KERNEL_LONG
+	if (current_klongsize < sizeof(tcp->u_rval))
+		return (unsigned int) tcp->u_rval;
+#endif
+	return tcp->u_rval;
+}
+
 static void
 print_syscall_duration(struct tcb *tcp, struct timespec *ts)
 {
@@ -960,7 +970,11 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		tprints_sysret_next("retval");
 		if (sys_res & RVAL_NONE)
 			tprint_sysret_pseudo_rval();
-		else {
+		else if (sys_res & RVAL_XLAT) {
+			tprint_sysret_xlat_val(sysret_xlat_val(tcp),
+					       (sys_res & RVAL_MASK)
+					       == RVAL_HEX);
+		} else {
 			switch (sys_res & RVAL_MASK) {
 			case RVAL_HEX:
 #if ANY_WORDSIZE_LESS_THAN_KERNEL_LONG
@@ -1038,8 +1052,12 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			}
 		}
 	}
-	if ((sys_res & RVAL_STR) && tcp->auxstr)
+	if (sys_res & RVAL_XLAT) {
+		tprints_sysret_xlat_sym(xlookup(tcp->rval_xlat,
+						(kernel_ulong_t) tcp->u_rval));
+	} else if ((sys_res & RVAL_STR) && tcp->auxstr) {
 		tprints_sysret_string("retstr", tcp->auxstr);
+	}
 	tprint_sysret_end();
 	print_injected_note(tcp);
 	if (Tflag)

@@ -45,8 +45,8 @@ nsfs_ioctl(struct tcb *tcp, unsigned int code, kernel_ulong_t arg)
 		if (entering(tcp))
 			return 0;
 		if (!syserror(tcp))
-			tcp->auxstr = xlookup(setns_types, tcp->u_rval);
-		return RVAL_IOCTL_DECODED | RVAL_STR;
+			tcp->rval_xlat = setns_types;
+		return RVAL_IOCTL_DECODED | RVAL_XLAT;
 	case NS_GET_OWNER_UID:
 		if (entering(tcp))
 			return 0;

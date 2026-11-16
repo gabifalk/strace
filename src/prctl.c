@@ -333,8 +333,8 @@ SYS_FUNC(prctl)
 			break;
 		if (syserror(tcp))
 			return 0;
-		tcp->auxstr = xlookup(pr_dumpable, (kernel_ulong_t) tcp->u_rval);
-		return RVAL_STR;
+		tcp->rval_xlat = pr_dumpable;
+		return RVAL_XLAT;
 
 	case PR_SET_DUMPABLE:			/*   4 */
 		tprints_arg_next_name("dumpable");
@@ -468,9 +468,8 @@ SYS_FUNC(prctl)
 		}
 		if (syserror(tcp))
 			return 0;
-		tcp->auxstr = xlookup(pr_mce_kill_policy,
-				      (kernel_ulong_t) tcp->u_rval);
-		return RVAL_STR;
+		tcp->rval_xlat = pr_mce_kill_policy;
+		return RVAL_XLAT;
 
 	case PR_SET_MM:				/*  35 */
 		tprints_arg_next_name("operation");
