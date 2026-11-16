@@ -559,6 +559,7 @@ ipc_shm-Xraw	+ipc.sh -Xraw -a19
 ipc_shm-Xverbose	+ipc.sh -Xverbose -a34
 jsonl-merged-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-merged-access	-e trace=access --trace-path=strace_enoent_xyz
+jsonl-merged-access-secontext	--secontext --trace-path=access_sample -e trace=access
 jsonl-merged-adjtimex	-e trace=adjtimex
 jsonl-merged-aio	-e trace=io_submit
 jsonl-merged-chdir	-e trace=chdir
@@ -614,6 +615,7 @@ jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
+jsonl-split-access-secontext	--secontext --trace-path=access_sample -e trace=access
 jsonl-split-adjtimex	-e trace=adjtimex
 jsonl-split-aio	-e trace=io_submit
 jsonl-split-chdir	-e trace=chdir

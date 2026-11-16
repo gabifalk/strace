@@ -283,6 +283,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	is_linux_mips_n64 \
 	jsonl-accept-f \
 	jsonl-access \
+	jsonl-access-secontext \
 	jsonl-adjtimex \
 	jsonl-aio \
 	jsonl-chdir \
@@ -554,6 +555,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	# end of check_PROGRAMS
 
 attach_f_p_LDADD = -lpthread $(LDADD)
+jsonl_access_secontext_LDADD = $(LDADD) $(libselinux_LDADD)
 bpf_obj_get_info_by_fd_LDADD = $(clock_LIBS) $(LDADD)
 bpf_obj_get_info_by_fd_v_LDADD = $(clock_LIBS) $(LDADD)
 bpf_obj_get_info_by_fd_prog_LDADD = $(clock_LIBS) $(LDADD)
@@ -986,6 +988,7 @@ EXTRA_DIST = \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
 	jsonl-accept-f.c \
+	jsonl-access-secontext.c \
 	jsonl-access.c \
 	jsonl-adjtimex.c \
 	jsonl-aio.c \

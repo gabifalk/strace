@@ -540,6 +540,7 @@ ipc_shm-Xverbose
 is_linux_mips_n64
 jsonl-accept-f
 jsonl-access
+jsonl-access-secontext
 jsonl-adjtimex
 jsonl-aio
 jsonl-chdir
