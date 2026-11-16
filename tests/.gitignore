@@ -554,6 +554,7 @@ jsonl-copy_file_range
 jsonl-dup-y
 jsonl-dup-yy
 jsonl-execve
+jsonl-execveat-thread
 jsonl-exit_args_lost
 jsonl-fanotify_init
 jsonl-fcntl-getfd
