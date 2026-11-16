@@ -281,6 +281,8 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	ip_local_port_range-success-Xraw \
 	ip_local_port_range-success-Xverbose \
 	is_linux_mips_n64 \
+	jsonl-getresuid \
+	jsonl-sysinfo \
 	kcmp-y--pidns-translation \
 	kill--pidns-translation \
 	kill_child \
@@ -381,6 +383,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	prctl-tagged-addr-success-Xraw \
 	prctl-tagged-addr-success-Xverbose \
 	print_maxfd \
+	print_personality_names \
 	print_ppid_tracerpid \
 	prlimit64--pidns-translation \
 	prlimit64-success \
@@ -526,6 +529,8 @@ pc_LDADD = $(dl_LIBS) $(LDADD)
 pread64_pwrite64_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 preadv_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 preadv_pwritev_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
+print_personality_names_CPPFLAGS = -I$(top_srcdir)/src/$(OS)/$(NATIVE_ARCH) \
+				   $(AM_CPPFLAGS)
 pwritev_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 stat64_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 statfs_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
@@ -751,6 +756,7 @@ MISC_TESTS = \
 	strace-E-override.test \
 	strace-E-unset.test \
 	strace-E.test \
+	strace-J-header-split.test \
 	strace-S.test \
 	strace-T_upper.test \
 	strace-V.test \
@@ -924,6 +930,10 @@ EXTRA_DIST = \
 	getsiginfo-esrch.sh \
 	init_delete_module.h \
 	ioctl_kvm_run_common.c \
+	jsonl-getresuid.c \
+	jsonl-sysinfo.c \
+	jsonl.h \
+	jsonl.sh \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \
 	kill-on-exit.sh \
