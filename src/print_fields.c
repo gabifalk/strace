@@ -519,7 +519,10 @@ tprint_char(unsigned char c)
 void
 tprint_extra_data_unavailable(void)
 {
-	tprint_unavailable();
+	if (structured_output && tprint_struct_fields_end())
+		tprints_object_field_bool("rest_unreadable", true);
+	else
+		tprint_unavailable();
 }
 
 static bool extra_data_field;
