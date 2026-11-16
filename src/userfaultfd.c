@@ -58,6 +58,7 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &ua))
 				break;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_X(ua, api);
 			tprint_struct_next();
 			PRINT_FIELD_FLAGS(ua, features, uffd_api_features,
@@ -68,25 +69,26 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 				set_tcb_priv_data(tcp, entering_features, free);
 			}
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &ua)) {
-			entering_features = get_tcb_priv_data(tcp);
-
-			if (!entering_features
-			    || *entering_features != ua.features) {
-				tprint_value_changed();
-				PRINT_FIELD_FLAGS(ua, features,
-						  uffd_api_features,
-						  "UFFD_FEATURE_???");
-			}
-
-			tprint_struct_next();
-			PRINT_FIELD_FLAGS(ua, ioctls, uffd_api_flags,
-					  "_UFFDIO_???");
+		if (syserror(tcp) || umove(tcp, arg, &ua)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		entering_features = get_tcb_priv_data(tcp);
+		if (!entering_features || *entering_features != ua.features) {
+			tprint_value_changed();
+			PRINT_FIELD_FLAGS(ua, features, uffd_api_features,
+					  "UFFD_FEATURE_???");
+			tprint_struct_next();
+		} else {
+			tprint_struct_exiting_next();
+		}
+		PRINT_FIELD_FLAGS(ua, ioctls, uffd_api_flags, "_UFFDIO_???");
 		tprint_struct_end();
 
 		break;
@@ -100,6 +102,7 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &uc))
 				return RVAL_IOCTL_DECODED;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_X(uc, dst);
 			tprint_struct_next();
 			PRINT_FIELD_X(uc, src);
@@ -109,14 +112,18 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			PRINT_FIELD_FLAGS(uc, mode, uffd_copy_flags,
 					  "UFFDIO_COPY_MODE_???");
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &uc)) {
-			tprint_struct_next();
-			PRINT_FIELD_X(uc, copy);
+		if (syserror(tcp) || umove(tcp, arg, &uc)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		PRINT_FIELD_X(uc, copy);
 		tprint_struct_end();
 
 		break;
@@ -130,6 +137,7 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &ur))
 				return RVAL_IOCTL_DECODED;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_OBJ_PTR(ur, range,
 					    tprintf_uffdio_range);
 			tprint_struct_next();
@@ -137,16 +145,19 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 					  uffd_register_mode_flags,
 					  "UFFDIO_REGISTER_MODE_???");
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &ur)) {
-			tprint_struct_next();
-			PRINT_FIELD_FLAGS(ur, ioctls,
-					  uffd_register_ioctl_flags,
-					  "1<<_UFFDIO_???");
+		if (syserror(tcp) || umove(tcp, arg, &ur)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		PRINT_FIELD_FLAGS(ur, ioctls, uffd_register_ioctl_flags,
+				  "1<<_UFFDIO_???");
 		tprint_struct_end();
 
 		break;
@@ -171,20 +182,25 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &uz))
 				return RVAL_IOCTL_DECODED;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_OBJ_PTR(uz, range,
 					    tprintf_uffdio_range);
 			tprint_struct_next();
 			PRINT_FIELD_FLAGS(uz, mode, uffd_zeropage_flags,
 					  "UFFDIO_ZEROPAGE_MODE_???");
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &uz)) {
-			tprint_struct_next();
-			PRINT_FIELD_X(uz, zeropage);
+		if (syserror(tcp) || umove(tcp, arg, &uz)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		PRINT_FIELD_X(uz, zeropage);
 		tprint_struct_end();
 
 		break;
@@ -198,6 +214,7 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &um))
 				return RVAL_IOCTL_DECODED;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_X(um, dst);
 			tprint_struct_next();
 			PRINT_FIELD_X(um, src);
@@ -207,14 +224,18 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			PRINT_FIELD_FLAGS(um, mode, uffd_move_mode_flags,
 					  "UFFDIO_MOVE_MODE_???");
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &um)) {
-			tprint_struct_next();
-			PRINT_FIELD_X(um, move);
+		if (syserror(tcp) || umove(tcp, arg, &um)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		PRINT_FIELD_X(um, move);
 		tprint_struct_end();
 
 		break;
@@ -281,20 +302,25 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &uc))
 				return RVAL_IOCTL_DECODED;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_OBJ_PTR(uc, range,
 					    tprintf_uffdio_range);
 			tprint_struct_next();
 			PRINT_FIELD_FLAGS(uc, mode, uffd_continue_mode_flags,
 					  "UFFDIO_CONTINUE_MODE_???");
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &uc)) {
-			tprint_struct_next();
-			PRINT_FIELD_U(uc, mapped);
+		if (syserror(tcp) || umove(tcp, arg, &uc)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		PRINT_FIELD_U(uc, mapped);
 		tprint_struct_end();
 
 		break;
@@ -308,20 +334,25 @@ uffdio_ioctl(struct tcb *const tcp, const unsigned int code,
 			if (umove_or_printaddr(tcp, arg, &up))
 				return RVAL_IOCTL_DECODED;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_OBJ_PTR(up, range,
 					    tprintf_uffdio_range);
 			tprint_struct_next();
 			PRINT_FIELD_FLAGS(up, mode, uffd_poison_mode_flags,
 					  "UFFDIO_POISON_MODE_???");
 
+			tprint_struct_entering_end();
 			return 0;
 		}
 
-		if (!syserror(tcp) && !umove(tcp, arg, &up)) {
-			tprint_struct_next();
-			PRINT_FIELD_U(up, updated);
+		if (syserror(tcp) || umove(tcp, arg, &up)) {
+			tprint_struct_exiting_abandon();
+			break;
 		}
 
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		PRINT_FIELD_U(up, updated);
 		tprint_struct_end();
 
 		break;
