@@ -304,6 +304,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-memfd_secret \
 	jsonl-mlockall \
 	jsonl-mseal \
+	jsonl-netlink_netfilter \
 	jsonl-netlink_protocol \
 	jsonl-nlattr \
 	jsonl-pause \
@@ -998,6 +999,7 @@ EXTRA_DIST = \
 	jsonl-memfd_secret.c \
 	jsonl-mlockall.c \
 	jsonl-mseal.c \
+	jsonl-netlink_netfilter.c \
 	jsonl-netlink_protocol.c \
 	jsonl-nlattr.c \
 	jsonl-pause.c \
