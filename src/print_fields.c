@@ -2019,9 +2019,22 @@ tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
 }
 
 void
-tprint_superseded(int old_pid)
+tprint_superseded(int pid, const char *comm, int old_pid)
 {
-	tprintf_string("+++ superseded by execve in pid %d +++", old_pid);
+	if (structured_output) {
+		tprintf_event_start("superseded");
+		tprints_event_pid(pid, comm);
+		tprints_object_field_begin("old_pid");
+		tprint_object_begin();
+		tprints_object_type("tid");
+		tprintf_object_field_string("raw", "%d", old_pid);
+		tprint_object_end();
+		tprint_object_field_end();
+		tprint_event_end();
+	} else {
+		tprintf_string("+++ superseded by execve in pid %d +++",
+			       old_pid);
+	}
 }
 
 static bool exit_args_lost;

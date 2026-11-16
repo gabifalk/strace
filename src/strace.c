@@ -3564,7 +3564,7 @@ maybe_switch_tcbs(struct tcb *tcp, const int pid)
 	if (cflag != CFLAG_ONLY_STATS) {
 		if (!is_number_in_set(QUIET_THREAD_EXECVE, quiet_set)) {
 			printleader(tcp);
-			tprint_superseded(old_pid);
+			tprint_superseded(tcp->pid, tcp->comm, old_pid);
 			tprint_newline();
 			line_ended();
 		}

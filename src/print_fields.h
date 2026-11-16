@@ -117,6 +117,19 @@ extern int tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags,
 # define structured_output 0
 
 static inline void
+tprintf_event_start(const char *type)
+{
+	(void) type;
+}
+
+static inline void
+tprints_event_pid(int pid, const char *comm)
+{
+	(void) pid;
+	(void) comm;
+}
+
+static inline void
 tprint_event_end(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
@@ -461,7 +474,7 @@ extern void tprint_sun_path_name(void);
 extern void tprint_sun_path_abstract(void);
 extern void tprints_quoted_string(const char *quoted, const char *raw,
 				  unsigned int size, bool nul_terminated);
-extern void tprint_superseded(int old_pid);
+extern void tprint_superseded(int pid, const char *comm, int old_pid);
 extern void tprint_exit_args_lost(void);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
