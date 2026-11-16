@@ -113,6 +113,7 @@ SYS_FUNC(io_uring_setup)
 			return RVAL_DECODED | RVAL_FD;
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		PRINT_FIELD_FLAGS(params, flags, uring_setup_flags,
 				  "IORING_SETUP_???");
 		tprint_struct_next();
@@ -128,12 +129,14 @@ SYS_FUNC(io_uring_setup)
 			PRINT_FIELD_ARRAY(params, resv, tcp,
 					  print_xint_array_member);
 		}
+		tprint_struct_entering_end();
 		return 0;
 	}
 
 	/* exiting */
 	if (tfetch_mem(tcp, params_addr, sizeof(params), &params)) {
-		tprint_struct_next();
+		tprint_struct_exiting_begin(1, "params");
+		tprint_struct_exiting_next();
 		PRINT_FIELD_U(params, sq_entries);
 		tprint_struct_next();
 		PRINT_FIELD_U(params, cq_entries);
@@ -147,8 +150,10 @@ SYS_FUNC(io_uring_setup)
 		tprint_struct_next();
 		PRINT_FIELD_OBJ_PTR(params, cq_off,
 				    print_io_cqring_offsets);
+		tprint_struct_end();
+	} else {
+		tprint_struct_exiting_abandon();
 	}
-	tprint_struct_end();
 
 	return RVAL_DECODED | RVAL_FD;
 }
