@@ -290,6 +290,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-clock_gettime \
 	jsonl-clone3 \
 	jsonl-close_range \
+	jsonl-connect-sockaddr \
 	jsonl-copy_file_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
@@ -1134,6 +1135,7 @@ EXTRA_DIST = \
 	jsonl-clock_gettime.c \
 	jsonl-clone3.c \
 	jsonl-close_range.c \
+	jsonl-connect-sockaddr.c \
 	jsonl-copy_file_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
