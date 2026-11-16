@@ -1717,10 +1717,15 @@ void
 tprint_ioctl_cmd_xval(const struct xlat *xlat, unsigned long long val,
 		      const char *dflt)
 {
-	const bool abbrev = xlat_verbose(xlat_verbosity) != XLAT_STYLE_VERBOSE;
+	if (structured_output) {
+		printxval_ex(xlat, val, dflt, XLAT_STYLE_ABBREV);
+	} else {
+		const bool abbrev =
+			xlat_verbose(xlat_verbosity) != XLAT_STYLE_VERBOSE;
 
-	printxval_ex(xlat, val, abbrev ? dflt : "",
-		     abbrev ? XLAT_STYLE_DEFAULT : XLAT_STYLE_ABBREV);
+		printxval_ex(xlat, val, abbrev ? dflt : "",
+			     abbrev ? XLAT_STYLE_DEFAULT : XLAT_STYLE_ABBREV);
+	}
 }
 
 void
