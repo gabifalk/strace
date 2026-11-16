@@ -288,6 +288,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-aio \
 	jsonl-chdir \
 	jsonl-clock_gettime \
+	jsonl-clone3 \
 	jsonl-close_range \
 	jsonl-copy_file_range \
 	jsonl-dup-y \
@@ -1119,6 +1120,7 @@ EXTRA_DIST = \
 	jsonl-aio.c \
 	jsonl-chdir.c \
 	jsonl-clock_gettime.c \
+	jsonl-clone3.c \
 	jsonl-close_range.c \
 	jsonl-copy_file_range.c \
 	jsonl-dup-y.c \
