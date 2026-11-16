@@ -137,12 +137,40 @@ tprint_struct_exiting_abandon_more_data(void)
 }
 
 void
+tprint_struct_resumed_begin(void)
+{
+}
+
+void
+tprints_field_resumed_name(const char *name)
+{
+}
+
+void
+tprint_val_exiting_u(unsigned long long entering_val,
+		     unsigned long long exiting_val)
+{
+	if (entering_val != exiting_val) {
+		PRINT_VAL_U(entering_val);
+		tprint_value_changed();
+	}
+	PRINT_VAL_U(exiting_val);
+}
+
+void
 tprints_field_exiting_name(const char *name)
 {
 	if (structured_output)
 		tprints_field_name(name);
 	else
 		tprint_value_changed();
+}
+
+void
+tprints_field_entering_name(const char *name, bool has_value)
+{
+	if (!structured_output || has_value)
+		tprints_field_name(name);
 }
 
 bool
@@ -2818,6 +2846,19 @@ tprint_extra_data_end(bool truncated)
 	} else if (truncated) {
 		tprint_more_data_follows();
 	}
+}
+
+void
+tprint_extra_data_field_begin(unsigned int offset, unsigned int size)
+{
+	tprints_field_name("extra_data");
+	tprints_object_type("bytes");
+}
+
+void
+tprint_extra_data_field_end(unsigned int offset, unsigned int size)
+{
+	tprintf_comment("bytes %u..%u", offset, offset + size - 1);
 }
 
 void

@@ -274,7 +274,12 @@ extern void tprint_arg_exiting_changed_begin(unsigned int index,
 extern void tprints_arg_exiting_name(unsigned int index, const char *name);
 extern void tprint_struct_exiting_abandon(void);
 extern void tprint_struct_exiting_abandon_more_data(void);
+extern void tprint_struct_resumed_begin(void);
+extern void tprints_field_resumed_name(const char *name);
+extern void tprint_val_exiting_u(unsigned long long entering_val,
+				 unsigned long long exiting_val);
 extern void tprints_field_exiting_name(const char *name);
+extern void tprints_field_entering_name(const char *name, bool has_value);
 extern bool tprints_field_exiting_value(const char *name, bool on_entering,
 					bool changed);
 extern void tprint_addr_exiting(unsigned long long entering_addr,
@@ -531,6 +536,10 @@ extern void tprint_dirent_count_end(unsigned int count, bool truncated);
 extern void tprint_extra_data_unavailable(void);
 extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
 extern void tprint_extra_data_end(bool truncated);
+extern void tprint_extra_data_field_begin(unsigned int offset,
+					  unsigned int size);
+extern void tprint_extra_data_field_end(unsigned int offset,
+					unsigned int size);
 extern void tprints_timestamp_comment(const char *str);
 extern void tprint_time_t(long long sec, const char *str);
 extern void tprint_ticks(unsigned long long val, long freq,

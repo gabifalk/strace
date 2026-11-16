@@ -99,12 +99,10 @@ decode_attr_extra_data(struct tcb *const tcp,
 			if (abbrev(tcp)) {
 				tprint_more_data_follows();
 			} else {
-				tprints_field_name("extra_data");
-				tprints_object_type("bytes");
+				tprint_extra_data_field_begin(attr_size, size);
 				print_quoted_string(data, size,
 						    QUOTE_FORCE_HEX);
-				tprintf_comment("bytes %zu..%zu",
-						attr_size, attr_size + size - 1);
+				tprint_extra_data_field_end(attr_size, size);
 			}
 			return RVAL_DECODED;
 		}
@@ -518,18 +516,22 @@ BEGIN_BPF_CMD_DECODER(BPF_PROG_LOAD)
 		tprint_struct_next();
 		PRINT_FIELD_U(attr, core_relo_rec_size);
 
+		/*
+		 * log_true_size field was added in Linux commit
+		 * v6.4-rc1~132^2~87^2~19^2~7.  It is an output field,
+		 * so it is decoded on exiting syscall.
+		 */
+		if (len <= offsetof(struct BPF_PROG_LOAD_struct,
+				    log_true_size))
+			break;
+
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
 	}
 
-	/*
-	 * log_true_size field was added in Linux commit
-	 * v6.4-rc1~132^2~87^2~19^2~7.  It is an output field,
-	 * so it is decoded on exiting syscall.
-	 */
-	if (len <= offsetof(struct BPF_PROG_LOAD_struct, log_true_size))
-		break;
-
-	tprint_struct_next();
+	tprint_struct_exiting_begin(1, "attr");
+	tprint_struct_exiting_next();
 	PRINT_FIELD_U(attr, log_true_size);
 
 	/*
@@ -729,6 +731,8 @@ BEGIN_BPF_CMD_DECODER(BPF_PROG_GET_NEXT_ID)
 		tprint_struct_begin();
 		PRINT_FIELD_U(attr, start_id);
 
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
 	}
 
@@ -737,7 +741,8 @@ BEGIN_BPF_CMD_DECODER(BPF_PROG_GET_NEXT_ID)
 	 * syscall.  The kernel always writes this field regardless of
 	 * the size argument.
 	 */
-	tprint_struct_next();
+	tprint_struct_exiting_begin(1, "attr");
+	tprint_struct_exiting_next();
 	PRINT_FIELD_U(attr, next_id);
 }
 END_BPF_CMD_DECODER(RVAL_DECODED)
@@ -1712,10 +1717,13 @@ BEGIN_BPF_CMD_DECODER(BPF_OBJ_GET_INFO_BY_FD)
 	} else {
 		saved = get_tcb_priv_data(tcp);
 
-		if (saved && (saved->info_len != attr.info_len)) {
-			tprint_value_changed();
+		tprint_struct_exiting_begin(1, "attr");
+		tprints_field_resumed_name("info");
+		tprint_struct_resumed_begin();
+		if (tprints_field_exiting_value("info_len", true,
+						saved && saved->info_len
+							 != attr.info_len))
 			PRINT_VAL_U(attr.info_len);
-		}
 
 		tprint_struct_next();
 		tprints_field_name("info");
@@ -1723,8 +1731,13 @@ BEGIN_BPF_CMD_DECODER(BPF_OBJ_GET_INFO_BY_FD)
 
 	print_bpf_obj_info(tcp, attr.bpf_fd, attr.info, attr.info_len, saved);
 
-	if (entering(tcp))
+	if (entering(tcp)) {
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
+	}
 
 	tprint_struct_end();
 }
@@ -1768,13 +1781,21 @@ BEGIN_BPF_CMD_DECODER(BPF_PROG_QUERY)
 				  "BPF_F_???");
 
 		tprint_struct_next();
-		tprints_field_name("prog_ids");
+		tprints_field_entering_name("prog_ids", false);
 
 		set_tcb_priv_ulong(tcp, attr.prog_cnt);
 
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
 	}
 
+	tprint_struct_exiting_begin(1, "attr");
+	tprints_field_resumed_name("query");
+	tprint_struct_resumed_begin();
+	tprints_field_resumed_name("prog_ids");
 	print_big_u64_addr(attr.prog_ids);
 	print_array(tcp, attr.prog_ids, attr.prog_cnt, &uint32_buf,
 		    sizeof(uint32_buf), tfetch_mem,
@@ -1782,12 +1803,8 @@ BEGIN_BPF_CMD_DECODER(BPF_PROG_QUERY)
 
 	tprint_struct_next();
 	tprints_field_name("prog_cnt");
-	const uint32_t prog_cnt_entering = get_tcb_priv_ulong(tcp);
-	if (prog_cnt_entering != attr.prog_cnt) {
-		PRINT_VAL_U(prog_cnt_entering);
-		tprint_value_changed();
-	}
-	PRINT_VAL_U(attr.prog_cnt);
+	tprint_val_exiting_u((uint32_t) get_tcb_priv_ulong(tcp),
+			     attr.prog_cnt);
 
 	/*
 	 * prog_attach_flags field has been added in Linux commit
@@ -1881,9 +1898,12 @@ BEGIN_BPF_CMD_DECODER(BPF_BTF_LOAD)
 		if (len <= offsetof(struct BPF_BTF_LOAD_struct, btf_log_true_size))
 			break;
 
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
 	} else {
-		tprint_struct_next();
+		tprint_struct_exiting_begin(1, "attr");
+		tprint_struct_exiting_next();
 		PRINT_FIELD_U(attr, btf_log_true_size);
 
 		/*
@@ -1936,15 +1956,21 @@ BEGIN_BPF_CMD_DECODER(BPF_TASK_FD_QUERY)
 		tprint_struct_next();
 		PRINT_FIELD_U(attr, buf_len);
 
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
 	}
 
 	unsigned int saved_buf_len = get_tcb_priv_ulong(tcp);
 
-	if (saved_buf_len != attr.buf_len) {
-		tprint_value_changed();
+	tprint_struct_exiting_begin(1, "attr");
+	tprints_field_resumed_name("task_fd_query");
+	tprint_struct_resumed_begin();
+	if (tprints_field_exiting_value("buf_len", true,
+					saved_buf_len != attr.buf_len))
 		PRINT_VAL_U(attr.buf_len);
-	}
 
 	const unsigned int buf_len = MIN(saved_buf_len, attr.buf_len);
 	tprint_struct_next();
@@ -1969,6 +1995,7 @@ BEGIN_BPF_CMD_DECODER(BPF_MAP_LOOKUP_BATCH)
 	if (entering(tcp)) {
 		set_tcb_priv_ulong(tcp, attr.count);
 
+		tprint_arg_inout();
 		tprint_struct_begin();
 		tprints_field_name("batch");
 		tprint_struct_begin();
@@ -1995,7 +2022,7 @@ BEGIN_BPF_CMD_DECODER(BPF_MAP_LOOKUP_BATCH)
 		unsigned long count = get_tcb_priv_ulong(tcp);
 
 		if (count != attr.count) {
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(1, "attr");
 			tprint_struct_begin();
 			tprints_field_name("batch");
 			tprint_struct_begin();
@@ -2016,6 +2043,7 @@ BEGIN_BPF_CMD_DECODER(BPF_MAP_UPDATE_BATCH)
 	if (entering(tcp)) {
 		set_tcb_priv_ulong(tcp, attr.count);
 
+		tprint_arg_inout();
 		tprint_struct_begin();
 		tprints_field_name("batch");
 		tprint_struct_begin();
@@ -2038,7 +2066,7 @@ BEGIN_BPF_CMD_DECODER(BPF_MAP_UPDATE_BATCH)
 		unsigned long count = get_tcb_priv_ulong(tcp);
 
 		if (count != attr.count) {
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(1, "attr");
 			tprint_struct_begin();
 			tprints_field_name("batch");
 			tprint_struct_begin();
@@ -2057,6 +2085,7 @@ BEGIN_BPF_CMD_DECODER(BPF_MAP_DELETE_BATCH)
 	if (entering(tcp)) {
 		set_tcb_priv_ulong(tcp, attr.count);
 
+		tprint_arg_inout();
 		tprint_struct_begin();
 		tprints_field_name("batch");
 		tprint_struct_begin();
@@ -2077,7 +2106,7 @@ BEGIN_BPF_CMD_DECODER(BPF_MAP_DELETE_BATCH)
 		unsigned long count = get_tcb_priv_ulong(tcp);
 
 		if (count != attr.count) {
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(1, "attr");
 			tprint_struct_begin();
 			tprints_field_name("batch");
 			tprint_struct_begin();
@@ -2543,6 +2572,7 @@ BEGIN_BPF_CMD_DECODER(BPF_PROG_STREAM_READ_BY_FD)
 	if (entering(tcp))
 		return 0;
 
+	tprints_arg_exiting_name(1, "attr");
 	tprint_struct_begin();
 	tprints_field_name("prog_stream_read");
 	tprint_struct_begin();
@@ -2631,6 +2661,13 @@ SYS_FUNC(bpf)
 	const unsigned int cmd = tcp->u_arg[0];
 	const kernel_ulong_t addr = tcp->u_arg[1];
 	const unsigned int size = tcp->u_arg[2];
+	const bool decodable = size > 0
+			       && size <= get_pagesize()
+			       && cmd < ARRAY_SIZE(bpf_cmd_decoders)
+			       && bpf_cmd_decoders[cmd];
+	/* The attr of these commands is decoded on exiting only. */
+	const bool exiting_only = decodable
+				  && cmd == BPF_PROG_STREAM_READ_BY_FD;
 	int rc = RVAL_DECODED;
 
 	if (entering(tcp)) {
@@ -2638,28 +2675,35 @@ SYS_FUNC(bpf)
 		tprints_arg_name("cmd");
 		printxval(bpf_commands, cmd, "BPF_???");
 
-		tprints_arg_next_name("attr");
+		if (exiting_only)
+			tprints_arg_next_name_deferred("attr");
+		else
+			tprints_arg_next_name("attr");
 	}
 
 	/* attr */
-	if (size > 0
-	    && size <= get_pagesize()
-	    && cmd < ARRAY_SIZE(bpf_cmd_decoders)
-	    && bpf_cmd_decoders[cmd]) {
+	if (exiting_only && entering(tcp)) {
+		rc = 0;
+	} else if (decodable) {
 		static char *buf;
 
 		if (!buf)
 			buf = xmalloc(get_pagesize());
 
-		if (!umoven_or_printaddr_ignore_syserror(tcp, addr, size, buf))
+		if (tfetch_mem_ignore_syserror(tcp, addr, size, buf)) {
 			rc = bpf_cmd_decoders[cmd](tcp, addr, size, buf);
+		} else {
+			if (exiting(tcp))
+				tprints_arg_exiting_name(1, "attr");
+			printaddr(addr);
+		}
 	} else {
 		printaddr(addr);
 	}
 
 	if (exiting(tcp) || (rc & RVAL_DECODED)) {
 		/* size */
-		tprints_arg_next_name("size");
+		tprints_arg_next_name_at(2, "size");
 		PRINT_VAL_U(size);
 	}
 
