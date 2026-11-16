@@ -670,6 +670,7 @@ jsonl-nlattr_tcamsg
 jsonl-nlattr_tcmsg
 jsonl-nlattr_unix_diag_msg
 jsonl-pause
+jsonl-perf_event_open
 jsonl-personality
 jsonl-pidfd_getfd-yy
 jsonl-pidfd_send_signal
