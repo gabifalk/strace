@@ -237,6 +237,8 @@ extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);
 extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);
+extern void tprint_numeric_mode(unsigned long long mode);
+extern void tprint_symbolic_mode(unsigned int mode, const char *ifmt);
 extern void tprint_dev_t(unsigned long long dev, unsigned int dev_major,
 			 unsigned int dev_minor);
 extern void tprint_err(long long err, bool negated, const char *name);

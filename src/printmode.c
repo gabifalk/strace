@@ -25,29 +25,17 @@ print_symbolic_mode_t(const unsigned int mode)
 	if (mode & S_IFMT)
 		ifmt = xlookup(modetypes, mode & S_IFMT);
 
-	if (!ifmt || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_03O(mode);
-
-	if (!ifmt || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV
-		? tprintf_string : tprintf_comment)("%s%s%s%s%s%#03o",
-			ifmt, ifmt[0] ? "|" : "",
-			(mode & S_ISUID) ? "S_ISUID|" : "",
-			(mode & S_ISGID) ? "S_ISGID|" : "",
-			(mode & S_ISVTX) ? "S_ISVTX|" : "",
-			mode & ~(S_IFMT|S_ISUID|S_ISGID|S_ISVTX));
+	tprint_symbolic_mode(mode, ifmt);
 }
 
 void
 print_numeric_umode_t(const unsigned short mode)
 {
-	PRINT_VAL_03O(mode);
+	tprint_numeric_mode(mode);
 }
 
 void
 print_numeric_ll_umode_t(const unsigned long long mode)
 {
-	PRINT_VAL_03O(mode);
+	tprint_numeric_mode(mode);
 }
