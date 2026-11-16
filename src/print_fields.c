@@ -420,10 +420,19 @@ tprint_fd_info_pidfd(int pid)
 void
 tprints_fd_info_signalfd(const char *sigmask)
 {
-	tprint_associated_info_begin();
-	STRACE_PRINTS("signalfd:");
-	STRACE_PRINTS(sigmask);
-	tprint_associated_info_end();
+	if (structured_output) {
+		tprints_object_field_begin("fd_info");
+		tprint_object_begin();
+		tprints_object_type("signalfd");
+		tprints_object_field_string("sigmask", sigmask);
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		STRACE_PRINTS("signalfd:");
+		STRACE_PRINTS(sigmask);
+		tprint_associated_info_end();
+	}
 }
 
 void
