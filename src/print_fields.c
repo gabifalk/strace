@@ -420,9 +420,18 @@ tprint_bitset_mask_begin(const void *buf, unsigned int size)
 void
 tprint_bitset_raw_begin(unsigned int raw, bool inverted)
 {
-	if (inverted)
-		tprints_string("~");
-	tprint_bitset_begin();
+	if (structured_output) {
+		tprints_object_type("bitset");
+		tprintf_object_field_string("raw", "%#x", raw);
+		if (inverted)
+			tprints_object_field_bool("inverted", true);
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else {
+		if (inverted)
+			tprints_string("~");
+		tprint_bitset_begin();
+	}
 }
 
 void
