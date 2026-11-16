@@ -2908,7 +2908,13 @@ tprints_namespace(const char *link)
 void
 tprints_xlat_dflt_only(unsigned long long val, const char *dflt)
 {
-	tprints_string(dflt);
+	if (structured_output) {
+		tprints_object_type("const");
+		tprintf_object_field_string("raw", "%#llx", val);
+		tprints_object_field_string("sym_pattern", dflt);
+	} else {
+		tprints_string(dflt);
+	}
 }
 
 void
