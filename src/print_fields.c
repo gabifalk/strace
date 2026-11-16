@@ -2799,6 +2799,7 @@ void
 tprint_sysret_result_start(void)
 {
 	sysret_result_open = false;
+	sysret_result_field_open = false;
 }
 
 static void
@@ -2862,23 +2863,46 @@ tprint_sysret_result_end(void)
 void
 tprint_sysret_result_list_begin(void)
 {
+	if (structured_output)
+		tprint_array_begin();
 }
 
 void
 tprint_sysret_result_list_next(void)
 {
-	STRACE_PRINTS(", ");
+	if (structured_output)
+		tprint_array_next();
+	else
+		STRACE_PRINTS(", ");
 }
 
 void
 tprint_sysret_result_list_end(void)
 {
+	if (structured_output)
+		tprint_array_end();
 }
 
 void
 tprints_namespace(const char *link)
 {
-	tprints_string(link);
+	if (structured_output) {
+		const char *const colon = strchr(link, ':');
+		const char *const bracket = colon ? strchr(colon, ']') : NULL;
+
+		tprints_object_type("namespace");
+		if (colon && colon[1] == '[' && bracket && !bracket[1]) {
+			tprintf_object_field_string("kind", "%.*s",
+						    (int) (colon - link), link);
+			tprintf_object_field_string("inode", "%.*s",
+						    (int) (bracket - colon - 2),
+						    colon + 2);
+		} else {
+			tprints_object_field_string("value", link);
+		}
+	} else {
+		tprints_string(link);
+	}
 }
 
 void
