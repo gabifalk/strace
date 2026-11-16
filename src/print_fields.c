@@ -438,27 +438,45 @@ tprints_fd_info_signalfd(const char *sigmask)
 void
 tprint_fd_info_eventfd(const char *count, int id, int semaphore)
 {
-	tprint_associated_info_begin();
-	tprint_struct_begin();
-	tprints_field_name("eventfd-count");
-	if (count[0] != '0')
-		STRACE_PRINTS("0x");
-	STRACE_PRINTS(count);
-
-	if (id != -1) {
-		tprint_struct_next();
-		tprints_field_name("eventfd-id");
-		PRINT_VAL_U(id);
-
-		if (semaphore != -1) {
-			tprint_struct_next();
-			tprints_field_name("eventfd-semaphore");
-			PRINT_VAL_U(semaphore);
+	if (structured_output) {
+		tprints_object_field_begin("fd_info");
+		tprint_object_begin();
+		tprints_object_type("eventfd");
+		tprintf_object_field_string("count",
+					    count[0] != '0' ? "0x%s" : "%s",
+					    count);
+		if (id != -1) {
+			tprintf_object_field_string("id", "%u", id);
+			if (semaphore != -1) {
+				tprintf_object_field_string("semaphore", "%u",
+							    semaphore);
+			}
 		}
-	}
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		tprint_struct_begin();
+		tprints_field_name("eventfd-count");
+		if (count[0] != '0')
+			STRACE_PRINTS("0x");
+		STRACE_PRINTS(count);
 
-	tprint_struct_end();
-	tprint_associated_info_end();
+		if (id != -1) {
+			tprint_struct_next();
+			tprints_field_name("eventfd-id");
+			PRINT_VAL_U(id);
+
+			if (semaphore != -1) {
+				tprint_struct_next();
+				tprints_field_name("eventfd-semaphore");
+				PRINT_VAL_U(semaphore);
+			}
+		}
+
+		tprint_struct_end();
+		tprint_associated_info_end();
+	}
 }
 
 void
