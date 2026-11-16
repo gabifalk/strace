@@ -590,6 +590,7 @@ jsonl-nlattr_crypto_user_alg
 jsonl-nlattr_dcbmsg
 jsonl-nlattr_ndmsg
 jsonl-nlattr_nlmsgerr
+jsonl-nlattr_rtgenmsg
 jsonl-pause
 jsonl-pidfd_getfd-yy
 jsonl-prctl-dumpable
