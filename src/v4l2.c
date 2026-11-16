@@ -1543,12 +1543,25 @@ print_v4l2_create_buffers_format(const typeof_field(struct_v4l2_create_buffers, 
 	tprint_struct_end();
 }
 
+static struct_v4l2_create_buffers v4l2_create_buffers;
+
+static void
+print_v4l2_create_buffers_result(struct tcb *const tcp,
+				 const unsigned long long val)
+{
+	tprint_sysret_result_begin("v4l2_create_buffers_result", val);
+	tprints_sysret_result_field("argp", false);
+	tprint_struct_begin();
+	PRINT_FIELD_U(v4l2_create_buffers, index);
+	tprint_struct_next();
+	PRINT_FIELD_U(v4l2_create_buffers, count);
+	tprint_struct_end();
+	tprint_sysret_result_end();
+}
+
 static int
 print_v4l2_create_buffers(struct tcb *const tcp, const kernel_ulong_t arg)
 {
-	static const char fmt[] = "{index=%u, count=%u}";
-	static char outstr[sizeof(fmt) + sizeof(int) * 6];
-
 	struct_v4l2_create_buffers b;
 
 	if (entering(tcp)) {
@@ -1568,13 +1581,11 @@ print_v4l2_create_buffers(struct tcb *const tcp, const kernel_ulong_t arg)
 		return 0;
 	}
 
-	if (syserror(tcp) || umove(tcp, arg, &b))
+	if (syserror(tcp) || umove(tcp, arg, &v4l2_create_buffers))
 		return RVAL_IOCTL_DECODED;
 
-	xsprintf(outstr, fmt, b.index, b.count);
-	tcp->auxstr = outstr;
-
-	return RVAL_IOCTL_DECODED | RVAL_STR;
+	tcp->rval_result_printer = print_v4l2_create_buffers_result;
+	return RVAL_IOCTL_DECODED | RVAL_RESULT;
 }
 
 #include "xlat/v4l2_event_subscription_flags.h"
