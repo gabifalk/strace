@@ -313,6 +313,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-netlink_generic \
 	jsonl-netlink_kobject_uevent \
 	jsonl-netlink_netfilter \
+	jsonl-netlink_nlctrl \
 	jsonl-netlink_protocol \
 	jsonl-netlink_route \
 	jsonl-netlink_selinux \
@@ -1032,6 +1033,7 @@ EXTRA_DIST = \
 	jsonl-netlink_generic.c \
 	jsonl-netlink_kobject_uevent.c \
 	jsonl-netlink_netfilter.c \
+	jsonl-netlink_nlctrl.c \
 	jsonl-netlink_protocol.c \
 	jsonl-netlink_route.c \
 	jsonl-netlink_selinux.c \

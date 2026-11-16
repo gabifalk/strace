@@ -570,6 +570,7 @@ jsonl-netlink_crypto
 jsonl-netlink_generic
 jsonl-netlink_kobject_uevent
 jsonl-netlink_netfilter
+jsonl-netlink_nlctrl
 jsonl-netlink_protocol
 jsonl-netlink_route
 jsonl-netlink_selinux
