@@ -10,7 +10,7 @@
 
 SYS_FUNC(sendfile64)
 {
-	uint64_t offset;
+	uint64_t offset = 0;
 
 	if (entering(tcp)) {
 		/* out_fd */
@@ -27,7 +27,7 @@ SYS_FUNC(sendfile64)
 		if (rc || !tcp->u_arg[3]) {
 			if (rc == 0) {
 				tprint_indirect_begin();
-				tprintf_string("%" PRIu64, offset);
+				PRINT_VAL_U(offset);
 				tprint_indirect_end();
 			}
 			/* count */
@@ -35,15 +35,14 @@ SYS_FUNC(sendfile64)
 			PRINT_VAL_U(tcp->u_arg[3]);
 			return RVAL_DECODED;
 		}
-		tprint_indirect_begin();
-		tprintf_string("%" PRIu64, offset);
+		set_tcb_priv_data(tcp, xobjdup(&offset), free);
+		tprint_indirect_inout_entering_u(offset);
 	} else {
-		if (!syserror(tcp) && tcp->u_rval &&
-		    umove(tcp, tcp->u_arg[2], &offset) == 0) {
-			tprint_value_changed();
-			tprintf_string("%" PRIu64, offset);
-		}
-		tprint_indirect_end();
+		const uint64_t *const entering_offset = get_tcb_priv_data(tcp);
+		const bool fetched = !syserror(tcp) && tcp->u_rval &&
+				     umove(tcp, tcp->u_arg[2], &offset) == 0;
+		tprint_indirect_inout_exiting_u(2, "offset", fetched,
+						*entering_offset, offset);
 
 		/* count */
 		tprints_arg_next_name("count");
@@ -55,7 +54,7 @@ SYS_FUNC(sendfile64)
 
 SYS_FUNC(sendfile)
 {
-	uint64_t offset;
+	uint64_t offset = 0;
 
 	if (entering(tcp)) {
 		/* out_fd */
@@ -75,7 +74,7 @@ SYS_FUNC(sendfile)
 		if (rc || !tcp->u_arg[3]) {
 			if (rc == 0) {
 				tprint_indirect_begin();
-				tprintf_string("%" PRIu64, offset);
+				PRINT_VAL_U(offset);
 				tprint_indirect_end();
 			}
 			/* count */
@@ -83,16 +82,16 @@ SYS_FUNC(sendfile)
 			PRINT_VAL_U(tcp->u_arg[3]);
 			return RVAL_DECODED;
 		}
-		tprint_indirect_begin();
-		tprintf_string("%" PRIu64, offset);
+		set_tcb_priv_data(tcp, xobjdup(&offset), free);
+		tprint_indirect_inout_entering_u(offset);
 	} else {
-		if (!syserror(tcp) && tcp->u_rval &&
-		    tfetch_to_uint64(tcp, tcp->u_arg[2],
-				     current_wordsize, &offset)) {
-			tprint_value_changed();
-			tprintf_string("%" PRIu64, offset);
-		}
-		tprint_indirect_end();
+		const uint64_t *const entering_offset = get_tcb_priv_data(tcp);
+		const bool fetched = !syserror(tcp) && tcp->u_rval &&
+				     tfetch_to_uint64(tcp, tcp->u_arg[2],
+						      current_wordsize,
+						      &offset);
+		tprint_indirect_inout_exiting_u(2, "offset", fetched,
+						*entering_offset, offset);
 
 		/* count */
 		tprints_arg_next_name("count");

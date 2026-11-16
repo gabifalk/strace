@@ -291,6 +291,11 @@ extern void tprints_arg_inout_entering_u(unsigned int index, const char *name,
 					unsigned long long val);
 extern void tprint_arg_inout_exiting_u(unsigned long long entering_val,
 				       unsigned long long exiting_val);
+extern void tprint_indirect_inout_entering_u(unsigned long long val);
+extern void tprint_indirect_inout_exiting_u(unsigned int index,
+					    const char *name, bool fetched,
+					    unsigned long long entering_val,
+					    unsigned long long exiting_val);
 extern void tprints_fn_begin(const char *name);
 extern void tprint_fn_next(void);
 extern void tprint_fn_end(void);
