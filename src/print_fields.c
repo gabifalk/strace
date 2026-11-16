@@ -568,15 +568,34 @@ tprint_bpf_insn_end(bool jump, unsigned int jt, unsigned int jf)
 }
 
 void
-tprint_skf_off_begin(unsigned int base, const char *base_name)
+tprint_skf_off_begin(unsigned int raw, unsigned int base,
+		     const char *base_name)
 {
-	print_xlat_ex(base, base_name, XLAT_STYLE_DEFAULT);
-	tprint_plus();
+	if (structured_output) {
+		tprints_object_type("skf_off");
+		tprintf_object_field_string("raw", "%#x", raw);
+		tprints_object_field_begin("base");
+		tprint_object_begin();
+		tprint_type_const();
+		tprintf_object_field_string("raw", "%#x", base);
+		tprints_object_field_string("sym", base_name);
+		tprint_object_end();
+		tprint_object_field_end();
+		tprints_object_field_begin("offset");
+		tprint_object_begin();
+	} else {
+		print_xlat_ex(base, base_name, XLAT_STYLE_DEFAULT);
+		tprint_plus();
+	}
 }
 
 void
 tprint_skf_off_end(void)
 {
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
 
 void

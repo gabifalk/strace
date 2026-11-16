@@ -314,7 +314,8 @@ extern void tprint_xval_dflt(unsigned long long val, const char *dflt);
 extern void tprint_bpf_insn_begin(bool jump);
 extern void tprint_bpf_insn_k(void);
 extern void tprint_bpf_insn_end(bool jump, unsigned int jt, unsigned int jf);
-extern void tprint_skf_off_begin(unsigned int base, const char *base_name);
+extern void tprint_skf_off_begin(unsigned int raw, unsigned int base,
+				 const char *base_name);
 extern void tprint_skf_off_end(void);
 extern void tprint_comment_begin(void);
 extern void tprint_comment_end(void);
