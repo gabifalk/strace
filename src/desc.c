@@ -26,6 +26,142 @@ SYS_FUNC(close)
 	return RVAL_DECODED;
 }
 
+/* The size of the buffer the result of select was formatted into. */
+#define SELECT_RESULT_BUFSIZE 1024
+
+struct select_result {
+	kernel_ulong_t tv_ts_addr;
+	print_obj_by_addr_fn print_tv_ts;
+	bool left;
+	struct {
+		unsigned int nfds;
+		int *fds;
+	} sets[3];
+	int fds[];
+};
+
+static const char *const select_result_names[] = { "in", "out", "except" };
+
+static size_t
+uint_len(unsigned int val)
+{
+	size_t len = 1;
+
+	for (; val >= 10; val /= 10)
+		++len;
+	return len;
+}
+
+/*
+ * Fetch the ready file descriptors and select the ones to print, applying
+ * the limits of the buffer the result used to be formatted into.
+ */
+static struct select_result *
+decode_select_result(struct tcb *const tcp, const kernel_ulong_t *const args,
+		     const print_obj_by_addr_fn print_tv_ts,
+		     const sprint_obj_by_addr_fn sprint_tv_ts)
+{
+	int nfds = (int) args[0];
+	if (nfds < 0)
+		nfds = 0;
+	if (nfds > 1024*1024)
+		nfds = 1024*1024;
+	const int fdsize =
+		(((nfds + 7) / 8) + current_wordsize-1) & -current_wordsize;
+	int ready_fds = tcp->u_rval;
+	struct select_result *const r =
+		xzalloc(sizeof(*r) + sizeof(int) * ready_fds);
+	fd_set *const fds = malloc(fdsize);
+	size_t len = 0;
+	const char *sep = "";
+	int *next_fd = r->fds;
+
+	r->tv_ts_addr = args[4];
+	r->print_tv_ts = print_tv_ts;
+
+	for (unsigned int i = 0; i < 3 && ready_fds > 0; ++i) {
+		const kernel_ulong_t addr = args[i + 1];
+
+		if (!addr || !fds || umoven(tcp, addr, fdsize, fds) < 0)
+			continue;
+		r->sets[i].fds = next_fd;
+		for (int j = 0;; ++j) {
+			j = next_set_bit(fds, j, nfds);
+			if (j < 0)
+				break;
+			/* +2 chars needed at the end: ']',NUL */
+			if (len < SELECT_RESULT_BUFSIZE - (sizeof(", except [")
+							   + sizeof(int)*3 + 2)) {
+				if (!r->sets[i].nfds) {
+					len += strlen(sep)
+					       + strlen(select_result_names[i])
+					       + 2 + uint_len(j);
+					sep = ", ";
+				} else {
+					len += 1 + uint_len(j);
+				}
+				*next_fd++ = j;
+				++r->sets[i].nfds;
+			}
+			if (--ready_fds == 0)
+				break;
+		}
+		if (r->sets[i].nfds)
+			++len;
+	}
+	free(fds);
+
+	if (args[4]) {
+		const char *str = sprint_tv_ts(tcp, args[4]);
+		if (len + sizeof("left ") + strlen(sep) + strlen(str)
+		    < SELECT_RESULT_BUFSIZE)
+			r->left = true;
+	}
+
+	return r;
+}
+
+static void
+print_select_timeout(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_result_begin(val);
+	tprints_sysret_result_note("Timeout");
+	tprint_sysret_result_end();
+}
+
+static void
+print_select_result(struct tcb *const tcp, const unsigned long long val)
+{
+	const struct select_result *const r = get_tcb_priv_data(tcp);
+	bool printed = false;
+
+	tprint_sysret_result_begin(val);
+	for (unsigned int i = 0; i < 3; ++i) {
+		if (r->sets[i].nfds) {
+			tprints_sysret_result_field(select_result_names[i],
+						    true);
+			tprint_fd_set_begin();
+			for (unsigned int k = 0; k < r->sets[i].nfds; ++k) {
+				if (k)
+					tprint_fd_set_next();
+				tprint_object_begin();
+				tprint_fd_num(r->sets[i].fds[k]);
+				tprint_object_end();
+			}
+			tprint_fd_set_end();
+			printed = true;
+		}
+	}
+	if (r->left) {
+		tprints_sysret_result_field("left", true);
+		r->print_tv_ts(tcp, r->tv_ts_addr);
+		printed = true;
+	}
+	if (!printed)
+		tprints_sysret_result_note("");
+	tprint_sysret_result_end();
+}
+
 static int
 decode_select(struct tcb *const tcp, const kernel_ulong_t *const args,
 	      const print_obj_by_addr_fn print_tv_ts,
@@ -85,71 +221,20 @@ decode_select(struct tcb *const tcp, const kernel_ulong_t *const args,
 		tprints_arg_next_name("timeout");
 		print_tv_ts(tcp, args[4]);
 	} else {
-		static char outstr[1024];
-		char *outptr;
-#define end_outstr (outstr + sizeof(outstr))
-		int ready_fds;
-
 		if (syserror(tcp))
 			return 0;
 
-		ready_fds = tcp->u_rval;
-		if (ready_fds == 0) {
-			tcp->auxstr = "Timeout";
-			return RVAL_STR;
+		if (tcp->u_rval == 0) {
+			tcp->rval_result_printer = print_select_timeout;
+			return RVAL_RESULT;
 		}
 
-		fds = malloc(fdsize);
-
-		outptr = outstr;
-		const char *sep = "";
-		for (unsigned int i = 0; i < 3 && ready_fds > 0; ++i) {
-			int first = 1;
-			kernel_ulong_t addr = args[i + 1];
-
-			if (!addr || !fds || umoven(tcp, addr, fdsize, fds) < 0)
-				continue;
-			for (int j = 0;; ++j) {
-				j = next_set_bit(fds, j, nfds);
-				if (j < 0)
-					break;
-				/* +2 chars needed at the end: ']',NUL */
-				if (outptr < end_outstr - (sizeof(", except [") + sizeof(int)*3 + 2)) {
-					if (first) {
-						outptr = xappendstr(outstr,
-							outptr,
-							"%s%s [%u",
-							sep,
-							i == 0 ? "in" : i == 1 ? "out" : "except",
-							j
-						);
-						first = 0;
-						sep = ", ";
-					} else {
-						outptr = xappendstr(outstr,
-							outptr,
-							" %u", j);
-					}
-				}
-				if (--ready_fds == 0)
-					break;
-			}
-			if (!first)
-				*outptr++ = ']';
-		}
-		free(fds);
-		/* This contains no useful information on SunOS.  */
-		if (args[4]) {
-			const char *str = sprint_tv_ts(tcp, args[4]);
-			if (outptr + sizeof("left ") + strlen(sep) + strlen(str) < end_outstr) {
-				outptr = xappendstr(outstr, outptr,
-						    "%sleft %s", sep, str);
-			}
-		}
-		*outptr = '\0';
-		tcp->auxstr = outstr;
-		return RVAL_STR;
-#undef end_outstr
+		set_tcb_priv_data(tcp, decode_select_result(tcp, args,
+							    print_tv_ts,
+							    sprint_tv_ts),
+				  free);
+		tcp->rval_result_printer = print_select_result;
+		return RVAL_RESULT;
 	}
 	return 0;
 }

@@ -2755,6 +2755,57 @@ tprint_sysret_printer_val(unsigned long long val,
 	}
 }
 
+static bool sysret_result_open;
+
+void
+tprint_sysret_result_begin(unsigned long long val)
+{
+	sysret_result_open = false;
+	PRINT_VAL_U(val);
+}
+
+static void
+tprint_sysret_result_sep(void)
+{
+	if (sysret_result_open) {
+		STRACE_PRINTS(", ");
+	} else {
+		tprints_sysret_next("retstr");
+		STRACE_PRINTS("(");
+		sysret_result_open = true;
+	}
+}
+
+void
+tprints_sysret_result_field(const char *name, bool labeled)
+{
+	tprint_sysret_result_sep();
+	if (labeled) {
+		STRACE_PRINTS(name);
+		STRACE_PRINTS(" ");
+	}
+}
+
+void
+tprints_sysret_result_note(const char *note)
+{
+	tprint_sysret_result_sep();
+	STRACE_PRINTS(note);
+}
+
+void
+tprint_sysret_result_end(void)
+{
+	if (sysret_result_open)
+		STRACE_PRINTS(")");
+}
+
+void
+tprint_fd_num(int fd)
+{
+	PRINT_VAL_D(fd);
+}
+
 void
 tprints_sysret_xlat_sym(const char *sym)
 {

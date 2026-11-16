@@ -286,6 +286,8 @@ struct tcb {
 					   RVAL_FLAGS) */
 	/* Return value printer (see RVAL_PRINTER) */
 	void (*rval_printer)(unsigned long long val, enum xlat_style style);
+	/* Return value and result printer (see RVAL_RESULT) */
+	void (*rval_result_printer)(struct tcb *, unsigned long long val);
 	void *_priv_data;	/* Private data for syscall decoding functions */
 	void (*_free_priv_data)(void *); /* Callback for freeing priv_data */
 	const struct_sysent *s_ent; /* sysent[scno] or a stub struct for bad
@@ -487,6 +489,8 @@ extern const struct xlat whence_codes[];
 # define RVAL_FLAGS	01000	/* Return value is a set of flags from the
 				   `rval_xlat' table */
 # define RVAL_PRINTER	02000	/* Return value is printed by `rval_printer' */
+# define RVAL_RESULT	04000	/* Return value is printed by
+				   `rval_result_printer' */
 
 # define IOCTL_NUMBER_UNKNOWN 0
 # define IOCTL_NUMBER_HANDLED 1
