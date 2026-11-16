@@ -4059,6 +4059,24 @@ tprint_relative_timestamp(long long sec, long nsec, unsigned int width,
 }
 
 void
+tprint_instruction_pointer(bool known, unsigned long long ip,
+			   unsigned int wordsize)
+{
+	char str[sizeof("????????????????")];
+
+	if (known)
+		xsprintf(str, "%0*llx", wordsize == 4 ? 8 : 16, ip);
+	else
+		xsprintf(str, "%s", wordsize == 4 ? "????????"
+						  : "????????????????");
+
+	tprint_attribute_begin();
+	tprints_string(str);
+	tprint_attribute_end();
+	tprint_space();
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {

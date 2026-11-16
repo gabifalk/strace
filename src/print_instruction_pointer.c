@@ -10,18 +10,8 @@
 void
 print_instruction_pointer(struct tcb *tcp)
 {
-	kernel_ulong_t ip;
+	kernel_ulong_t ip = 0;
+	const bool known = get_instruction_pointer(tcp, &ip);
 
-	tprint_attribute_begin();
-	if (get_instruction_pointer(tcp, &ip)) {
-		tprintf_string(current_wordsize == 4
-			       ? "%08" PRI_klx
-			       : "%016" PRI_klx, ip);
-	} else {
-		tprints_string(current_wordsize == 4
-			       ? "????????"
-			       : "????????????????");
-	}
-	tprint_attribute_end();
-	tprint_space();
+	tprint_instruction_pointer(known, ip, current_wordsize);
 }
