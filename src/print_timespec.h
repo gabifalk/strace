@@ -140,7 +140,8 @@ print_timespec_t_utime(struct tcb *tcp, void *elem_buf, size_t elem_size,
 		break;
 	default:
 		print_timespec_t(t);
-		tprints_comment(sprinttime_nsec(TIMESPEC_TO_SEC_NSEC(t)));
+		tprints_timestamp_comment(sprinttime_nsec(
+			TIMESPEC_TO_SEC_NSEC(t)));
 		break;
 	}
 	return true;

@@ -36,7 +36,7 @@ print_timeval_t_utime(struct tcb *tcp, void *elem_buf, size_t elem_size,
 {
 	const timeval_t *const t = elem_buf;
 	print_timeval_t(t);
-	tprints_comment(sprinttime_usec(t->tv_sec,
+	tprints_timestamp_comment(sprinttime_usec(t->tv_sec,
 		zero_extend_signed_to_ull(t->tv_usec)));
 	return true;
 }
@@ -136,7 +136,7 @@ print_timeval32_t_utime(struct tcb *tcp, void *elem_buf, size_t elem_size,
 {
 	const timeval32_t *const t = elem_buf;
 	print_timeval32_t(t);
-	tprints_comment(sprinttime_usec(t->tv_sec,
+	tprints_timestamp_comment(sprinttime_usec(t->tv_sec,
 		zero_extend_signed_to_ull(t->tv_usec)));
 	return true;
 }

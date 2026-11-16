@@ -249,6 +249,7 @@ extern void tprint_char(unsigned char c);
 extern void tprint_extra_data_unavailable(void);
 extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
 extern void tprint_extra_data_end(bool truncated);
+extern void tprints_timestamp_comment(const char *str);
 extern void tprint_time_t(long long sec, const char *str);
 extern void tprint_ticks(unsigned long long val, long freq,
 			 unsigned int precision);

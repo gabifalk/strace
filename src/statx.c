@@ -23,7 +23,7 @@ print_statx_timestamp(const struct_statx_timestamp *const p)
 	tprint_struct_next();
 	PRINT_FIELD_U(*p, tv_nsec);
 	tprint_struct_end();
-	tprints_comment(sprinttime_nsec(p->tv_sec,
+	tprints_timestamp_comment(sprinttime_nsec(p->tv_sec,
 		zero_extend_signed_to_ull(p->tv_nsec)));
 }
 
