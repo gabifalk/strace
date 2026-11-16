@@ -2180,12 +2180,22 @@ tprint_ip_addr(const char *var_name, bool v6, const void *addr,
 void
 tprint_mac_addr(const void *addr, unsigned int size, const char *str)
 {
-	if (!str || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		print_quoted_string(addr, size, QUOTE_FORCE_HEX);
-	if (!str || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-		? tprints_comment : tprints_string)(str);
+	if (structured_output) {
+		if (str) {
+			tprints_object_type("mac");
+			tprints_object_field_string("value", str);
+		} else {
+			tprints_object_type("bytes");
+			print_quoted_string(addr, size, QUOTE_FORCE_HEX);
+		}
+	} else {
+		if (!str || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			print_quoted_string(addr, size, QUOTE_FORCE_HEX);
+		if (!str || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return;
+		(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
+			? tprints_comment : tprints_string)(str);
+	}
 }
 
 void
