@@ -2961,6 +2961,9 @@ init(int argc, char *argv[])
 		}
 	}
 
+	if (structured_output)
+		xlat_verbosity = XLAT_STYLE_VERBOSE;
+
 	if (yflag_short) {
 		if (decode_fd_set_updated) {
 			error_msg_and_die("-y and --decode-fds cannot"

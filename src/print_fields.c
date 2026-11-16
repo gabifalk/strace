@@ -356,6 +356,30 @@ tprints_field_name(const char *name)
 }
 
 void
+tprints_xlat_sym(const char *str)
+{
+	if (!str || !*str)
+		return;
+
+	if (structured_output)
+		tprints_object_field_string("sym", str);
+	else
+		tprints_comment(str);
+}
+
+void
+tprints_xlat_dflt(const char *dflt)
+{
+	if (!dflt || !*dflt)
+		return;
+
+	if (structured_output)
+		tprints_object_field_string("sym_pattern", dflt);
+	else
+		tprints_comment(dflt);
+}
+
+void
 tprint_sysret_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
