@@ -87,21 +87,25 @@ read_namespace_id(int pid, const char *const ns_type, bool for_children)
 	return buf;
 }
 
-static const char *
-get_namespace_auxstr(int pid, uint64_t flags,
-		     struct tcb *const tcp_for_pid_translation,
-		     bool for_children, const char *expected_ns_str)
-{
-	static char str[sizeof("cgroup:[4026531835], "
-			          "ipc:[4026531839], "
-			          "mnt:[4026531841], "
-			          "net:[4026531840], "
-			          "pid:[4026531836], "
-			         "time:[4026531834], "
-			         "user:[4026531837], "
-			          "uts:[4026531838]" )];
-	char *p = str;
+/* The namespaces of the last call that reports them. */
+static struct {
+	unsigned int count;
+	char *links[8];
+} namespaces;
 
+static void
+add_namespace(const char *const link)
+{
+	if (namespaces.count < ARRAY_SIZE(namespaces.links))
+		namespaces.links[namespaces.count++] = xstrdup(link);
+}
+
+/* Collect the namespaces selected by flags, return whether there are any. */
+static bool
+collect_namespaces(int pid, uint64_t flags,
+		   struct tcb *const tcp_for_pid_translation,
+		   bool for_children, const char *expected_ns_str)
+{
 	static const struct {
 		uint64_t flags;
 		const char *str;
@@ -116,38 +120,68 @@ get_namespace_auxstr(int pid, uint64_t flags,
 		{ CLONE_NEWUSER, "user" },
 	};
 
+	for (unsigned int i = 0; i < namespaces.count; ++i)
+		free(namespaces.links[i]);
+	namespaces.count = 0;
+
 	if (tcp_for_pid_translation) {
 		int proc_pid;
 		if (translate_pid(tcp_for_pid_translation, pid, PT_TID, &proc_pid) == 0)
-			return NULL;
+			return false;
 		pid = proc_pid;
 	}
-
-	*p = '\0';
 
 	if (flags == 0 && expected_ns_str) {
 		const char *ns_name = read_namespace_id(pid, expected_ns_str,
 						    for_children);
-		if (ns_name) {
-			(void) xappendstr(str, p, "%s", ns_name);
-			return str;
-		}
-		return NULL;
-	}
-
-	for (size_t i = 0; i < ARRAY_SIZE(ns); ++i) {
-		if (flags & ns[i].flags) {
-			const char *ns_name = read_namespace_id(pid, ns[i].str,
-							    for_children);
-			if (ns_name) {
-				if (str != p)
-					p = xappendstr(str, p, ", ");
-				p = xappendstr(str, p, "%s", ns_name);
+		if (ns_name)
+			add_namespace(ns_name);
+	} else {
+		for (size_t i = 0; i < ARRAY_SIZE(ns); ++i) {
+			if (flags & ns[i].flags) {
+				const char *ns_name =
+					read_namespace_id(pid, ns[i].str,
+							  for_children);
+				if (ns_name)
+					add_namespace(ns_name);
 			}
 		}
 	}
 
-	return (str != p) ? str : NULL;
+	return namespaces.count > 0;
+}
+
+static void
+print_namespaces(void)
+{
+	tprints_sysret_result_field("namespaces", false);
+	tprint_sysret_result_list_begin();
+	for (unsigned int i = 0; i < namespaces.count; ++i) {
+		if (i)
+			tprint_sysret_result_list_next();
+		tprint_object_begin();
+		tprints_namespace(namespaces.links[i]);
+		tprint_object_end();
+	}
+	tprint_sysret_result_list_end();
+}
+
+static void
+print_tid_namespaces_result(struct tcb *const tcp,
+			    const unsigned long long val)
+{
+	tprint_sysret_result_start();
+	printpid(tcp, tcp->u_rval, PT_TID);
+	print_namespaces();
+	tprint_sysret_result_end();
+}
+
+static void
+print_namespaces_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_result_begin("unsigned", val);
+	print_namespaces();
+	tprint_sysret_result_end();
 }
 
 static void
@@ -172,7 +206,6 @@ SYS_FUNC(clone)
 		? (CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET
 		   |CLONE_NEWPID|CLONE_NEWTIME|CLONE_NEWUTS|CLONE_NEWUSER)
 		: 0;
-	int r_extra = 0;
 
 	if (entering(tcp)) {
 		const unsigned int sig = tcp->u_arg[ARG_FLAGS] & CSIGNAL;
@@ -232,14 +265,14 @@ SYS_FUNC(clone)
 			tprints_arg_next_name_unconditionally("child_tidptr");
 			printaddr(tcp->u_arg[ARG_CTID]);
 		}
-		if ((flags & nsflags) && !syserror(tcp)) {
-			tcp->auxstr = get_namespace_auxstr(tcp->u_rval, flags, tcp,
-							   false, NULL);
-			if (tcp->auxstr)
-				r_extra = RVAL_STR;
+		if ((flags & nsflags) && !syserror(tcp)
+		    && collect_namespaces(tcp->u_rval, flags, tcp, false,
+					  NULL)) {
+			tcp->rval_result_printer = print_tid_namespaces_result;
+			return RVAL_RESULT;
 		}
 	}
-	return RVAL_TID | r_extra;
+	return RVAL_TID;
 }
 
 static void
@@ -265,7 +298,7 @@ SYS_FUNC(clone3)
 		? (CLONE_NEWCGROUP|CLONE_INTO_CGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET
 		   |CLONE_NEWPID|CLONE_NEWTIME|CLONE_NEWUTS|CLONE_NEWUSER)
 		: 0;
-	int r_extra = 0;
+	int rval_fmt = RVAL_TID;
 
 	if (entering(tcp)) {
 		tprints_arg_name("cl_args");
@@ -402,18 +435,17 @@ SYS_FUNC(clone3)
 	if (prefix_fun != tprint_value_changed_struct_begin)
 		tprint_struct_end();
 
-	if ((arg.flags & nsflags) && !syserror(tcp)) {
-		tcp->auxstr = get_namespace_auxstr(tcp->u_rval, arg.flags, tcp,
-						   false, NULL);
-		if (tcp->auxstr)
-			r_extra = RVAL_STR;
+	if ((arg.flags & nsflags) && !syserror(tcp)
+	    && collect_namespaces(tcp->u_rval, arg.flags, tcp, false, NULL)) {
+		tcp->rval_result_printer = print_tid_namespaces_result;
+		rval_fmt = RVAL_RESULT;
 	}
 
 out:
 	tprints_arg_next_name("size");
 	PRINT_VAL_U(size);
 
-	return RVAL_DECODED | RVAL_TID | r_extra;
+	return RVAL_DECODED | rval_fmt;
 }
 
 static const char *
@@ -450,7 +482,6 @@ SYS_FUNC(setns)
 		return show_namespace ? 0 : RVAL_DECODED;
 	}
 
-	int r_extra = 0;
 	if (show_namespace && !syserror(tcp)) {
 		const unsigned int flags = (unsigned int) tcp->u_arg[1];
 		const char *ns_str = NULL;
@@ -462,12 +493,13 @@ SYS_FUNC(setns)
 				return RVAL_DECODED;
 		}
 
-		tcp->auxstr = get_namespace_auxstr(get_proc_pid(tcp->pid), flags,
-						   NULL, true, ns_str);
-		if (tcp->auxstr)
-			r_extra = RVAL_STR;
+		if (collect_namespaces(get_proc_pid(tcp->pid), flags,
+				       NULL, true, ns_str)) {
+			tcp->rval_result_printer = print_namespaces_result;
+			return RVAL_DECODED | RVAL_RESULT;
+		}
 	}
-	return RVAL_DECODED | r_extra;
+	return RVAL_DECODED;
 
 }
 
@@ -479,15 +511,13 @@ SYS_FUNC(unshare)
 		return show_namespace ? 0 : RVAL_DECODED;
 	}
 
-	int r_extra = 0;
-	if (show_namespace && !syserror(tcp)) {
-		tcp->auxstr = get_namespace_auxstr(get_proc_pid(tcp->pid),
-						   tcp->u_arg[0], NULL,
-						   true, NULL);
-		if (tcp->auxstr)
-			r_extra = RVAL_STR;
+	if (show_namespace && !syserror(tcp)
+	    && collect_namespaces(get_proc_pid(tcp->pid), tcp->u_arg[0],
+				  NULL, true, NULL)) {
+		tcp->rval_result_printer = print_namespaces_result;
+		return RVAL_DECODED | RVAL_RESULT;
 	}
-	return RVAL_DECODED | r_extra;
+	return RVAL_DECODED;
 }
 
 SYS_FUNC(fork)

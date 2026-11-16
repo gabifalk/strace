@@ -2795,6 +2795,12 @@ tprint_sysret_value_begin(unsigned long long val, bool hex)
 	}
 }
 
+void
+tprint_sysret_result_start(void)
+{
+	sysret_result_open = false;
+}
+
 static void
 tprint_sysret_result_sep(void)
 {
@@ -2851,6 +2857,28 @@ tprint_sysret_result_end(void)
 		tprint_sysret_result_field_close();
 	else if (sysret_result_open)
 		STRACE_PRINTS(")");
+}
+
+void
+tprint_sysret_result_list_begin(void)
+{
+}
+
+void
+tprint_sysret_result_list_next(void)
+{
+	STRACE_PRINTS(", ");
+}
+
+void
+tprint_sysret_result_list_end(void)
+{
+}
+
+void
+tprints_namespace(const char *link)
+{
+	tprints_string(link);
 }
 
 void
