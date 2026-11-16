@@ -481,7 +481,7 @@ tee_shm_alloc(struct tcb *const tcp, const kernel_ulong_t arg)
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 		if (umove_or_printaddr(tcp, arg, &shm_alloc))
 			return RVAL_IOCTL_DECODED;
 
@@ -520,7 +520,7 @@ tee_shm_register_fd(struct tcb *const tcp, const kernel_ulong_t arg)
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 		if (umove_or_printaddr(tcp, arg, &shm_register_fd))
 			return RVAL_IOCTL_DECODED;
 
@@ -558,7 +558,7 @@ tee_shm_register(struct tcb *const tcp, const kernel_ulong_t arg)
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 		if (umove_or_printaddr(tcp, arg, &shm_register))
 			return RVAL_IOCTL_DECODED;
 
