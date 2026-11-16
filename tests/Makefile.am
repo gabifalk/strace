@@ -423,6 +423,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-perf_event_open \
 	jsonl-perf_event_open-v \
 	jsonl-personality \
+	jsonl-personality_switch \
 	jsonl-pidfd_getfd-yy \
 	jsonl-pidfd_send_signal \
 	jsonl-poke \
@@ -1288,6 +1289,7 @@ EXTRA_DIST = \
 	jsonl-perf_event_open.c \
 	jsonl-perf_event_open-v.c \
 	jsonl-personality.c \
+	jsonl-personality_switch.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-pidfd_send_signal.c \
 	jsonl-poke.c \
@@ -1357,6 +1359,7 @@ EXTRA_DIST = \
 	jsonl-clone_untraced.sh \
 	jsonl-ioctl.sh \
 	jsonl-ip.sh \
+	jsonl-personality_switch.sh \
 	jsonl-stack.sh \
 	jsonl-summary.sh \
 	jsonl-timestamps.sh \

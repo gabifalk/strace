@@ -680,6 +680,7 @@ jsonl-pause
 jsonl-perf_event_open
 jsonl-perf_event_open-v
 jsonl-personality
+jsonl-personality_switch
 jsonl-pidfd_getfd-yy
 jsonl-pidfd_send_signal
 jsonl-poke
