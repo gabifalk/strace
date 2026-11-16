@@ -192,22 +192,27 @@ ptp_ioctl(struct tcb *const tcp, const unsigned int code,
 				break;
 
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_U(sysoff, n_samples);
 			PRINT_RSV(sysoff, rsv);
+			tprint_struct_entering_end();
 			return 0;
 		} else {
 			if (syserror(tcp)) {
-				/* ... */
-			} else if (!umove(tcp, arg, &sysoff)) {
+				tprint_struct_exiting_abandon();
+				break;
+			}
+
+			tprint_struct_exiting_begin(2, "argp");
+			tprint_struct_exiting_next();
+			if (!umove(tcp, arg, &sysoff)) {
 				unsigned int n_samples =
 					MIN(sysoff.n_samples, PTP_MAX_SAMPLES);
-				tprint_struct_next();
 				PRINT_FIELD_ARRAY_UPTO(sysoff, ts,
 						       2 * n_samples + 1, tcp,
 						       print_ptp_clock_time_am);
 			} else {
-				tprint_struct_next();
-				tprint_unavailable();
+				tprint_extra_data_unavailable();
 			}
 			tprint_struct_end();
 			break;
@@ -239,17 +244,20 @@ ptp_ioctl(struct tcb *const tcp, const unsigned int code,
 				PRINT_RSV(pinfunc, rsv);
 				ATTRIBUTE_FALLTHROUGH;
 			case PTP_PIN_GETFUNC:
+				tprint_struct_mark_split();
+				tprint_struct_entering_end();
 				return 0;
 			}
 		} else /* getter syscall exit */ {
 			if (syserror(tcp)) {
-				tprint_struct_end();
+				tprint_struct_exiting_abandon();
 				break;
 			}
 
+			tprint_struct_exiting_begin(2, "argp");
 			if (umove(tcp, arg, &pinfunc) < 0) {
-				tprint_struct_next();
-				tprint_unavailable();
+				tprint_struct_exiting_next();
+				tprint_extra_data_unavailable();
 				tprint_struct_end();
 				break;
 			}
@@ -259,7 +267,7 @@ ptp_ioctl(struct tcb *const tcp, const unsigned int code,
 		switch (code) {
 		case PTP_PIN_GETFUNC:
 		case PTP_PIN_GETFUNC2:
-			tprint_struct_next();
+			tprint_struct_exiting_next();
 			PRINT_FIELD_CSTRING(pinfunc, name);
 		}
 		tprint_struct_next();
@@ -317,25 +325,30 @@ ptp_ioctl(struct tcb *const tcp, const unsigned int code,
 				break;
 
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_U(sysoff, n_samples);
 			tprint_struct_next();
 			PRINT_FIELD_XVAL(sysoff, clockid, clocknames, "CLOCK_???");
 			PRINT_RSV(sysoff, rsv);
+			tprint_struct_entering_end();
 			return 0;
 		}
 
 		if (syserror(tcp)) {
-			/* ... */
-		} else if (!umove(tcp, arg, &sysoff)) {
+			tprint_struct_exiting_abandon();
+			break;
+		}
+
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
+		if (!umove(tcp, arg, &sysoff)) {
 			unsigned int n_samples =
 				MIN(sysoff.n_samples, PTP_MAX_SAMPLES);
-			tprint_struct_next();
 			PRINT_FIELD_ARRAY_UPTO(sysoff, ts,
 					       n_samples, tcp,
 					       print_ptp_clock_time3_am);
 		} else {
-			tprint_struct_next();
-			tprint_unavailable();
+			tprint_extra_data_unavailable();
 		}
 		tprint_struct_end();
 		break;
