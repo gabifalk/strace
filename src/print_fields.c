@@ -800,6 +800,24 @@ tprint_flags_or(void)
 }
 
 void
+tprint_flags_value_begin(unsigned long long raw)
+{
+	tprint_flags_begin();
+}
+
+void
+tprint_flags_value_or(void)
+{
+	tprint_flags_or();
+}
+
+void
+tprint_flags_value_end(void)
+{
+	tprint_flags_end();
+}
+
+void
 tprint_newline(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);

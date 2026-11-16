@@ -56,17 +56,21 @@ print_nlattr(const struct nlattr *const nla,
 	PRINT_FIELD_U(*nla, nla_len);
 	tprint_struct_next();
 	tprints_field_name("nla_type");
-	tprint_flags_begin();
-	if (nla->nla_type & NLA_F_NESTED) {
-		print_xlat(NLA_F_NESTED);
-		tprint_flags_or();
+	if (nla->nla_type & ~NLA_TYPE_MASK) {
+		tprint_flags_value_begin(nla->nla_type);
+		if (nla->nla_type & NLA_F_NESTED) {
+			print_xlat(NLA_F_NESTED);
+			tprint_flags_value_or();
+		}
+		if (nla->nla_type & NLA_F_NET_BYTEORDER) {
+			print_xlat(NLA_F_NET_BYTEORDER);
+			tprint_flags_value_or();
+		}
+		printxval(table, nla->nla_type & NLA_TYPE_MASK, dflt);
+		tprint_flags_value_end();
+	} else {
+		printxval(table, nla->nla_type, dflt);
 	}
-	if (nla->nla_type & NLA_F_NET_BYTEORDER) {
-		print_xlat(NLA_F_NET_BYTEORDER);
-		tprint_flags_or();
-	}
-	printxval(table, nla->nla_type & NLA_TYPE_MASK, dflt);
-	tprint_flags_end();
 	tprint_struct_end();
 }
 
