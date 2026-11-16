@@ -231,6 +231,11 @@ tprints_ioctl_cmd(const char *name)
 	STRACE_PRINTS(name);
 }
 
+static inline void
+tprint_struct_mark_split(void)
+{
+}
+
 static inline bool
 tprint_struct_fields_end(void)
 {
@@ -253,7 +258,11 @@ extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
 extern void tprint_struct_decode_error(const char *msg);
 extern void tprint_struct_addr(unsigned long long addr);
+extern void tprint_struct_entering_end(void);
+extern void tprint_struct_exiting_begin(unsigned int index, const char *name);
 extern void tprint_struct_exiting_next(void);
+extern void tprint_struct_exiting_changed_begin(unsigned int index,
+						const char *name);
 extern void tprint_struct_exiting_changed_next(void);
 extern void tprint_arg_exiting_changed_begin(unsigned int index,
 					     const char *name);
