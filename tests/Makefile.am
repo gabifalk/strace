@@ -324,6 +324,10 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_gpio \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
+	jsonl-ioctl_block \
+	jsonl-ioctl_dm \
+	jsonl-ioctl_ptp \
+	jsonl-ioctl_scsi \
 	jsonl-ioprio_get \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
@@ -440,7 +444,9 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-utime \
 	jsonl-v4l2 \
 	jsonl-v4l2-create_bufs \
+	jsonl-v4l2-querycap \
 	jsonl-vfork-f \
+	jsonl-wait4 \
 	jsonl-xattr \
 	kcmp-y--pidns-translation \
 	kill--pidns-translation \
@@ -1137,6 +1143,10 @@ EXTRA_DIST = \
 	jsonl-ioctl_gpio.c \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \
+	jsonl-ioctl_block.c \
+	jsonl-ioctl_dm.c \
+	jsonl-ioctl_ptp.c \
+	jsonl-ioctl_scsi.c \
 	jsonl-ioprio_get.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
@@ -1252,8 +1262,10 @@ EXTRA_DIST = \
 	jsonl-ustat.c \
 	jsonl-utime.c \
 	jsonl-v4l2-create_bufs.c \
+	jsonl-v4l2-querycap.c \
 	jsonl-v4l2.c \
 	jsonl-vfork-f.c \
+	jsonl-wait4.c \
 	jsonl-xattr.c \
 	jsonl.h \
 	jsonl-ioctl.sh \

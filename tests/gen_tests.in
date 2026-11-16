@@ -600,6 +600,10 @@ jsonl-merged-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_dm	+jsonl-ioctl.sh -v -e trace=ioctl
+jsonl-merged-ioctl_ptp	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
+jsonl-merged-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
@@ -716,7 +720,9 @@ jsonl-merged-ustat	-e trace=ustat
 jsonl-merged-utime	-e trace=utime
 jsonl-merged-v4l2	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-v4l2-create_bufs	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
+jsonl-merged-v4l2-querycap	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
+jsonl-merged-wait4	-e signal=none -e trace=wait4
 jsonl-merged-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
@@ -761,6 +767,10 @@ jsonl-split-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_dm	+jsonl-ioctl.sh -v -e trace=ioctl
+jsonl-split-ioctl_ptp	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
+jsonl-split-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
@@ -877,7 +887,9 @@ jsonl-split-ustat	-e trace=ustat
 jsonl-split-utime	-e trace=utime
 jsonl-split-v4l2	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-v4l2-create_bufs	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
+jsonl-split-v4l2-querycap	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-split-vfork-f	-qq -f -e signal=none -e trace=chdir
+jsonl-split-wait4	-e signal=none -e trace=wait4
 jsonl-split-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 kcmp	-a22
 kcmp-y	-a22 -y -e trace=kcmp
