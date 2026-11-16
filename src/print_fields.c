@@ -697,23 +697,44 @@ timescale_to_unit(int scale)
 /*
  * Print the I/O priority value `ioprio' whose decoded form is `str';
  * the raw value is printed as a signed decimal number if `signed_raw',
- * as a hexadecimal number otherwise.
+ * as a hexadecimal number otherwise.  In structured output mode,
+ * the priority class `class' is decoded using `class_xlat'.
  */
 void
-tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str)
+tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
+	      const struct xlat *class_xlat, unsigned int class,
+	      unsigned int level)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
-		if (signed_raw)
-			PRINT_VAL_D((int) ioprio);
-		else
-			PRINT_VAL_X(ioprio);
-	}
+	if (structured_output) {
+		tprints_object_type("ioprio");
+		if (signed_raw) {
+			tprintf_object_field_string("raw", "%d",
+						    (int) ioprio);
+		} else {
+			tprintf_object_field_string("raw", "%#x", ioprio);
+		}
+		tprints_object_field_begin("class");
+		tprint_object_begin();
+		printxval_ex(class_xlat, class, "IOPRIO_CLASS_???",
+			     XLAT_STYLE_DEFAULT);
+		tprint_object_end();
+		tprint_object_field_end();
+		tprintf_object_field_string("level", "%u", level);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
+			if (signed_raw)
+				PRINT_VAL_D((int) ioprio);
+			else
+				PRINT_VAL_X(ioprio);
+		}
 
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			tprints_comment(str);
-		else
-			tprints_string(str);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (xlat_verbose(xlat_verbosity)
+			    == XLAT_STYLE_VERBOSE)
+				tprints_comment(str);
+			else
+				tprints_string(str);
+		}
 	}
 }
 

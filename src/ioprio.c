@@ -34,10 +34,17 @@ sprint_ioprio(unsigned int ioprio)
 	return outstr;
 }
 
+static void
+print_ioprio_value(unsigned int ioprio, bool signed_raw)
+{
+	tprint_ioprio(ioprio, signed_raw, sprint_ioprio(ioprio), ioprio_class,
+		      IOPRIO_PRIO_CLASS(ioprio), IOPRIO_PRIO_DATA(ioprio));
+}
+
 void
 print_ioprio(unsigned int ioprio)
 {
-	tprint_ioprio(ioprio, false, sprint_ioprio(ioprio));
+	print_ioprio_value(ioprio, false);
 }
 
 static void
@@ -91,7 +98,7 @@ SYS_FUNC(ioprio_set)
 
 	/* ioprio */
 	tprints_arg_next_name("ioprio");
-	tprint_ioprio(tcp->u_arg[2], true, sprint_ioprio(tcp->u_arg[2]));
+	print_ioprio_value(tcp->u_arg[2], true);
 
 	return RVAL_DECODED;
 }
