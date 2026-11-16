@@ -338,6 +338,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_netlink_diag_msg \
 	jsonl-nlattr_nlmsgerr \
 	jsonl-nlattr_rtgenmsg \
+	jsonl-nlattr_tc_stats \
 	jsonl-nlattr_tca_stab \
 	jsonl-nlattr_tcmsg \
 	jsonl-nlattr_unix_diag_msg \
@@ -1069,6 +1070,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_netlink_diag_msg.c \
 	jsonl-nlattr_nlmsgerr.c \
 	jsonl-nlattr_rtgenmsg.c \
+	jsonl-nlattr_tc_stats.c \
 	jsonl-nlattr_tca_stab.c \
 	jsonl-nlattr_tcmsg.c \
 	jsonl-nlattr_unix_diag_msg.c \
