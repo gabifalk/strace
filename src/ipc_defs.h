@@ -61,13 +61,19 @@
 
 # define PRINTCTL(flagset, arg, dflt)				\
 	do {							\
-		tprint_flags_begin();				\
 		if ((arg) & IPC_64) {				\
+			tprint_flags_groups_begin(arg);		\
+			tprint_flags_group_begin(IPC_64);	\
 			print_xlat(IPC_64);			\
-			tprint_flags_or();			\
+			tprint_flags_group_end();		\
+			tprint_flags_groups_next();		\
+			tprint_flags_group_begin((arg) & ~IPC_64); \
+			printxval((flagset), (arg) & ~IPC_64, dflt); \
+			tprint_flags_group_end();		\
+			tprint_flags_groups_end();		\
+		} else {					\
+			printxval((flagset), (arg), dflt);	\
 		}						\
-		printxval((flagset), (arg) & ~IPC_64, dflt);	\
-		tprint_flags_end();				\
 	} while (0)
 
 #endif /* !STRACE_IPC_DEFS_H */

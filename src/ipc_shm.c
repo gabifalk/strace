@@ -43,25 +43,30 @@ SYS_FUNC(shmget)
 	const unsigned int mask = SHM_HUGE_MASK << SHM_HUGE_SHIFT;
 	const unsigned int hugetlb_value = flags & mask;
 
-	flags &= ~mask;
-	tprint_flags_begin();
-	if (flags || !hugetlb_value)
-		printflags_in(shm_resource_flags, flags, NULL);
+	const unsigned int mode = tcp->u_arg[2] & 0777;
 
-	if (hugetlb_value) {
-		if (flags)
-			tprint_flags_or();
-		tprint_shift_begin();
-		PRINT_VAL_U(hugetlb_value >> SHM_HUGE_SHIFT);
-		tprint_shift();
-		print_xlat_u(SHM_HUGE_SHIFT);
-		tprint_shift_end();
+	flags &= ~mask;
+	tprint_flags_groups_begin((unsigned int) tcp->u_arg[2]);
+	if (flags) {
+		tprint_flags_group_begin(flags);
+		printflags_in(shm_resource_flags, flags, NULL);
+		tprint_flags_group_end();
+		tprint_flags_groups_next();
 	}
 
-	if (flags || hugetlb_value)
-		tprint_flags_or();
-	print_numeric_umode_t(tcp->u_arg[2] & 0777);
-	tprint_flags_end();
+	if (hugetlb_value) {
+		tprint_flags_shift_group_begin(hugetlb_value);
+		tprints_shift_value_xlat_u(hugetlb_value,
+					   hugetlb_value >> SHM_HUGE_SHIFT,
+					   SHM_HUGE_SHIFT, "SHM_HUGE_SHIFT");
+		tprint_flags_group_end();
+		tprint_flags_groups_next();
+	}
+
+	tprint_flags_mode_group_begin(mode);
+	print_numeric_umode_t(mode);
+	tprint_flags_group_end();
+	tprint_flags_groups_end();
 
 	return RVAL_DECODED;
 }

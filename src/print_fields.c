@@ -847,6 +847,18 @@ tprint_flags_group_begin(unsigned long long raw)
 }
 
 void
+tprint_flags_shift_group_begin(unsigned long long raw)
+{
+	tprint_flags_group_begin(raw);
+}
+
+void
+tprint_flags_mode_group_begin(unsigned long long raw)
+{
+	tprint_flags_group_begin(raw);
+}
+
+void
 tprint_flags_group_end(void)
 {
 	if (structured_output) {
@@ -971,6 +983,21 @@ tprints_shift_value(unsigned long long raw, unsigned long long val,
 		PRINT_VAL_U(val);
 		tprint_shift();
 		tprints_string(shift);
+		tprint_shift_end();
+	}
+}
+
+void
+tprints_shift_value_xlat_u(unsigned long long raw, unsigned long long val,
+			   unsigned int amount, const char *shift)
+{
+	if (structured_output) {
+		tprints_shift_value(raw, val, shift);
+	} else {
+		tprint_shift_begin();
+		PRINT_VAL_U(val);
+		tprint_shift();
+		print_xlat_ex(amount, shift, XLAT_STYLE_FMT_U);
 		tprint_shift_end();
 	}
 }

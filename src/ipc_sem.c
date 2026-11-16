@@ -114,10 +114,19 @@ SYS_FUNC(semget)
 
 	/* semflg */
 	tprints_arg_next_name("semflg");
-	tprint_flags_begin();
-	if (printflags_in(resource_flags, tcp->u_arg[2] & ~0777, NULL) != 0)
-		tprint_flags_or();
-	print_numeric_umode_t(tcp->u_arg[2] & 0777);
-	tprint_flags_end();
+	const unsigned int flags = tcp->u_arg[2] & ~0777;
+	const unsigned int mode = tcp->u_arg[2] & 0777;
+
+	tprint_flags_groups_begin((unsigned int) tcp->u_arg[2]);
+	if (flags) {
+		tprint_flags_group_begin(flags);
+		printflags_in(resource_flags, flags, NULL);
+		tprint_flags_group_end();
+		tprint_flags_groups_next();
+	}
+	tprint_flags_mode_group_begin(mode);
+	print_numeric_umode_t(mode);
+	tprint_flags_group_end();
+	tprint_flags_groups_end();
 	return RVAL_DECODED;
 }

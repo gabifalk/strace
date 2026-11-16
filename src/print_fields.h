@@ -296,6 +296,8 @@ extern void tprint_flags_groups_begin(unsigned long long raw);
 extern void tprint_flags_groups_next(void);
 extern void tprint_flags_groups_end(void);
 extern void tprint_flags_group_begin(unsigned long long raw);
+extern void tprint_flags_shift_group_begin(unsigned long long raw);
+extern void tprint_flags_mode_group_begin(unsigned long long raw);
 extern void tprint_flags_group_end(void);
 extern void tprint_flags_value_begin(unsigned long long raw);
 extern void tprint_flags_value_or(void);
@@ -304,6 +306,9 @@ extern void tprints_flags_value_const(unsigned long long val,
 				      const char *sym);
 extern void tprints_shift_value(unsigned long long raw, unsigned long long val,
 				const char *shift);
+extern void tprints_shift_value_xlat_u(unsigned long long raw,
+				      unsigned long long val,
+				      unsigned int amount, const char *shift);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_secontext(const char *ctx, unsigned int ctx_len,
 			     const char *expected, unsigned int expected_len,
