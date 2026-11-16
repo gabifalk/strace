@@ -330,13 +330,23 @@ kd_kbd_entry(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 		tprint_struct_next();
 		PRINT_FIELD_U(val, kb_index);
 
-		if (get)
+		if (get) {
+			tprint_struct_mark_split();
+			tprint_struct_entering_end();
 			return 0;
-	} else if (syserror(tcp)) {
-		goto out;
+		}
+
+		tprint_struct_next();
+	} else {
+		if (syserror(tcp)) {
+			tprint_struct_exiting_abandon();
+			return RVAL_IOCTL_DECODED;
+		}
+
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
 	}
 
-	tprint_struct_next();
 	if (umove(tcp, arg + offsetof(struct kbentry, kb_value),
 			 &val.kb_value)) {
 		tprints_field_name("kb_value");
@@ -383,18 +393,27 @@ kd_kbd_str_entry(struct tcb *const tcp, const kernel_ulong_t arg,
 		PRINT_FIELD_XVAL(val, kb_func, kd_key_fn_key_vals,
 				 "KVAL(K_???"")");
 
-		if (get)
+		if (get) {
+			tprint_struct_mark_split();
+			tprint_struct_entering_end();
 			return 0;
-	} else if (syserror(tcp)) {
-		goto out;
+		}
+
+		tprint_struct_next();
+	} else {
+		if (syserror(tcp)) {
+			tprint_struct_exiting_abandon();
+			return RVAL_IOCTL_DECODED;
+		}
+
+		tprint_struct_exiting_begin(2, "argp");
+		tprint_struct_exiting_next();
 	}
 
-	tprint_struct_next();
 	tprints_field_name("kb_string");
 	printstr_ex(tcp, arg + offsetof(struct kbsentry, kb_string),
 		    sizeof(val.kb_string), QUOTE_0_TERMINATED);
 
-out:
 	tprint_struct_end();
 
 	return RVAL_IOCTL_DECODED;
@@ -508,6 +527,8 @@ kd_keycode(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 
 		if (get) {
 			set_tcb_priv_ulong(tcp, val.keycode);
+			tprint_struct_mark_split();
+			tprint_struct_entering_end();
 			return 0;
 		}
 
@@ -516,16 +537,16 @@ kd_keycode(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 
 	/* exiting */
 	if (syserror(tcp) ||
-	    umove(tcp, arg + offsetof(struct kbkeycode, keycode), &val.keycode))
+	    umove(tcp, arg + offsetof(struct kbkeycode, keycode), &val.keycode)
+	    || val.keycode == (unsigned int) get_tcb_priv_ulong(tcp))
 	{
-		tprint_struct_end();
+		tprint_struct_exiting_abandon();
 		return RVAL_IOCTL_DECODED;
 	}
 
-	if (val.keycode != (unsigned int) get_tcb_priv_ulong(tcp)) {
-		tprint_value_changed();
-		PRINT_VAL_X(val.keycode);
-	}
+	tprint_struct_exiting_begin(2, "argp");
+	tprints_field_exiting_name("keycode");
+	PRINT_VAL_X(val.keycode);
 
 end:
 	tprint_struct_end();
