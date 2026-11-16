@@ -293,7 +293,7 @@ extern void tprint_sockaddr_in(const char *addr, unsigned int port,
 			       const void *data);
 extern void tprint_sockaddr_in6(const char *addr, unsigned int port,
 				unsigned int flowinfo, bool has_scope_id,
-				unsigned int scope_id,
+				unsigned int scope_id, bool scope_id_ifindex,
 				void (*print_struct_fields)(const void *),
 				const void *data);
 extern void tprint_sockaddr_nl(unsigned int pad, unsigned int pid,

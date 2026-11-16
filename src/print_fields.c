@@ -1328,14 +1328,20 @@ tprint_sockaddr_in(const char *addr, unsigned int port,
 void
 tprint_sockaddr_in6(const char *addr, unsigned int port,
 		    unsigned int flowinfo, bool has_scope_id,
-		    unsigned int scope_id,
+		    unsigned int scope_id, bool scope_id_ifindex,
 		    void (*print_struct_fields)(const void *), const void *data)
 {
 	if (structured_output) {
 		tprints_object_field_string("addr", addr);
 		tprints_object_field_hton_u("port", port, 2);
 		tprints_object_field_hton_u("flowinfo", flowinfo, 4);
-		if (has_scope_id) {
+		if (has_scope_id && scope_id_ifindex) {
+			tprints_object_field_begin("scope_id");
+			tprint_object_begin();
+			print_ifindex(scope_id);
+			tprint_object_end();
+			tprint_object_field_end();
+		} else if (has_scope_id) {
 			tprintf_object_field_string("scope_id", "%u",
 						    scope_id);
 		}

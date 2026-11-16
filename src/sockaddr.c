@@ -289,6 +289,13 @@ print_sockaddr_in6(struct tcb *tcp, const void *const buf, const int addrlen)
 		print_sockaddr_data_in6, tcp, buf, addrlen
 	};
 	const bool has_scope_id = addrlen > (int) SIN6_MIN_LEN;
+#if defined IN6_IS_ADDR_LINKLOCAL && defined IN6_IS_ADDR_MC_LINKLOCAL
+	const bool scope_id_ifindex =
+		IN6_IS_ADDR_LINKLOCAL(&sa_in6->sin6_addr)
+		|| IN6_IS_ADDR_MC_LINKLOCAL(&sa_in6->sin6_addr);
+#else
+	const bool scope_id_ifindex = false;
+#endif
 	char addr[INET6_ADDRSTRLEN];
 
 	tprint_sockaddr_in6(inet_ntop(AF_INET6, &sa_in6->sin6_addr, addr,
@@ -296,6 +303,7 @@ print_sockaddr_in6(struct tcb *tcp, const void *const buf, const int addrlen)
 			    ntohs(sa_in6->sin6_port),
 			    ntohl(sa_in6->sin6_flowinfo), has_scope_id,
 			    has_scope_id ? sa_in6->sin6_scope_id : 0,
+			    scope_id_ifindex,
 			    print_sockaddr_struct_fields, &sd);
 }
 
