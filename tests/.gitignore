@@ -608,6 +608,7 @@ jsonl-mmap
 jsonl-mount
 jsonl-move_pages
 jsonl-mseal
+jsonl-name_to_handle_at
 jsonl-net-packet_mreq
 jsonl-netlink_crypto
 jsonl-netlink_generic

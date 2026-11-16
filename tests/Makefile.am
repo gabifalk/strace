@@ -351,6 +351,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-mount \
 	jsonl-move_pages \
 	jsonl-mseal \
+	jsonl-name_to_handle_at \
 	jsonl-net-packet_mreq \
 	jsonl-netlink_crypto \
 	jsonl-netlink_generic \
@@ -1179,6 +1180,7 @@ EXTRA_DIST = \
 	jsonl-mount.c \
 	jsonl-move_pages.c \
 	jsonl-mseal.c \
+	jsonl-name_to_handle_at.c \
 	jsonl-net-packet_mreq.c \
 	jsonl-netlink_crypto.c \
 	jsonl-netlink_generic.c \
