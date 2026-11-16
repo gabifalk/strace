@@ -334,6 +334,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_dcbmsg \
 	jsonl-nlattr_ifaddrlblmsg \
 	jsonl-nlattr_ifla_port \
+	jsonl-nlattr_ifla_protinfo \
 	jsonl-nlattr_ifla_proto_down_reason \
 	jsonl-nlattr_ifla_xdp \
 	jsonl-nlattr_ndmsg \
@@ -1069,6 +1070,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_dcbmsg.c \
 	jsonl-nlattr_ifaddrlblmsg.c \
 	jsonl-nlattr_ifla_port.c \
+	jsonl-nlattr_ifla_protinfo.c \
 	jsonl-nlattr_ifla_proto_down_reason.c \
 	jsonl-nlattr_ifla_xdp.c \
 	jsonl-nlattr_ndmsg.c \

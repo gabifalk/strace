@@ -591,6 +591,7 @@ jsonl-nlattr_crypto_user_alg
 jsonl-nlattr_dcbmsg
 jsonl-nlattr_ifaddrlblmsg
 jsonl-nlattr_ifla_port
+jsonl-nlattr_ifla_protinfo
 jsonl-nlattr_ifla_proto_down_reason
 jsonl-nlattr_ifla_xdp
 jsonl-nlattr_ndmsg
