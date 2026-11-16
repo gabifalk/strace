@@ -654,6 +654,7 @@ jsonl-merged-prctl-tsc	-e trace=prctl
 jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
+jsonl-merged-setgroups	-s2 -e trace=setgroups
 jsonl-merged-setxattr	-e trace=setxattr
 jsonl-merged-sigchld	-e trace=none
 jsonl-merged-signal	-e trace=none
@@ -762,6 +763,7 @@ jsonl-split-prctl-tsc	-e trace=prctl
 jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
+jsonl-split-setgroups	-s2 -e trace=setgroups
 jsonl-split-setxattr	-e trace=setxattr
 jsonl-split-sigchld	-e trace=none
 jsonl-split-signal	-e trace=none

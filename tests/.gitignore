@@ -635,6 +635,7 @@ jsonl-prctl-tsc
 jsonl-printsignal
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
+jsonl-setgroups
 jsonl-setxattr
 jsonl-sigchld
 jsonl-signal
