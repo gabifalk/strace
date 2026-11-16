@@ -597,6 +597,7 @@ jsonl-nlattr_ifla_protinfo
 jsonl-nlattr_ifla_proto_down_reason
 jsonl-nlattr_ifla_vfinfo
 jsonl-nlattr_ifla_xdp
+jsonl-nlattr_mdba_router_port
 jsonl-nlattr_ndmsg
 jsonl-nlattr_netconfmsg
 jsonl-nlattr_netlink_diag_msg
