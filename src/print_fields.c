@@ -2093,10 +2093,18 @@ tprint_err(long long err, bool negated, const char *name)
 void
 tprint_ifindex(unsigned int ifindex, const char *name)
 {
-	char *str = name ? xasprintf("if_nametoindex(\"%s\")", name) : NULL;
+	if (structured_output) {
+		tprints_object_type("ifindex");
+		tprintf_object_field_string("raw", "%u", ifindex);
+		if (name)
+			tprints_object_field_string("ifname", name);
+	} else {
+		char *str = name ? xasprintf("if_nametoindex(\"%s\")", name)
+				 : NULL;
 
-	print_xlat_ex(ifindex, str, XLAT_STYLE_FMT_U);
-	free(str);
+		print_xlat_ex(ifindex, str, XLAT_STYLE_FMT_U);
+		free(str);
+	}
 }
 
 void
