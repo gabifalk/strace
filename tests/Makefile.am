@@ -332,6 +332,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_br_port_msg \
 	jsonl-nlattr_crypto_user_alg \
 	jsonl-nlattr_dcbmsg \
+	jsonl-nlattr_ifaddrlblmsg \
 	jsonl-nlattr_ndmsg \
 	jsonl-nlattr_netconfmsg \
 	jsonl-nlattr_nlmsgerr \
@@ -1058,6 +1059,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_br_port_msg.c \
 	jsonl-nlattr_crypto_user_alg.c \
 	jsonl-nlattr_dcbmsg.c \
+	jsonl-nlattr_ifaddrlblmsg.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-nlattr_netconfmsg.c \
 	jsonl-nlattr_nlmsgerr.c \
