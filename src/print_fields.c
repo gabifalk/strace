@@ -973,6 +973,13 @@ tprint_flags_value_end(void)
 	}
 }
 
+void
+tprint_flags_value_or_flags(const struct xlat *xlat, uint64_t flags)
+{
+	tprint_flags_value_or();
+	printflags64_in(xlat, flags, NULL);
+}
+
 bool
 tprint_xlat_flags_value_begin(unsigned long long raw, enum xlat_style style)
 {

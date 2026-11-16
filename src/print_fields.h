@@ -57,6 +57,8 @@ extern void tprint_ioctl_op_end(bool unknown, unsigned int dir,
 				const struct xlat *dir_xlat);
 extern void tprint_ioctl_cmd_xval(const struct xlat *xlat,
 				  unsigned long long val, const char *dflt);
+extern void tprint_flags_value_or_flags(const struct xlat *xlat,
+					uint64_t flags);
 extern void tprint_net_xval(const void *raw, unsigned int size,
 			    const struct xlat *xlat, unsigned long long val,
 			    const char *dflt);
