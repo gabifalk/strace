@@ -43,17 +43,24 @@ init_ifstats(struct nlmsghdr *const nlh, const unsigned int msg_len)
 	SET_STRUCT(struct if_stats_msg, msg,
 		.family = AF_UNIX,
 		.ifindex = ifindex_lo(),
+		.filter_mask = 0x22,
 	);
 }
 
 static void
 print_ifstats(const unsigned int msg_len)
 {
+	static const struct strval32 filter_mask[] = {
+		{ 1 << IFLA_STATS_LINK_64, "1<<IFLA_STATS_LINK_64" },
+		{ 1 << IFLA_STATS_AF_SPEC, "1<<IFLA_STATS_AF_SPEC" },
+	};
+
 	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETSTATS));
 	jsonl_struct_open();
 	jsonl_field_const("family", true, AF_UNIX, "AF_UNIX", NULL);
 	jsonl_field_ifindex("ifindex", false, ifindex_lo(), "lo");
-	jsonl_field_flags("filter_mask", false, 0, NULL, 0, NULL);
+	jsonl_field_flags("filter_mask", false, 0x22, filter_mask,
+			  ARRAY_SIZE(filter_mask), NULL);
 	jsonl_struct_close();
 	printf("}");
 }

@@ -16,6 +16,7 @@
 # include "jsonl_netlink.h"
 
 # include <arpa/inet.h>
+# include <netinet/tcp.h>
 # include <linux/inet_diag.h>
 # include <linux/sock_diag.h>
 
@@ -36,7 +37,9 @@ init_inet_diag_req_v2(struct nlmsghdr *const nlh, const unsigned int msg_len)
 	struct inet_diag_req_v2 *const req = NLMSG_DATA(nlh);
 	SET_STRUCT(struct inet_diag_req_v2, req,
 		.sdiag_family = AF_INET,
+		.idiag_ext = 1 << (INET_DIAG_CONG - 1),
 		.sdiag_protocol = IPPROTO_TCP,
+		.idiag_states = 1 << TCP_CLOSE,
 		.id.idiag_if = ifindex_lo()
 	);
 
@@ -60,8 +63,10 @@ print_inet_diag_req_v2(const unsigned int msg_len)
 	jsonl_struct_open();
 	jsonl_field_const("sdiag_family", true, ARG_STR(AF_INET), NULL);
 	jsonl_field_const("sdiag_protocol", false, ARG_STR(IPPROTO_TCP), NULL);
-	jsonl_field_flags("idiag_ext", false, 0, NULL, 0, NULL);
-	jsonl_field_flags("idiag_states", false, 0, NULL, 0, NULL);
+	jsonl_field_flag("idiag_ext", false, 1 << (INET_DIAG_CONG - 1),
+			 "1<<(INET_DIAG_CONG-1)");
+	jsonl_field_flag("idiag_states", false, 1 << TCP_CLOSE,
+			 "1<<TCP_CLOSE");
 	jsonl_field_inet_diag_sockid("id", false, address);
 	jsonl_struct_close();
 	printf("}");

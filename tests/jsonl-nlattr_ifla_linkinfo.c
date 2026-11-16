@@ -321,11 +321,23 @@ pr_bridge_id(const void *p, unsigned int sz)
 }
 
 static void
-pr_zero_boolopt(const void *p, unsigned int sz)
+pr_boolopt(const void *p, unsigned int sz)
 {
+	static const struct strval32 opts[] = {
+		{ 1 << 0, "1<<BR_BOOLOPT_NO_LL_LEARN" },
+		{ 1 << 1, "1<<BR_BOOLOPT_MCAST_VLAN_SNOOPING" },
+		{ 1 << 2, "1<<BR_BOOLOPT_MST_ENABLE" },
+		{ 1 << 3, "1<<BR_BOOLOPT_MDB_OFFLOAD_FAIL_NOTIFICATION" },
+		{ 1 << 4, "1<<BR_BOOLOPT_FDB_LOCAL_VLAN_0" },
+	};
+	struct br_boolopt_multi opt;
+
+	memcpy(&opt, p, sizeof(opt));
 	jsonl_struct_open();
-	jsonl_field_flags("optval", true, 0, NULL, 0, NULL);
-	jsonl_field_flags("optmask", false, 0, NULL, 0, NULL);
+	jsonl_field_flags("optval", true, opt.optval,
+			  opts, ARRAY_SIZE(opts), "1<<BR_BOOLOPT_???");
+	jsonl_field_flags("optmask", false, opt.optmask,
+			  opts, ARRAY_SIZE(opts), "1<<BR_BOOLOPT_???");
 	jsonl_struct_close();
 }
 
@@ -844,11 +856,20 @@ main(int argc, char *argv[])
 			   { 9, pr_bridge_id });
 	}
 
-	static const struct br_boolopt_multi zero_boolopt;
-	CHECK_DATA("bridge", 46, "IFLA_BR_MULTI_BOOLOPT", NULL, zero_boolopt,
-		   { 7, pr_bytes },
-		   { 9, pr_zero_boolopt },
-		   { 9, pr_zero_boolopt });
+	static const struct br_boolopt_multi boolopts[] = {
+		{ .optval = 0, .optmask = 0 },
+		{ .optval = 1, .optmask = 2 },
+		{ .optval = 0xdeadfae0, .optmask = 0xbadc0de0 },
+		{ .optval = 0xfacebeef, .optmask = 0xfeedcafe },
+	};
+
+	for (size_t k = 0; k < ARRAY_SIZE(boolopts); k++) {
+		CHECK_DATA("bridge", 46, "IFLA_BR_MULTI_BOOLOPT", NULL,
+			   boolopts[k],
+			   { 7, pr_bytes },
+			   { 9, pr_boolopt },
+			   { 9, pr_boolopt });
+	}
 
 	/* IFLA_BR_MCAST_QUERIER_STATE */
 	const struct {

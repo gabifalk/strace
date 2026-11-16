@@ -26,6 +26,8 @@ static const int max_string_size = 256;
 static const int max_blob_size = 300;
 static const int huge_blob_size = 1024 * 1024 + 1;
 static const char *fd_path;
+/* When set, an aux argument of AT_FDCWD is a directory file descriptor. */
+static const char *cwd;
 static const void *efault;
 static const char *empty;
 static char *fname;
@@ -155,7 +157,12 @@ test_fsconfig(const unsigned int fs_fd, const unsigned int cmd,
 	printf(", ");
 
 	jsonl_arg_open(4, "aux", side);
-	if (aux_is_fd)
+	if (cwd && (int) aux == AT_FDCWD) {
+		jsonl_const_decimal(AT_FDCWD, "AT_FDCWD", NULL);
+		printf(", \"fd_info\": {\"type\": \"path\", \"path\": ");
+		jsonl_bytes(cwd);
+		printf("}");
+	} else if (aux_is_fd)
 		jsonl_fs_fd(aux);
 	else
 		jsonl_decimal((int) aux);
@@ -229,10 +236,12 @@ test_fsconfig_set_binary(const unsigned int cmd, const char *cmd_str)
 static void
 test_fsconfig_set_path(const unsigned int cmd, const char *cmd_str)
 {
+	cwd = get_fd_path(get_dir_fd("."));
+
 	/* The path is not NUL-terminated. */
 	fill_memory_ex(fname, PATH_MAX, '0', 10);
 	test_fsconfig(fd, cmd, cmd_str, v_string(key), v_path(fname),
-		      -1, true);
+		      AT_FDCWD, true);
 
 	fname[PATH_MAX - 1] = '\0';
 	test_fsconfig(fd, cmd, cmd_str, v_string(key), v_path(fname),
@@ -240,11 +249,12 @@ test_fsconfig_set_path(const unsigned int cmd, const char *cmd_str)
 	test_fsconfig(-100, cmd, cmd_str, v_string(key), v_path(empty),
 		      fd, true);
 	test_fsconfig(-1, cmd, cmd_str, v_addr(NULL), v_path(fd_path),
-		      fd, true);
+		      AT_FDCWD, true);
 	test_fsconfig(-1, cmd, cmd_str, v_addr(efault), v_addr(efault + 1),
 		      fd, true);
 	test_fsconfig(-100, cmd, cmd_str, v_string(key), v_path(fname),
 		      -1, true);
+	cwd = NULL;
 }
 
 static void
