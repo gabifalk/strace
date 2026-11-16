@@ -445,17 +445,8 @@ print_sysret_retval(kernel_ulong_t ret)
 static void
 print_sysret_errno(unsigned long u_error, const char *err_long)
 {
-	const char *err_short = err_name(u_error);
-
-	if (err_short) {
-		tprints_sysret_next("error");
-		tprints_string(err_short);
-		tprints_sysret_string("strerror",
-				      err_long ?: strerror(u_error));
-	} else {
-		tprints_sysret_next("strerror");
-		tprintf_string("(errno %lu)", u_error);
-	}
+	tprint_sysret_errno(u_error, err_name(u_error),
+			    err_long ?: strerror(u_error));
 }
 
 static long get_regs(struct tcb *);

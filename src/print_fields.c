@@ -470,3 +470,16 @@ void
 tprint_sysret_end(void)
 {
 }
+
+void
+tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
+{
+	if (sym) {
+		tprints_sysret_next("error");
+		STRACE_PRINTS(sym);
+		tprints_sysret_string("strerror", str);
+	} else {
+		tprints_sysret_next("strerror");
+		STRACE_PRINTF("(errno %lu)", u_error);
+	}
+}
