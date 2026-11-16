@@ -107,16 +107,16 @@ scsi_ioctl(struct tcb *const tcp, const unsigned int code,
 		tprints_arg_next_name("argp");
 		if (!umove_or_printaddr(tcp, arg, &val)) {
 			tprint_indirect_begin();
-			tprint_flags_begin();
+			tprint_flags_value_begin(val);
 			if (val & SG_SCSI_RESET_NO_ESCALATE) {
 				printxval(sg_scsi_reset,
 					  SG_SCSI_RESET_NO_ESCALATE, 0);
-				tprint_flags_or();
+				tprint_flags_value_or();
 			}
 			printxval(sg_scsi_reset,
 				  val & ~SG_SCSI_RESET_NO_ESCALATE,
 				  "SG_SCSI_RESET_???");
-			tprint_flags_end();
+			tprint_flags_value_end();
 			tprint_indirect_end();
 
 		}
