@@ -592,6 +592,7 @@ jsonl-nlattr_dcbmsg
 jsonl-nlattr_ifaddrlblmsg
 jsonl-nlattr_ndmsg
 jsonl-nlattr_netconfmsg
+jsonl-nlattr_netlink_diag_msg
 jsonl-nlattr_nlmsgerr
 jsonl-nlattr_rtgenmsg
 jsonl-nlattr_unix_diag_msg
