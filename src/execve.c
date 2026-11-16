@@ -41,8 +41,7 @@ printargv(struct tcb *const tcp, kernel_ulong_t addr)
 				return;
 			}
 			tprint_array_next();
-			tprint_more_data_follows();
-			printaddr_comment(addr);
+			tprint_array_element_fetch_failed(addr);
 			break;
 		}
 
