@@ -418,6 +418,15 @@ tprint_fd_info_pidfd(int pid)
 }
 
 void
+tprints_fd_info_signalfd(const char *sigmask)
+{
+	tprint_associated_info_begin();
+	STRACE_PRINTS("signalfd:");
+	STRACE_PRINTS(sigmask);
+	tprint_associated_info_end();
+}
+
+void
 tprints_assoc_type_string(const char *type, const char *str, size_t len,
 			  bool deleted)
 {

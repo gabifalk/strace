@@ -956,9 +956,7 @@ print_fdinfo_sigmask(const char *value, void *data)
 		sigmask[(sigset_size - 1 - i) ^ pos_xor_mask] = byte;
 	}
 
-	tprint_associated_info_begin();
-	tprints_string(sprintsigmask_n("signalfd:", sigmask, sigset_size));
-	tprint_associated_info_end();
+	tprints_fd_info_signalfd(sprintsigmask_n("", sigmask, sigset_size));
 
 	free(sigmask);
 	return true;
