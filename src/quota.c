@@ -448,23 +448,13 @@ print_qcmd(const uint32_t qcmd)
 	const uint32_t cmd = QCMD_CMD(qcmd);
 	const uint32_t type = QCMD_TYPE(qcmd);
 
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_U(qcmd);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+	if (!tprint_qcmd_begin(qcmd))
 		return;
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
-	tprints_fn_begin("QCMD");
 	printxvals_ex(cmd, "Q_???", XLAT_STYLE_ABBREV, quotacmds, NULL);
-	tprint_fn_next();
+	tprint_qcmd_next();
 	printxvals_ex(type, "???QUOTA", XLAT_STYLE_ABBREV, quotatypes, NULL);
-	tprint_fn_end();
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+	tprint_qcmd_end();
 }
 
 SYS_FUNC(quotactl)

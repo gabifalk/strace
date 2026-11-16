@@ -793,6 +793,41 @@ tprint_clockid_aux(int clockid, unsigned int index)
 }
 
 /*
+ * Start printing a quotactl command; return false if its parts
+ * are not to be printed.
+ */
+bool
+tprint_qcmd_begin(unsigned int qcmd)
+{
+	const enum xlat_style style = xlat_verbose(xlat_verbosity);
+
+	if (style != XLAT_STYLE_ABBREV)
+		PRINT_VAL_U(qcmd);
+	if (style != XLAT_STYLE_RAW) {
+		if (style == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+		tprints_fn_begin("QCMD");
+	}
+
+	return style != XLAT_STYLE_RAW;
+}
+
+void
+tprint_qcmd_next(void)
+{
+	tprint_fn_next();
+}
+
+void
+tprint_qcmd_end(void)
+{
+	tprint_fn_end();
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_end();
+}
+
+/*
  * Print the I/O priority value `ioprio' whose decoded form is `str';
  * the raw value is printed as a signed decimal number if `signed_raw',
  * as a hexadecimal number otherwise.  In structured output mode,
