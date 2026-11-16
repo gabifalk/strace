@@ -802,6 +802,18 @@ SYS_FUNC(pidfd_send_signal)
 	return RVAL_DECODED;
 }
 
+static void
+print_rt_sigtimedwait_result(struct tcb *const tcp,
+			     const unsigned long long val)
+{
+	const char *const name = signame(val);
+
+	tprint_sysret_result_begin(val);
+	if (name)
+		tprints_sysret_result_sym(name);
+	tprint_sysret_result_end();
+}
+
 static int
 do_rt_sigtimedwait(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 		   const save_obj_by_addr_fn save_ts)
@@ -848,8 +860,8 @@ do_rt_sigtimedwait(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 		}
 
 		if (!syserror(tcp) && tcp->u_rval) {
-			tcp->auxstr = signame(tcp->u_rval);
-			return RVAL_STR;
+			tcp->rval_result_printer = print_rt_sigtimedwait_result;
+			return RVAL_RESULT;
 		}
 	}
 	return 0;

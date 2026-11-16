@@ -2794,6 +2794,12 @@ tprints_sysret_result_note(const char *note)
 }
 
 void
+tprints_sysret_result_sym(const char *sym)
+{
+	tprints_sysret_result_note(sym);
+}
+
+void
 tprint_sysret_result_end(void)
 {
 	if (sysret_result_open)

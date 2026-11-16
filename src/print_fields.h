@@ -319,6 +319,7 @@ extern void tprints_sysret_xlat_sym(const char *sym);
 extern void tprint_sysret_result_begin(unsigned long long val);
 extern void tprints_sysret_result_field(const char *name, bool labeled);
 extern void tprints_sysret_result_note(const char *note);
+extern void tprints_sysret_result_sym(const char *sym);
 extern void tprint_sysret_result_end(void);
 extern void tprint_fd_num(int fd);
 extern void tprint_port_range(unsigned int ports);
