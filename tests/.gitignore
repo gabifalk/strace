@@ -564,6 +564,7 @@ jsonl-ip_mreq
 jsonl-keyctl
 jsonl-killed
 jsonl-landlock_create_ruleset
+jsonl-lsm_set_self_attr
 jsonl-memfd_secret
 jsonl-mincore
 jsonl-mlockall

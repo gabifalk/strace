@@ -307,6 +307,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-keyctl \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
+	jsonl-lsm_set_self_attr \
 	jsonl-memfd_secret \
 	jsonl-mincore \
 	jsonl-mlockall \
@@ -1063,6 +1064,7 @@ EXTRA_DIST = \
 	jsonl-keyctl.c \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
+	jsonl-lsm_set_self_attr.c \
 	jsonl-memfd_secret.c \
 	jsonl-mincore.c \
 	jsonl-mlockall.c \
