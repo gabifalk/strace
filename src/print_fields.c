@@ -1337,6 +1337,27 @@ void
 tprints_arg_mmsgvec_namelen_entering(unsigned int index, const char *name,
 				     const int *namelen, unsigned int count)
 {
+	if (!structured_output || !count)
+		return;
+
+	tprints_arg_next_name_at(index, name);
+	tprint_array_begin();
+	for (unsigned int i = 0; i < count; ++i) {
+		if (i)
+			tprint_array_next();
+		tprint_object_begin();
+		tprint_struct_begin();
+		tprint_struct_mark_split();
+		tprints_field_name("msg_hdr");
+		tprint_struct_begin();
+		tprint_struct_mark_split();
+		tprints_field_name("msg_namelen");
+		PRINT_VAL_D(namelen[i]);
+		tprint_struct_end();
+		tprint_struct_end();
+		tprint_object_end();
+	}
+	tprint_array_end();
 }
 
 void
