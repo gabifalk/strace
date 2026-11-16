@@ -517,6 +517,19 @@ tprint_char(unsigned char c)
 }
 
 void
+tprint_extra_data_begin(unsigned int offset, unsigned int size)
+{
+	tprintf_string("/* bytes %u..%u */ ", offset, offset + size - 1);
+}
+
+void
+tprint_extra_data_end(bool truncated)
+{
+	if (truncated)
+		tprint_more_data_follows();
+}
+
+void
 tprint_addr(unsigned long long addr)
 {
 	PRINT_VAL_ADDR(addr);

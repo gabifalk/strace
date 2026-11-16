@@ -219,6 +219,8 @@ extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_char(unsigned char c);
+extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
+extern void tprint_extra_data_end(bool truncated);
 extern void tprint_syscall_duration(long long sec, long nsec);
 extern void tprint_sysret_end(void);
 extern void tprint_sysret_errno(unsigned long u_error, const char *sym,

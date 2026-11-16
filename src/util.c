@@ -1650,12 +1650,9 @@ print_nonzero_bytes(struct tcb *const tcp,
 		ret = false;
 	} else {
 		prefix_fun();
-		tprintf_string("/* bytes %u..%u */ ", start_offs, total_len - 1);
-
+		tprint_extra_data_begin(start_offs, len);
 		print_quoted_string(str, size, style);
-
-		if (size < len)
-			tprint_more_data_follows();
+		tprint_extra_data_end(size < len);
 	}
 
 	free(str);
