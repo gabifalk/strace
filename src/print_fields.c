@@ -2863,14 +2863,19 @@ tprint_extra_data_end(bool truncated)
 void
 tprint_extra_data_field_begin(unsigned int offset, unsigned int size)
 {
-	tprints_field_name("extra_data");
-	tprints_object_type("bytes");
+	if (structured_output)
+		tprint_extra_data_begin(offset, size);
+	else
+		tprints_field_name("extra_data");
 }
 
 void
 tprint_extra_data_field_end(unsigned int offset, unsigned int size)
 {
-	tprintf_comment("bytes %u..%u", offset, offset + size - 1);
+	if (structured_output)
+		tprint_extra_data_end(false);
+	else
+		tprintf_comment("bytes %u..%u", offset, offset + size - 1);
 }
 
 void
