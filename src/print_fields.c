@@ -2709,9 +2709,12 @@ tprint_sysret_xlat_val(unsigned long long val, bool hex,
 }
 
 void
-tprint_sysret_flags_val(unsigned long long val)
+tprint_sysret_flags_val(unsigned long long val, const struct xlat *xlat)
 {
-	PRINT_VAL_X(val);
+	if (structured_output)
+		printflags_ex(val, NULL, XLAT_STYLE_DEFAULT, xlat, NULL);
+	else
+		PRINT_VAL_X(val);
 }
 
 void

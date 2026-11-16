@@ -975,7 +975,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 					       (sys_res & RVAL_MASK)
 					       == RVAL_HEX, tcp->rval_xlat);
 		} else if (sys_res & RVAL_FLAGS) {
-			tprint_sysret_flags_val(sysret_xlat_val(tcp));
+			tprint_sysret_flags_val(sysret_xlat_val(tcp),
+						tcp->rval_xlat);
 		} else {
 			switch (sys_res & RVAL_MASK) {
 			case RVAL_HEX:
