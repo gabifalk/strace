@@ -36,7 +36,8 @@ extern void tprints_xlat_const(uint64_t val, enum xlat_style style,
 extern void tprints_xlat_flags_sym(const char *sym, uint64_t val,
 				   uint64_t flags, unsigned int n,
 				   enum xlat_style style);
-extern void tprint_sysret_xlat_val(unsigned long long val, bool hex);
+extern void tprint_sysret_xlat_val(unsigned long long val, bool hex,
+				   const struct xlat *xlat);
 extern bool tprint_xlat_flags_value_begin(unsigned long long raw);
 extern void tprint_xlat_flags_value_end(void);
 extern void tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,

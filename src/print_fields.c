@@ -2693,18 +2693,25 @@ tprint_sigmask_member(unsigned int sig, const char *name)
 }
 
 void
-tprint_sysret_xlat_val(unsigned long long val, bool hex)
+tprint_sysret_xlat_val(unsigned long long val, bool hex,
+		       const struct xlat *xlat)
 {
-	if (hex)
-		PRINT_VAL_X(val);
-	else
-		PRINT_VAL_U(val);
+	if (structured_output) {
+		printxvals_ex(val, NULL,
+			      hex ? XLAT_STYLE_FMT_X : XLAT_STYLE_FMT_U,
+			      xlat, NULL);
+	} else {
+		if (hex)
+			PRINT_VAL_X(val);
+		else
+			PRINT_VAL_U(val);
+	}
 }
 
 void
 tprints_sysret_xlat_sym(const char *sym)
 {
-	if (sym)
+	if (!structured_output && sym)
 		tprints_sysret_string("retstr", sym);
 }
 
