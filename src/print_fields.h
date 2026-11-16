@@ -253,6 +253,8 @@ extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
 extern void tprint_struct_decode_error(const char *msg);
 extern void tprint_struct_addr(unsigned long long addr);
+extern void tprint_arg_exiting_changed_begin(unsigned int index,
+					     const char *name);
 extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
 extern void tprint_union_end(void);

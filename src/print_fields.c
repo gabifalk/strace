@@ -58,6 +58,17 @@ tprint_struct_end(void)
 }
 
 void
+tprint_arg_exiting_changed_begin(unsigned int index, const char *name)
+{
+	if (structured_output) {
+		tprints_arg_next_name_at(index, name);
+		tprint_arg_changed();
+	} else {
+		tprint_value_changed();
+	}
+}
+
+void
 tprint_union_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);

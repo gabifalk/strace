@@ -598,7 +598,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		if (syserror(tcp))
 			break;
 
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 		btrfs_print_balance(tcp, arg, true);
 		break;
 	case BTRFS_IOC_BALANCE_PROGRESS: /* R */
@@ -642,7 +642,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -683,7 +683,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -828,7 +828,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -888,7 +888,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -925,7 +925,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -956,7 +956,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -1100,7 +1100,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -1135,7 +1135,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -1171,7 +1171,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args.key))
 			break;
@@ -1195,7 +1195,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 			tprints_arg_next_name("argp");
 		else if (syserror(tcp)) {
 			if (tcp->u_error == EOVERFLOW) {
-				tprint_value_changed();
+				tprint_arg_exiting_changed_begin(2, "argp");
 				if (!umove_or_printaddr_ignore_syserror(tcp,
 				    arg, &args)) {
 					tprint_struct_begin();
@@ -1205,7 +1205,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 			}
 			break;
 		} else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -1267,7 +1267,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
@@ -1336,7 +1336,7 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		else if (syserror(tcp))
 			break;
 		else
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
 
 		if (umove_or_printaddr(tcp, arg, &args))
 			break;
