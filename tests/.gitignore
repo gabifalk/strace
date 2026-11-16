@@ -590,6 +590,7 @@ jsonl-nlattr_br_port_msg
 jsonl-nlattr_crypto_user_alg
 jsonl-nlattr_dcbmsg
 jsonl-nlattr_ifaddrlblmsg
+jsonl-nlattr_ifla_port
 jsonl-nlattr_ndmsg
 jsonl-nlattr_netconfmsg
 jsonl-nlattr_netlink_diag_msg
