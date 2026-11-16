@@ -1133,6 +1133,21 @@ typedef bool (*print_fn)(struct tcb *, void *elem_buf,
 			 size_t elem_size, void *opaque_data);
 typedef int (*print_obj_by_addr_fn)(struct tcb *, kernel_ulong_t);
 typedef const char * (*sprint_obj_by_addr_fn)(struct tcb *, kernel_ulong_t);
+
+/* An object fetched by address to be printed later. */
+struct saved_obj {
+	void (*print)(const struct saved_obj *);
+	kernel_ulong_t addr;
+	bool fetched;
+	unsigned char data[];
+};
+typedef struct saved_obj *(*save_obj_by_addr_fn)(struct tcb *, kernel_ulong_t);
+
+static inline void
+print_saved_obj(const struct saved_obj *const obj)
+{
+	obj->print(obj);
+}
 typedef void (*print_obj_by_addr_size_fn)(struct tcb *,
 					  kernel_ulong_t addr,
 					  kernel_ulong_t size,
@@ -1756,6 +1771,7 @@ extern bool print_timespec32_array_data_size(const void *arg,
 # if HAVE_ARCH_TIME32_SYSCALLS
 extern int print_timespec32(struct tcb *, kernel_ulong_t);
 extern const char *sprint_timespec32(struct tcb *, kernel_ulong_t);
+extern struct saved_obj *save_timespec32(struct tcb *, kernel_ulong_t);
 extern int print_timespec32_utime_pair(struct tcb *, kernel_ulong_t);
 extern int print_itimerspec32(struct tcb *, kernel_ulong_t);
 extern int print_timex32(struct tcb *, kernel_ulong_t);
@@ -1767,6 +1783,7 @@ extern bool print_timespec64_array_data_size(const void *arg,
 					     size_t size);
 extern int print_timespec64(struct tcb *, kernel_ulong_t);
 extern const char *sprint_timespec64(struct tcb *, kernel_ulong_t);
+extern struct saved_obj *save_timespec64(struct tcb *, kernel_ulong_t);
 extern int print_timespec64_utime_pair(struct tcb *, kernel_ulong_t);
 extern int print_itimerspec64(struct tcb *, kernel_ulong_t);
 

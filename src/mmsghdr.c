@@ -60,26 +60,25 @@ print_struct_mmsghdr(struct tcb *tcp, void *elem_buf,
 	return true;
 }
 
-static void
-free_mmsgvec_data(void *ptr)
-{
-	char **pstr = ptr;
-	free(*pstr);
-	*pstr = 0;
-
-	free(ptr);
-}
-
 struct mmsgvec_data {
-	char *timeout;
+	struct saved_obj *timeout;
 	print_obj_by_addr_fn print_ts;
 	unsigned int count;
 	int namelen[0];
 };
 
 static void
+free_mmsgvec_data(void *ptr)
+{
+	struct mmsgvec_data *const data = ptr;
+
+	free(data->timeout);
+	free(data);
+}
+
+static void
 save_mmsgvec_namelen(struct tcb *const tcp, kernel_ulong_t addr,
-		     unsigned int len, const char *const timeout,
+		     unsigned int len, struct saved_obj *const timeout,
 		     const print_obj_by_addr_fn print_ts)
 {
 	if (len > IOV_MAX)
@@ -88,7 +87,7 @@ save_mmsgvec_namelen(struct tcb *const tcp, kernel_ulong_t addr,
 	const size_t data_size = offsetof(struct mmsgvec_data, namelen)
 				 + sizeof(int) * len;
 	struct mmsgvec_data *const data = xmalloc(data_size);
-	data->timeout = xstrdup(timeout);
+	data->timeout = timeout;
 	data->print_ts = print_ts;
 
 	unsigned int i, fetched;
@@ -217,7 +216,7 @@ print_recvmmsg_result(struct tcb *const tcp, const unsigned long long val)
 
 static int
 do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
-	    const sprint_obj_by_addr_fn sprint_ts)
+	    const save_obj_by_addr_fn save_ts)
 {
 	if (entering(tcp)) {
 		/* sockfd */
@@ -226,7 +225,7 @@ do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 
 		if (verbose(tcp)) {
 			save_mmsgvec_namelen(tcp, tcp->u_arg[1], tcp->u_arg[2],
-					     sprint_ts(tcp, tcp->u_arg[4]),
+					     save_ts(tcp, tcp->u_arg[4]),
 					     print_ts);
 		} else {
 			/* msgvec */
@@ -263,7 +262,8 @@ do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 
 			/* timeout on entrance */
 			tprints_arg_next_name("timeout");
-			tprints_string(*(const char **) get_tcb_priv_data(tcp));
+			print_saved_obj(((const struct mmsgvec_data *)
+					 get_tcb_priv_data(tcp))->timeout);
 		}
 		if (syserror(tcp))
 			return 0;
@@ -282,11 +282,11 @@ do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 #if HAVE_ARCH_TIME32_SYSCALLS
 SYS_FUNC(recvmmsg_time32)
 {
-	return do_recvmmsg(tcp, print_timespec32, sprint_timespec32);
+	return do_recvmmsg(tcp, print_timespec32, save_timespec32);
 }
 #endif
 
 SYS_FUNC(recvmmsg_time64)
 {
-	return do_recvmmsg(tcp, print_timespec64, sprint_timespec64);
+	return do_recvmmsg(tcp, print_timespec64, save_timespec64);
 }

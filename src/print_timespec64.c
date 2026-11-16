@@ -12,6 +12,7 @@
 #define PRINT_TIMESPEC_ARRAY_DATA_SIZE print_timespec64_array_data_size
 #define PRINT_TIMESPEC print_timespec64
 #define SPRINT_TIMESPEC sprint_timespec64
+#define SAVE_TIMESPEC save_timespec64
 #define PRINT_TIMESPEC_UTIME_PAIR print_timespec64_utime_pair
 #define PRINT_ITIMERSPEC print_itimerspec64
 

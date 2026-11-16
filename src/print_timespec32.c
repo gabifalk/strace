@@ -15,6 +15,7 @@
 # if HAVE_ARCH_TIME32_SYSCALLS
 #  define PRINT_TIMESPEC print_timespec32
 #  define SPRINT_TIMESPEC sprint_timespec32
+#  define SAVE_TIMESPEC save_timespec32
 #  define PRINT_TIMESPEC_UTIME_PAIR print_timespec32_utime_pair
 #  define PRINT_ITIMERSPEC print_itimerspec32
 # endif /* HAVE_ARCH_TIME32_SYSCALLS */

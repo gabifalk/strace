@@ -36,7 +36,8 @@ print_timespec_t(const TIMESPEC_T *t)
 			zero_extend_signed_to_ull(t->TIMESPEC_NSEC));
 }
 
-#if defined PRINT_TIMESPEC_DATA_SIZE || defined PRINT_TIMESPEC_ARRAY_DATA_SIZE
+#if defined PRINT_TIMESPEC_DATA_SIZE || defined PRINT_TIMESPEC_ARRAY_DATA_SIZE \
+ || defined SAVE_TIMESPEC
 static void
 print_unaligned_timespec_t(const void *arg)
 {
@@ -44,7 +45,8 @@ print_unaligned_timespec_t(const void *arg)
 	memcpy(&t, arg, sizeof(t));
 	print_timespec_t(&t);
 }
-#endif /* PRINT_TIMESPEC_DATA_SIZE || PRINT_TIMESPEC_ARRAY_DATA_SIZE */
+#endif /* PRINT_TIMESPEC_DATA_SIZE || PRINT_TIMESPEC_ARRAY_DATA_SIZE
+	  || SAVE_TIMESPEC */
 
 #ifdef PRINT_TIMESPEC_DATA_SIZE
 bool
@@ -118,6 +120,34 @@ SPRINT_TIMESPEC(struct tcb *const tcp, const kernel_ulong_t addr)
 	return buf;
 }
 #endif /* SPRINT_TIMESPEC */
+
+#ifdef SAVE_TIMESPEC
+static void
+print_saved_timespec(const struct saved_obj *const obj)
+{
+	if (obj->fetched)
+		print_unaligned_timespec_t(obj->data);
+	else
+		printaddr(obj->addr);
+}
+
+struct saved_obj *
+SAVE_TIMESPEC(struct tcb *const tcp, const kernel_ulong_t addr)
+{
+	struct saved_obj *const obj =
+		xmalloc(sizeof(*obj) + sizeof(TIMESPEC_T));
+	TIMESPEC_T t;
+
+	obj->print = print_saved_timespec;
+	obj->addr = addr;
+	obj->fetched = addr && verbose(tcp) && !(exiting(tcp) && syserror(tcp))
+		       && !umove(tcp, addr, &t);
+	if (obj->fetched)
+		memcpy(obj->data, &t, sizeof(t));
+
+	return obj;
+}
+#endif /* SAVE_TIMESPEC */
 
 #ifdef PRINT_TIMESPEC_UTIME_PAIR
 static bool

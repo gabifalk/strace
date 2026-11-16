@@ -804,7 +804,7 @@ SYS_FUNC(pidfd_send_signal)
 
 static int
 do_rt_sigtimedwait(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
-		   const sprint_obj_by_addr_fn sprint_ts)
+		   const save_obj_by_addr_fn save_ts)
 {
 	/* NB: kernel requires arg[3] == NSIG_BYTES */
 	if (entering(tcp)) {
@@ -829,8 +829,8 @@ do_rt_sigtimedwait(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 			tprints_arg_next_name("sigsetsize");
 			PRINT_VAL_U(tcp->u_arg[3]);
 		} else {
-			char *sts = xstrdup(sprint_ts(tcp, tcp->u_arg[2]));
-			set_tcb_priv_data(tcp, sts, free);
+			set_tcb_priv_data(tcp, save_ts(tcp, tcp->u_arg[2]),
+					  free);
 		}
 	} else {
 		if (tcp->u_arg[1] && verbose(tcp)) {
@@ -840,7 +840,7 @@ do_rt_sigtimedwait(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 
 			/* timeout */
 			tprints_arg_next_name("timeout");
-			tprints_string(get_tcb_priv_data(tcp));
+			print_saved_obj(get_tcb_priv_data(tcp));
 
 			/* sigsetsize */
 			tprints_arg_next_name("sigsetsize");
@@ -858,13 +858,13 @@ do_rt_sigtimedwait(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 #if HAVE_ARCH_TIME32_SYSCALLS
 SYS_FUNC(rt_sigtimedwait_time32)
 {
-	return do_rt_sigtimedwait(tcp, print_timespec32, sprint_timespec32);
+	return do_rt_sigtimedwait(tcp, print_timespec32, save_timespec32);
 }
 #endif
 
 SYS_FUNC(rt_sigtimedwait_time64)
 {
-	return do_rt_sigtimedwait(tcp, print_timespec64, sprint_timespec64);
+	return do_rt_sigtimedwait(tcp, print_timespec64, save_timespec64);
 }
 
 SYS_FUNC(restart_syscall)
