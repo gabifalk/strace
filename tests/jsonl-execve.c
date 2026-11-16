@@ -1,6 +1,7 @@
 /*
  * Check JSONL output of an environment that is not printed in full:
- * the envp argument of execve without -v (addr_count of vars).
+ * the envp argument of execve without -v (addr_count of vars), and of
+ * an argv array whose tail cannot be read (fetch_failed_addr).
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -63,6 +64,49 @@ test_execve(char *const *envp, unsigned int count)
 	printf("}\n");
 }
 
+static void
+test_execve_argv_fault(char *const *envp, unsigned int count)
+{
+	char **const argv = tail_alloc(2 * sizeof(*argv));
+	argv[0] = (char *) path;
+	argv[1] = (char *) arg1;
+
+	long rc = syscall(__NR_execve, path, argv, envp);
+	int err = errno;
+
+	if (merged)
+		jsonl_syscall_merged_open("execve", __NR_execve);
+	else
+		jsonl_syscall_open("execve", __NR_execve, true);
+	jsonl_arg_open(0, "pathname", side);
+	jsonl_path_value(path);
+	jsonl_arg_close(side);
+	printf(", ");
+	jsonl_arg_open(1, "argv", side);
+	jsonl_array_open();
+	printf("{");
+	jsonl_string_value(path, sizeof(path) - 1, false);
+	printf("}, {");
+	jsonl_string_value(arg1, sizeof(arg1) - 1, false);
+	printf("}");
+	jsonl_array_fetch_failed(argv + 2);
+	jsonl_arg_close(side);
+	printf(", ");
+	jsonl_arg_open(2, "envp", side);
+	printf("\"type\": \"addr_count\", \"raw\": \"%#lx\","
+	       " \"count\": \"%u\", \"unit\": \"vars\"",
+	       (unsigned long) (uintptr_t) envp, count);
+	jsonl_arg_close(side);
+	if (!merged) {
+		printf("]}\n");
+		jsonl_syscall_open("execve", __NR_execve, false);
+	}
+	printf("], ");
+	errno = err;
+	jsonl_return("decimal", rc);
+	printf("}\n");
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -75,6 +119,7 @@ main(int argc, char *argv[])
 
 	test_execve(one, 1);
 	test_execve(none, 0);
+	test_execve_argv_fault(none, 0);
 
 	jsonl_exit_event(0);
 	return 0;
