@@ -134,7 +134,7 @@ print_v4l2_fmtdesc(struct tcb *const tcp, const kernel_ulong_t arg)
 	}
 
 	if (!syserror(tcp) && !umove(tcp, arg, &f)) {
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_FLAGS(f, flags,
 				  v4l2_format_description_flags,
 				  "V4L2_FMT_FLAG_???");
@@ -379,14 +379,6 @@ print_v4l2_format_fmt(struct tcb *const tcp, void (*const prefix_fun)(void),
 	return ret;
 }
 
-static void
-tprint_struct_end_value_changed_struct_begin(void)
-{
-	tprint_struct_end();
-	tprint_value_changed();
-	tprint_struct_begin();
-}
-
 static int
 print_v4l2_format(struct tcb *const tcp, const kernel_ulong_t arg,
 		  const bool is_get)
@@ -411,10 +403,15 @@ print_v4l2_format(struct tcb *const tcp, const kernel_ulong_t arg,
 		return 0;
 	}
 
+	if (!is_get && syserror(tcp)) {
+		tprint_struct_exiting_abandon();
+		return RVAL_IOCTL_DECODED;
+	}
+
 	if (!syserror(tcp) && !umove(tcp, arg, &f)) {
 		void (*const prefix_fun)(void) =
-			is_get ? tprint_struct_next :
-			tprint_struct_end_value_changed_struct_begin;
+			is_get ? tprint_struct_exiting_next :
+			tprint_struct_exiting_changed_next;
 		print_v4l2_format_fmt(tcp, prefix_fun, &f);
 	}
 
@@ -444,15 +441,13 @@ print_v4l2_requestbuffers(struct tcb *const tcp, const kernel_ulong_t arg)
 		tprint_struct_next();
 		PRINT_FIELD_U(reqbufs, count);
 		set_tcb_priv_ulong(tcp, reqbufs.count);
-
 		return 0;
 	}
 
-	if (!syserror(tcp) && !umove(tcp, arg, &reqbufs) &&
-	    (reqbufs.count !=
-	    (unsigned int) get_tcb_priv_ulong(tcp))) {
-		tprint_value_changed();
-		PRINT_VAL_U(reqbufs.count);
+	if (!syserror(tcp) && !umove(tcp, arg, &reqbufs)) {
+		tprints_field_exiting_u("count",
+					(unsigned int) get_tcb_priv_ulong(tcp),
+					reqbufs.count);
 	}
 
 	tprint_struct_end();
@@ -483,8 +478,13 @@ print_v4l2_exportbuffer(struct tcb *const tcp, const kernel_ulong_t arg)
 		return 0;
 	}
 
-	if (!syserror(tcp) && !umove(tcp, arg, &expbuf)) {
-		tprint_struct_end_value_changed_struct_begin();
+	if (syserror(tcp)) {
+		tprint_struct_exiting_abandon();
+		return RVAL_IOCTL_DECODED;
+	}
+
+	if (!umove(tcp, arg, &expbuf)) {
+		tprint_struct_exiting_changed_next();
 		PRINT_FIELD_FD(expbuf, fd, tcp);
 	}
 
@@ -572,11 +572,11 @@ print_v4l2_buffer_contents(struct tcb *const tcp, const unsigned int code,
 		return;
 	}
 
+	tprint_struct_exiting_next();
 	if (code == VIDIOC_DQBUF) {
-		tprint_struct_next();
 		PRINT_FIELD_U(*b, index);
+		tprint_struct_next();
 	}
-	tprint_struct_next();
 	PRINT_FIELD_XVAL(*b, memory, v4l2_memories,
 			 "V4L2_MEMORY_???");
 
@@ -796,16 +796,13 @@ print_v4l2_streamparm(struct tcb *const tcp, const kernel_ulong_t arg,
 		}
 	} else {
 		if (syserror(tcp) || umove(tcp, arg, &s) < 0) {
-			tprint_struct_end();
+			tprint_struct_exiting_abandon();
 			return RVAL_IOCTL_DECODED;
 		}
-		if (is_get) {
-			tprint_struct_next();
-		} else {
-			tprint_struct_end();
-			tprint_value_changed();
-			tprint_struct_begin();
-		}
+		if (is_get)
+			tprint_struct_exiting_next();
+		else
+			tprint_struct_exiting_changed_next();
 	}
 
 	if (s.type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
@@ -839,7 +836,7 @@ print_v4l2_standard(struct tcb *const tcp, const kernel_ulong_t arg)
 	}
 
 	if (!syserror(tcp) && !umove(tcp, arg, &s)) {
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_CSTRING(s, name);
 		tprint_struct_next();
 		PRINT_FIELD_FRACT(s, frameperiod);
@@ -874,7 +871,7 @@ print_v4l2_input(struct tcb *const tcp, const kernel_ulong_t arg)
 	}
 
 	if (!syserror(tcp) && !umove(tcp, arg, &i)) {
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_CSTRING(i, name);
 		tprint_struct_next();
 		PRINT_FIELD_XVAL(i, type, v4l2_input_types,
@@ -982,11 +979,12 @@ print_v4l2_control(struct tcb *const tcp, const kernel_ulong_t arg,
 
 	if (!syserror(tcp) && !umove(tcp, arg, &c)) {
 		if (is_get) {
-			tprint_struct_next();
+			tprint_struct_exiting_next();
 			PRINT_FIELD_D(c, value);
-		} else if (c.value != (int32_t) get_tcb_priv_ulong(tcp)) {
-			tprint_value_changed();
-			PRINT_VAL_D(c.value);
+		} else {
+			tprints_field_exiting_d(
+				"value", (int32_t) get_tcb_priv_ulong(tcp),
+				c.value);
 		}
 	}
 
@@ -1017,16 +1015,13 @@ print_v4l2_tuner(struct tcb *const tcp, const kernel_ulong_t arg,
 		tprint_struct_next();
 	} else {
 		if (syserror(tcp) || umove(tcp, arg, &c) < 0) {
-			tprint_struct_end();
+			tprint_struct_exiting_abandon();
 			return RVAL_IOCTL_DECODED;
 		}
-		if (is_get) {
-			tprint_struct_next();
-		} else {
-			tprint_struct_end();
-			tprint_value_changed();
-			tprint_struct_begin();
-		}
+		if (is_get)
+			tprint_struct_exiting_next();
+		else
+			tprint_struct_exiting_changed_next();
 	}
 
 	PRINT_FIELD_CSTRING(c, name);
@@ -1087,11 +1082,12 @@ print_v4l2_queryctrl(struct tcb *const tcp, const kernel_ulong_t arg)
 	unsigned long entry_id = get_tcb_priv_ulong(tcp);
 
 	if (c.id != entry_id) {
-		tprint_value_changed();
+		tprints_field_exiting_name("id");
 		print_v4l2_cid(c.id, false);
+		tprint_struct_next();
+	} else {
+		tprint_struct_exiting_next();
 	}
-
-	tprint_struct_next();
 	PRINT_FIELD_XVAL(c, type, v4l2_control_types,
 			 "V4L2_CTRL_TYPE_???");
 	tprint_struct_next();
@@ -1140,8 +1136,13 @@ print_v4l2_querymenu(struct tcb *const tcp, const kernel_ulong_t arg)
 		return 0;
 	}
 
-	if (!syserror(tcp) && !umove(tcp, arg, &qm)) {
-		tprint_struct_end_value_changed_struct_begin();
+	if (syserror(tcp)) {
+		tprint_struct_exiting_abandon();
+		return RVAL_IOCTL_DECODED;
+	}
+
+	if (!umove(tcp, arg, &qm)) {
+		tprint_struct_exiting_changed_next();
 		PRINT_FIELD_CSTRING(qm, name);
 		tprint_struct_next();
 		PRINT_FIELD_D(qm, value);
@@ -1178,11 +1179,12 @@ print_v4l2_query_ext_ctrl(struct tcb *const tcp, const kernel_ulong_t arg)
 	unsigned long entry_id = get_tcb_priv_ulong(tcp);
 
 	if (c.id != entry_id) {
-		tprint_value_changed();
+		tprints_field_exiting_name("id");
 		print_v4l2_cid(c.id, false);
+		tprint_struct_next();
+	} else {
+		tprint_struct_exiting_next();
 	}
-
-	tprint_struct_next();
 	PRINT_FIELD_XVAL(c, type, v4l2_control_types,
 			 "V4L2_CTRL_TYPE_???");
 	tprint_struct_next();
@@ -1240,7 +1242,7 @@ print_v4l2_cropcap(struct tcb *const tcp, const kernel_ulong_t arg)
 	}
 
 	if (!syserror(tcp) && !umove(tcp, arg, &c)) {
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_OBJ_PTR(c, bounds, print_v4l2_rect);
 		tprint_struct_next();
 		PRINT_FIELD_OBJ_PTR(c, defrect, print_v4l2_rect);
@@ -1273,7 +1275,7 @@ print_v4l2_crop(struct tcb *const tcp, const kernel_ulong_t arg,
 		PRINT_FIELD_OBJ_PTR(c, c, print_v4l2_rect);
 	} else {
 		if (!syserror(tcp) && !umove(tcp, arg, &c)) {
-			tprint_struct_next();
+			tprint_struct_exiting_next();
 			PRINT_FIELD_OBJ_PTR(c, c, print_v4l2_rect);
 		}
 	}
@@ -1332,16 +1334,13 @@ print_v4l2_ext_controls(struct tcb *const tcp, const kernel_ulong_t arg,
 		tprint_struct_next();
 	} else {
 		if (umove(tcp, arg, &c) < 0) {
-			tprint_struct_end();
+			tprint_struct_exiting_abandon();
 			return RVAL_IOCTL_DECODED;
 		}
-		if (is_get) {
-			tprint_struct_next();
-		} else {
-			tprint_struct_end();
-			tprint_value_changed();
-			tprint_struct_begin();
-		}
+		if (is_get)
+			tprint_struct_exiting_next();
+		else
+			tprint_struct_exiting_changed_next();
 	}
 
 	tprints_field_name("controls");
@@ -1419,7 +1418,7 @@ print_v4l2_frmsizeenum(struct tcb *const tcp, const kernel_ulong_t arg)
 	}
 
 	if (!syserror(tcp) && !umove(tcp, arg, &s)) {
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_XVAL(s, type, v4l2_framesize_types,
 				 "V4L2_FRMSIZE_TYPE_???");
 		switch (s.type) {
@@ -1479,7 +1478,7 @@ print_v4l2_frmivalenum(struct tcb *const tcp, const kernel_ulong_t arg)
 	}
 
 	if (!syserror(tcp) && !umove(tcp, arg, &f)) {
-		tprint_struct_next();
+		tprint_struct_exiting_next();
 		PRINT_FIELD_XVAL(f, type, v4l2_frameinterval_types,
 				 "V4L2_FRMIVAL_TYPE_???");
 		switch (f.type) {
