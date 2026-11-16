@@ -128,16 +128,19 @@ decode_seccomp_metadata(struct tcb *const tcp,
 
 		tprint_struct_begin();
 		PRINT_FIELD_U(md, filter_off);
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 	} else {
 		const size_t offset = sizeof(md.filter_off);
 
 		if (!syserror(tcp) && size > offset) {
-			tprint_struct_next();
+			tprint_struct_exiting_begin(3, "data");
+			tprint_struct_exiting_next();
 
 			if (size < sizeof(md) ||
 			    !tfetch_mem(tcp, addr + offset,
 					sizeof(md.flags), &md.flags)) {
-				tprint_unavailable();
+				tprint_extra_data_unavailable();
 			} else {
 				PRINT_FIELD_FLAGS(md, flags,
 						  seccomp_filter_flags,
@@ -147,9 +150,10 @@ decode_seccomp_metadata(struct tcb *const tcp,
 					tprint_more_data_follows();
 				}
 			}
+			tprint_struct_end();
+		} else {
+			tprint_struct_exiting_abandon();
 		}
-
-		tprint_struct_end();
 	}
 
 	return 0;
@@ -178,29 +182,25 @@ decode_getregset(struct tcb *const tcp, const kernel_ulong_t addr,
 {
 	strace_iovec iov;
 
+	if (exiting(tcp))
+		tprints_arg_exiting_name(3, "data");
+
 	if (!fetch_struct_iovec(tcp, addr, &iov)) {
 		printaddr(addr);
 		return RVAL_DECODED;
 	}
 
 	if (entering(tcp)) {
+		tprint_split_struct_entering_u("iov_len", iov.iov_len);
 		set_tcb_priv_ulong(tcp, iov.iov_len);
 	} else {
-		const unsigned long old_len = get_tcb_priv_ulong(tcp);
-
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		tprints_field_name("iov_base");
 		decode_regset(tcp, &iov, nt);
 		tprint_struct_next();
-
-		if (old_len == iov.iov_len) {
-			PRINT_FIELD_U(iov, iov_len);
-		} else {
-			tprints_field_name("iov_len");
-			PRINT_VAL_U(old_len);
-			tprint_value_changed();
-			PRINT_VAL_U(iov.iov_len);
-		}
+		tprints_field_inout_u("iov_len", get_tcb_priv_ulong(tcp),
+				      iov.iov_len);
 		tprint_struct_end();
 	}
 
@@ -225,16 +225,21 @@ decode_setregset(struct tcb *const tcp, const kernel_ulong_t addr,
 		tprint_struct_next();
 
 		PRINT_FIELD_U(iov, iov_len);
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 
 		set_tcb_priv_ulong(tcp, iov.iov_len);
 	} else {
-		if (fetch_struct_iovec(tcp, addr, &iov) &&
-		    get_tcb_priv_ulong(tcp) != iov.iov_len) {
-			tprint_value_changed();
-			PRINT_VAL_U(iov.iov_len);
+		if (fetch_struct_iovec(tcp, addr, &iov)) {
+			tprint_struct_exiting_begin(3, "data");
+			if (tprints_field_exiting_value("iov_len", true,
+							get_tcb_priv_ulong(tcp)
+							!= iov.iov_len))
+				PRINT_VAL_U(iov.iov_len);
+			tprint_struct_end();
+		} else {
+			tprint_struct_exiting_abandon();
 		}
-
-		tprint_struct_end();
 	}
 
 	return 0;
@@ -317,6 +322,21 @@ decode_ptrace_entering(struct tcb *const tcp)
 	}
 
 	/* addr */
+	switch (request) {
+#ifdef PTRACE_GETREGS
+	case PTRACE_GETREGS:
+#endif
+#ifdef PTRACE_GETREGS64
+	case PTRACE_GETREGS64:
+#endif
+#ifdef PTRACE_GETFPREGS
+	case PTRACE_GETFPREGS:
+#endif
+		/* print regs_addr on exiting syscall */
+		tprints_arg_next_name_deferred("addr");
+		return 0;
+	}
+
 	tprints_arg_next_name("addr");
 	switch (request) {
 	case PTRACE_PEEKUSER:
@@ -358,21 +378,6 @@ decode_ptrace_entering(struct tcb *const tcp)
 		decode_pt_fpregs(tcp, regs_addr);
 		return RVAL_DECODED;
 #endif
-#ifdef PTRACE_GETREGS
-	case PTRACE_GETREGS:
-		/* print regs_addr on exiting syscall */
-		return 0;
-#endif
-#ifdef PTRACE_GETREGS64
-	case PTRACE_GETREGS64:
-		/* print regs_addr on exiting syscall */
-		return 0;
-#endif
-#ifdef PTRACE_GETFPREGS
-	case PTRACE_GETFPREGS:
-		/* print regs_addr on exiting syscall */
-		return 0;
-#endif
 #ifdef IA64
 	case PTRACE_PEEKDATA:
 	case PTRACE_PEEKTEXT:
@@ -385,6 +390,25 @@ decode_ptrace_entering(struct tcb *const tcp)
 	}
 
 	/* data */
+	switch (request) {
+#ifndef IA64
+	case PTRACE_PEEKDATA:
+	case PTRACE_PEEKTEXT:
+	case PTRACE_PEEKUSER:
+#endif
+	case PTRACE_GETEVENTMSG:
+	case PTRACE_GETSIGINFO:
+	case PTRACE_GETSIGMASK:
+	case PTRACE_PEEKSIGINFO:
+	case PTRACE_SECCOMP_GET_FILTER:
+	case PTRACE_GET_SYSCALL_INFO:
+		if (verbose(tcp)) {
+			/* print data on exiting syscall */
+			tprints_arg_next_name_deferred("data");
+			return 0;
+		}
+	}
+
 	tprints_arg_next_name("data");
 	switch (request) {
 	case PTRACE_CONT:
@@ -427,22 +451,6 @@ decode_ptrace_entering(struct tcb *const tcp)
 	case PTRACE_SET_SYSCALL_INFO:
 		print_ptrace_syscall_info(tcp, data, addr, addr);
 		break;
-#ifndef IA64
-	case PTRACE_PEEKDATA:
-	case PTRACE_PEEKTEXT:
-	case PTRACE_PEEKUSER:
-#endif
-	case PTRACE_GETEVENTMSG:
-	case PTRACE_GETSIGINFO:
-	case PTRACE_GETSIGMASK:
-	case PTRACE_PEEKSIGINFO:
-	case PTRACE_SECCOMP_GET_FILTER:
-	case PTRACE_GET_SYSCALL_INFO:
-		if (verbose(tcp)) {
-			/* print data on exiting syscall */
-			return 0;
-		}
-		ATTRIBUTE_FALLTHROUGH;
 	default:
 		printaddr(data);
 		break;
@@ -457,6 +465,33 @@ decode_ptrace_exiting(struct tcb *const tcp)
 	const kernel_ulong_t request = tcp->u_arg[0];
 	const kernel_ulong_t addr = tcp->u_arg[2];
 	const kernel_ulong_t data = tcp->u_arg[3];
+
+	switch (request) {
+#ifndef IA64
+	case PTRACE_PEEKDATA:
+	case PTRACE_PEEKTEXT:
+	case PTRACE_PEEKUSER:
+#endif
+	case PTRACE_GETEVENTMSG:
+	case PTRACE_GETSIGINFO:
+	case PTRACE_GETSIGMASK:
+	case PTRACE_PEEKSIGINFO:
+	case PTRACE_SECCOMP_GET_FILTER:
+	case PTRACE_GET_SYSCALL_INFO:
+		tprints_arg_exiting_name(3, "data");
+		break;
+#ifdef PTRACE_GETREGS
+	case PTRACE_GETREGS:
+#endif
+#ifdef PTRACE_GETREGS64
+	case PTRACE_GETREGS64:
+#endif
+#ifdef PTRACE_GETFPREGS
+	case PTRACE_GETFPREGS:
+#endif
+		tprints_arg_exiting_name(2, "addr");
+		break;
+	}
 
 	switch (request) {
 #ifndef IA64

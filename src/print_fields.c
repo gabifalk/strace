@@ -796,6 +796,23 @@ tprint_bpf_insn_end(bool jump, unsigned int jt, unsigned int jf)
 }
 
 void
+tprints_field_inout_u(const char *name, unsigned long long entering_val,
+		      unsigned long long exiting_val)
+{
+	tprints_field_name(name);
+	PRINT_VAL_U(entering_val);
+	if (entering_val != exiting_val) {
+		tprint_value_changed();
+		PRINT_VAL_U(exiting_val);
+	}
+}
+
+void
+tprint_split_struct_entering_u(const char *name, unsigned long long val)
+{
+}
+
+void
 tprint_skf_off_begin(unsigned int raw, unsigned int base,
 		     const char *base_name)
 {
@@ -1350,6 +1367,12 @@ tprints_flags_value_const(unsigned long long val, const char *sym)
 	} else {
 		tprints_string(sym);
 	}
+}
+
+void
+tprints_arg_next_name_deferred(const char *name)
+{
+	tprints_arg_next_name(name);
 }
 
 void

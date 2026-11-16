@@ -282,6 +282,11 @@ extern void tprints_field_exiting_u(const char *name,
 				    unsigned long long exiting_val);
 extern void tprints_field_repeated_u(const char *name,
 				     unsigned long long val);
+extern void tprints_field_inout_u(const char *name,
+				  unsigned long long entering_val,
+				  unsigned long long exiting_val);
+extern void tprint_split_struct_entering_u(const char *name,
+					   unsigned long long val);
 extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
 extern void tprint_union_end(void);
@@ -315,6 +320,7 @@ extern void tprints_arg_next_name_unconditionally_at(unsigned int index,
 extern void tprints_arg_name(const char *name);
 extern void tprints_arg_name_at(unsigned int index, const char *name);
 extern void tprints_arg_next_name(const char *name);
+extern void tprints_arg_next_name_deferred(const char *name);
 extern void tprints_arg_next_name_at(unsigned int index, const char *name);
 extern void tprints_arg_inout_entering_d(unsigned int index, const char *name,
 					 int val);
