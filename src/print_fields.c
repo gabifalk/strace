@@ -2309,6 +2309,34 @@ tprint_pit_count(unsigned long long count, unsigned int freq)
 	}
 }
 
+/*
+ * Print the KDMKTONE argument: the tone of the frequency `freq' (in Hz)
+ * that lasts `ticks' milliseconds, set by the PIT counter value `count';
+ * `freq' is 0 when the tone is turned off.
+ */
+void
+tprint_kd_tone(unsigned int ticks, unsigned int count, unsigned int freq)
+{
+	tprint_flags_begin();
+	if (ticks) {
+		tprint_shift_begin();
+		PRINT_VAL_U(ticks);
+		tprint_shift();
+		PRINT_VAL_U(16);
+		tprint_shift_end();
+		tprint_flags_or();
+	}
+	PRINT_VAL_U(count);
+	tprint_flags_end();
+
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (freq)
+			tprintf_comment("%u Hz, %u ms", freq, ticks);
+		else
+			tprints_comment("off");
+	}
+}
+
 void
 tprint_ticks_d(long long val, long freq, unsigned int precision)
 {

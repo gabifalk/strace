@@ -86,24 +86,7 @@ kd_mk_tone(struct tcb *const tcp, const unsigned int arg)
 	unsigned int freq = ticks && count ? KERNEL_PIT_TICK_RATE / count : 0;
 
 	tprints_arg_next_name("argp");
-	tprint_flags_begin();
-	if (ticks) {
-		tprint_shift_begin();
-		PRINT_VAL_U(ticks);
-		tprint_shift();
-		PRINT_VAL_U(16);
-		tprint_shift_end();
-		tprint_flags_or();
-	}
-	PRINT_VAL_U(count);
-	tprint_flags_end();
-
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (freq)
-			tprintf_comment("%u Hz, %u ms", freq, ticks);
-		else
-			tprints_comment("off");
-	}
+	tprint_kd_tone(ticks, count, freq);
 
 	return RVAL_IOCTL_DECODED;
 }
