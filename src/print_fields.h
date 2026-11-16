@@ -318,6 +318,7 @@ extern void tprints_sysret_string(const char *name, const char *str);
 extern void tprints_sysret_xlat_sym(const char *sym);
 extern void tprint_sysret_result_begin(const char *type,
 				       unsigned long long val);
+extern void tprint_sysret_value_begin(unsigned long long val, bool hex);
 extern void tprints_sysret_result_field(const char *name, bool labeled);
 extern void tprints_sysret_result_note(const char *note);
 extern void tprints_sysret_result_sym(const char *sym);

@@ -2781,6 +2781,16 @@ tprint_sysret_result_field_close(void)
 	}
 }
 
+void
+tprint_sysret_value_begin(unsigned long long val, bool hex)
+{
+	sysret_result_open = false;
+	if (hex)
+		PRINT_VAL_X(val);
+	else
+		PRINT_VAL_U(val);
+}
+
 static void
 tprint_sysret_result_sep(void)
 {

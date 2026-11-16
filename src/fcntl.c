@@ -129,6 +129,34 @@ print_delegation(struct tcb *const tcp, const kernel_ulong_t addr)
 	tprint_struct_end();
 }
 
+static void
+print_fd_flags_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("flags ");
+	printflags(fdflags, val, NULL);
+	tprint_sysret_result_end();
+}
+
+static void
+print_open_modes_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("flags ");
+	print_xlat_ex(val, sprint_open_modes(val) + sizeof("flags"),
+		      XLAT_STYLE_ABBREV);
+	tprint_sysret_result_end();
+}
+
+static void
+print_seals_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("seals ");
+	printflags(f_seals, val, NULL);
+	tprint_sysret_result_end();
+}
+
 static int
 print_fcntl(struct tcb *tcp)
 {
@@ -207,14 +235,13 @@ print_fcntl(struct tcb *tcp)
 	case F_GETFD:
 		if (entering(tcp) || syserror(tcp) || tcp->u_rval == 0)
 			return 0;
-		tcp->auxstr = sprintflags("flags ", fdflags,
-					  (kernel_ulong_t) tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_result_printer = print_fd_flags_result;
+		return RVAL_RESULT;
 	case F_GETFL:
 		if (entering(tcp) || syserror(tcp))
 			return 0;
-		tcp->auxstr = sprint_open_modes(tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_result_printer = print_open_modes_result;
+		return RVAL_RESULT;
 	case F_GETLK:
 		if (entering(tcp))
 			return 0;
@@ -254,14 +281,13 @@ print_fcntl(struct tcb *tcp)
 	case F_GET_SEALS:
 		if (entering(tcp) || syserror(tcp) || tcp->u_rval == 0)
 			return 0;
-		tcp->auxstr = sprintflags("seals ", f_seals,
-					  (kernel_ulong_t) tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_result_printer = print_seals_result;
+		return RVAL_RESULT;
 	case F_GETSIG:
 		if (entering(tcp) || syserror(tcp) || tcp->u_rval == 0)
 			return 0;
-		tcp->auxstr = signame(tcp->u_rval);
-		return RVAL_STR;
+		tcp->rval_result_printer = print_signal_result;
+		return RVAL_RESULT;
 	default:
 		tprints_arg_next_name("arg");
 		PRINT_VAL_X(tcp->u_arg[2]);

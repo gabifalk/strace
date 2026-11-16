@@ -878,6 +878,7 @@ extern long getrval2(struct tcb *);
 # endif
 
 extern const char *signame(const int);
+extern void print_signal_result(struct tcb *, unsigned long long val);
 extern const char *sprintsigname(const int);
 
 extern void pathtrace_select_set(const char *, struct path_set *);
