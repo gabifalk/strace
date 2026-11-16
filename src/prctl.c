@@ -429,10 +429,8 @@ SYS_FUNC(prctl)
 			break;
 		if (syserror(tcp) || tcp->u_rval == 0)
 			return 0;
-		tcp->auxstr = sprintflags_ex("", secbits,
-				(kernel_ulong_t) tcp->u_rval, '\0',
-				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_xlat = secbits;
+		return RVAL_FLAGS;
 
 	case PR_SET_SECUREBITS:			/*  28 */
 		tprints_arg_next_name("flags");
@@ -504,10 +502,8 @@ SYS_FUNC(prctl)
 			break;
 		if (syserror(tcp) || tcp->u_rval == 0)
 			return 0;
-		tcp->auxstr = sprintflags_ex("", pr_fp_mode,
-				(kernel_ulong_t) tcp->u_rval, '\0',
-				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_xlat = pr_fp_mode;
+		return RVAL_FLAGS;
 
 	case PR_CAP_AMBIENT:			/*  47 */
 		tprints_arg_next_name("operation");
@@ -562,11 +558,8 @@ SYS_FUNC(prctl)
 		case PR_SPEC_STORE_BYPASS:
 		case PR_SPEC_INDIRECT_BRANCH:
 		case PR_SPEC_L1D_FLUSH:
-			tcp->auxstr = sprintflags_ex("",
-					pr_spec_get_store_bypass_flags,
-					(kernel_ulong_t) tcp->u_rval, '\0',
-					XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
-			return RVAL_HEX | RVAL_STR;
+			tcp->rval_xlat = pr_spec_get_store_bypass_flags;
+			return RVAL_FLAGS;
 		}
 
 		return RVAL_STR;
@@ -646,10 +639,8 @@ SYS_FUNC(prctl)
 		}
 		if (syserror(tcp))
 			return 0;
-		tcp->auxstr = sprintflags_ex("", pr_pac_enabled_keys,
-					     (kernel_ulong_t) tcp->u_rval, '\0',
-					     XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_xlat = pr_pac_enabled_keys;
+		return RVAL_FLAGS;
 
 	case PR_SCHED_CORE:			/*  62 */
 		if (entering(tcp)) {
@@ -724,10 +715,8 @@ SYS_FUNC(prctl)
 		}
 		if (syserror(tcp))
 			return 0;
-		tcp->auxstr = sprintflags_ex("", pr_mdwe_flags,
-				(kernel_ulong_t) tcp->u_rval, '\0',
-				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_xlat = pr_mdwe_flags;
+		return RVAL_FLAGS;
 
 	/* PR_SET_MEMORY_MERGE - group 5	    67 */
 	/* PR_GET_MEMORY_MERGE - group 5	    68 */
@@ -772,10 +761,8 @@ SYS_FUNC(prctl)
 		}
 		if (syserror(tcp) || tcp->u_rval == 0)
 			return 0;
-		tcp->auxstr = sprintflags_ex("", pr_ppc_dexcr_ctrl_flags,
-				(kernel_ulong_t) tcp->u_rval, '\0',
-				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_xlat = pr_ppc_dexcr_ctrl_flags;
+		return RVAL_FLAGS;
 
 	case PR_PPC_SET_DEXCR:			/*  73 */
 		tprints_arg_next_name("which");
@@ -889,11 +876,9 @@ SYS_FUNC(arch_prctl)
 			if (tcp->u_rval <= 0)
 				return 0;
 
-			tcp->auxstr = sprintflags_ex("", x86_xfeatures,
-					(kernel_ulong_t) tcp->u_rval, '\0',
-					XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE);
+			tcp->rval_xlat = x86_xfeatures;
 
-			return RVAL_HEX | RVAL_STR;
+			return RVAL_FLAGS;
 		}
 
 		return 0;

@@ -974,6 +974,8 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			tprint_sysret_xlat_val(sysret_xlat_val(tcp),
 					       (sys_res & RVAL_MASK)
 					       == RVAL_HEX, tcp->rval_xlat);
+		} else if (sys_res & RVAL_FLAGS) {
+			tprint_sysret_flags_val(sysret_xlat_val(tcp));
 		} else {
 			switch (sys_res & RVAL_MASK) {
 			case RVAL_HEX:
@@ -1055,6 +1057,10 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 	if (sys_res & RVAL_XLAT) {
 		tprints_sysret_xlat_sym(xlookup(tcp->rval_xlat,
 						(kernel_ulong_t) tcp->u_rval));
+	} else if (sys_res & RVAL_FLAGS) {
+		tprints_sysret_xlat_sym(sprintflags_ex("", tcp->rval_xlat,
+				(kernel_ulong_t) tcp->u_rval, '\0',
+				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE));
 	} else if ((sys_res & RVAL_STR) && tcp->auxstr) {
 		tprints_sysret_string("retstr", tcp->auxstr);
 	}

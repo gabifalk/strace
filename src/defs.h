@@ -281,7 +281,8 @@ struct tcb {
 	struct staged_output_data *staged_output_data;
 
 	const char *auxstr;	/* Auxiliary info from syscall (see RVAL_STR) */
-	const struct xlat *rval_xlat;	/* Return value xlat (see RVAL_XLAT) */
+	const struct xlat *rval_xlat;	/* Return value xlat (see RVAL_XLAT,
+					   RVAL_FLAGS) */
 	void *_priv_data;	/* Private data for syscall decoding functions */
 	void (*_free_priv_data)(void *); /* Callback for freeing priv_data */
 	const struct_sysent *s_ent; /* sysent[scno] or a stub struct for bad
@@ -481,6 +482,8 @@ extern const struct xlat whence_codes[];
 # define RVAL_IOCTL_DECODED 0200	/* ioctl sub-parser successfully decoded
 				   the argument */
 # define RVAL_XLAT	0400	/* Return value is a constant from the
+				   `rval_xlat' table */
+# define RVAL_FLAGS	01000	/* Return value is a set of flags from the
 				   `rval_xlat' table */
 
 # define IOCTL_NUMBER_UNKNOWN 0

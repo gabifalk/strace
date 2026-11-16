@@ -2709,6 +2709,12 @@ tprint_sysret_xlat_val(unsigned long long val, bool hex,
 }
 
 void
+tprint_sysret_flags_val(unsigned long long val)
+{
+	PRINT_VAL_X(val);
+}
+
+void
 tprints_sysret_xlat_sym(const char *sym)
 {
 	if (!structured_output && sym)
