@@ -588,6 +588,7 @@ jsonl-nfnetlink_ulog
 jsonl-nlattr
 jsonl-nlattr_crypto_user_alg
 jsonl-nlattr_ndmsg
+jsonl-nlattr_nlmsgerr
 jsonl-pause
 jsonl-pidfd_getfd-yy
 jsonl-prctl-dumpable

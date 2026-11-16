@@ -331,6 +331,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr \
 	jsonl-nlattr_crypto_user_alg \
 	jsonl-nlattr_ndmsg \
+	jsonl-nlattr_nlmsgerr \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
 	jsonl-prctl-dumpable \
@@ -1052,6 +1053,7 @@ EXTRA_DIST = \
 	jsonl-nlattr.c \
 	jsonl-nlattr_crypto_user_alg.c \
 	jsonl-nlattr_ndmsg.c \
+	jsonl-nlattr_nlmsgerr.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-prctl-dumpable.c \
