@@ -562,6 +562,7 @@ jsonl-memfd_secret
 jsonl-mlockall
 jsonl-mseal
 jsonl-netlink_protocol
+jsonl-nlattr
 jsonl-pause
 jsonl-pidfd_getfd-yy
 jsonl-prctl-dumpable

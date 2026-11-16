@@ -305,6 +305,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-mlockall \
 	jsonl-mseal \
 	jsonl-netlink_protocol \
+	jsonl-nlattr \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
 	jsonl-prctl-dumpable \
@@ -998,6 +999,7 @@ EXTRA_DIST = \
 	jsonl-mlockall.c \
 	jsonl-mseal.c \
 	jsonl-netlink_protocol.c \
+	jsonl-nlattr.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-prctl-dumpable.c \
