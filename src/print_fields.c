@@ -2018,16 +2018,26 @@ tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
 		STRACE_PRINTS(quoted);
 }
 
+static bool exit_args_lost;
+
 void
 tprint_exit_args_lost(void)
 {
-	tprint_space();
-	tprints_string("<unfinished ...>");
+	if (structured_output) {
+		exit_args_lost = true;
+	} else {
+		tprint_space();
+		tprints_string("<unfinished ...>");
+	}
 }
 
 void
 tprint_sysret_begin(void)
 {
+	if (structured_output && exit_args_lost) {
+		tprints_object_field_bool("exit_args_lost", true);
+		exit_args_lost = false;
+	}
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
 	STRACE_PRINTS("=");
 	STRACE_PRINT_COLOR_SEQ(COLOR_RESET);
