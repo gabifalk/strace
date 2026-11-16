@@ -562,6 +562,7 @@ jsonl-landlock_create_ruleset
 jsonl-memfd_secret
 jsonl-mlockall
 jsonl-mseal
+jsonl-net-packet_mreq
 jsonl-netlink_kobject_uevent
 jsonl-netlink_netfilter
 jsonl-netlink_protocol
