@@ -64,6 +64,9 @@ extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
 			  unsigned int class, unsigned int level,
 			  enum xlat_style style);
+extern void tprint_kd_key(unsigned int key, const char *sym,
+			  const struct xlat *type_xlat, unsigned int type,
+			  unsigned int value, bool is_char);
 extern void tprint_sigmask_begin(const uint32_t *mask, unsigned int nwords,
 				 bool inverted);
 extern int tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags,

@@ -303,6 +303,7 @@ kd_kbd_entry(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 	unsigned char ktyp;
 	unsigned char kval;
 	const char *str = NULL;
+	bool is_char = false;
 
 	if (entering(tcp)) {
 		tprints_arg_next_name("argp");
@@ -343,40 +344,22 @@ kd_kbd_entry(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 		goto out;
 	}
 
-	PRINT_FIELD_X(val, kb_value);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		goto out;
-
 	ktyp = KTYP(val.kb_value);
 	kval = KVAL(val.kb_value);
 
 	if (ktyp < ARRAY_SIZE(xlat_tables) && xlat_tables[ktyp])
 		str = xlookup(xlat_tables[ktyp], val.kb_value);
 
-	if (str) {
-		tprints_comment(str);
-	} else {
-		tprint_comment_begin();
-		tprints_fn_begin("K");
-		printxvals_ex(ktyp, NULL, XLAT_STYLE_ABBREV,
-			      kd_key_types, NULL);
-		tprint_fn_next();
-
-		switch (ktyp) {
-		case KT_LATIN:
-		case KT_META:
-		case KT_LETTER:
-		case KT_DEAD2:
-			print_char(kval, SCF_QUOTES | SCF_ESC_WS);
-			break;
-		default:
-			PRINT_VAL_X(kval);
-		}
-
-		tprint_fn_end();
-		tprint_comment_end();
+	switch (ktyp) {
+	case KT_LATIN:
+	case KT_META:
+	case KT_LETTER:
+	case KT_DEAD2:
+		is_char = true;
 	}
+
+	tprints_field_name("kb_value");
+	tprint_kd_key(val.kb_value, str, kd_key_types, ktyp, kval, is_char);
 
 out:
 	tprint_struct_end();

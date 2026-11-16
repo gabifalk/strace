@@ -1828,6 +1828,36 @@ tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 	}
 }
 
+/*
+ * Print the keyboard key `key' of KDGKBENT and KDSKBENT, named `sym' if it
+ * has a name; otherwise, it is described by its key type `type', decoded
+ * using `type_xlat', and its key value `value', a character if `is_char'.
+ */
+void
+tprint_kd_key(unsigned int key, const char *sym, const struct xlat *type_xlat,
+	      unsigned int type, unsigned int value, bool is_char)
+{
+	PRINT_VAL_X(key);
+
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (sym) {
+			tprints_comment(sym);
+		} else {
+			tprint_comment_begin();
+			tprints_fn_begin("K");
+			printxvals_ex(type, NULL, XLAT_STYLE_ABBREV,
+				      type_xlat, NULL);
+			tprint_fn_next();
+			if (is_char)
+				print_char(value, SCF_QUOTES | SCF_ESC_WS);
+			else
+				PRINT_VAL_X(value);
+			tprint_fn_end();
+			tprint_comment_end();
+		}
+	}
+}
+
 void
 tprint_fract(unsigned int numerator, unsigned int denominator)
 {
