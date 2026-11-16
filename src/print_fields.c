@@ -861,25 +861,69 @@ tprint_negated_end(void)
 void
 tprint_numeric_mode(unsigned long long mode)
 {
-	PRINT_VAL_03O(mode);
+	if (structured_output) {
+		tprints_object_type("mode");
+		tprintf_object_field_string("raw", "%#03llo", mode);
+	} else {
+		PRINT_VAL_03O(mode);
+	}
 }
 
 void
 tprint_symbolic_mode(unsigned int mode, const char *ifmt)
 {
-	if (!ifmt || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_03O(mode);
+	static const struct {
+		unsigned int bit;
+		const char *name;
+	} special_bits[] = {
+		{ S_ISUID, "S_ISUID" },
+		{ S_ISGID, "S_ISGID" },
+		{ S_ISVTX, "S_ISVTX" },
+	};
 
-	if (!ifmt || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
+	if (structured_output) {
+		tprints_object_type("mode");
+		tprintf_object_field_string("raw", "%#03o", mode);
+		if (ifmt) {
+			if (ifmt[0]) {
+				tprints_object_field_begin("filetype");
+				tprint_object_begin();
+				tprints_object_type("const");
+				tprintf_object_field_string("raw", "%#o",
+							    mode & S_IFMT);
+				tprints_object_field_string("sym", ifmt);
+				tprint_object_end();
+				tprint_object_field_end();
+			}
+			tprints_object_field_begin("special");
+			tprint_list_begin();
+			for (size_t i = 0; i < ARRAY_SIZE(special_bits); ++i) {
+				if (!(mode & special_bits[i].bit))
+					continue;
+				tprint_list_element_begin();
+				tprints_string_value(special_bits[i].name);
+				tprint_list_element_end();
+			}
+			tprint_list_end();
+			tprint_object_field_end();
+			tprintf_object_field_string("perm", "%#03o",
+				mode & ~(S_IFMT|S_ISUID|S_ISGID|S_ISVTX));
+		}
+	} else {
+		if (!ifmt || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			PRINT_VAL_03O(mode);
 
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV
-		? tprintf_string : tprintf_comment)("%s%s%s%s%s%#03o",
-			ifmt, ifmt[0] ? "|" : "",
-			(mode & S_ISUID) ? "S_ISUID|" : "",
-			(mode & S_ISGID) ? "S_ISGID|" : "",
-			(mode & S_ISVTX) ? "S_ISVTX|" : "",
-			mode & ~(S_IFMT|S_ISUID|S_ISGID|S_ISVTX));
+		if (!ifmt || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return;
+
+		(xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV
+			? tprintf_string : tprintf_comment)("%s%s%s%s%s%#03o",
+				ifmt, ifmt[0] ? "|" : "",
+				(mode & S_ISUID) ? "S_ISUID|" : "",
+				(mode & S_ISGID) ? "S_ISGID|" : "",
+				(mode & S_ISVTX) ? "S_ISVTX|" : "",
+				mode & ~(S_IFMT|S_ISUID|S_ISGID|S_ISVTX));
+	}
 }
 
 void
