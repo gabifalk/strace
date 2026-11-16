@@ -663,6 +663,7 @@ jsonl-merged-nlattr_unix_diag_msg	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-pidfd_send_signal	-e trace=pidfd_send_signal
+jsonl-merged-ppoll	-e trace=ppoll
 jsonl-merged-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-merged-prctl-dumpable	-e trace=prctl
 jsonl-merged-prctl-mce-kill	-e trace=prctl
@@ -676,10 +677,13 @@ jsonl-merged-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-merged-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-merged-pwritev	-s7 -e trace=pwritev
 jsonl-merged-quotactl	-e trace=quotactl
+jsonl-merged-recvmmsg	-e trace=recvmmsg
 jsonl-merged-rt_sigprocmask	-e trace=rt_sigprocmask
+jsonl-merged-rt_sigtimedwait	-e trace=rt_sigtimedwait
 jsonl-merged-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
+jsonl-merged-select	-e trace=select
 jsonl-merged-setgroups	-s2 -e trace=setgroups
 jsonl-merged-setxattr	-e trace=setxattr
 jsonl-merged-sigchld	-e trace=none
@@ -802,6 +806,7 @@ jsonl-split-nlattr_unix_diag_msg	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-pidfd_send_signal	-e trace=pidfd_send_signal
+jsonl-split-ppoll	-e trace=ppoll
 jsonl-split-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-split-prctl-dumpable	-e trace=prctl
 jsonl-split-prctl-mce-kill	-e trace=prctl
@@ -815,10 +820,13 @@ jsonl-split-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-split-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-split-pwritev	-s7 -e trace=pwritev
 jsonl-split-quotactl	-e trace=quotactl
+jsonl-split-recvmmsg	-e trace=recvmmsg
 jsonl-split-rt_sigprocmask	-e trace=rt_sigprocmask
+jsonl-split-rt_sigtimedwait	-e trace=rt_sigtimedwait
 jsonl-split-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
+jsonl-split-select	-e trace=select
 jsonl-split-setgroups	-s2 -e trace=setgroups
 jsonl-split-setxattr	-e trace=setxattr
 jsonl-split-sigchld	-e trace=none

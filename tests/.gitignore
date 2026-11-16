@@ -644,6 +644,7 @@ jsonl-nlattr_unix_diag_msg
 jsonl-pause
 jsonl-pidfd_getfd-yy
 jsonl-pidfd_send_signal
+jsonl-ppoll
 jsonl-prctl
 jsonl-prctl-dumpable
 jsonl-prctl-mce-kill
@@ -657,10 +658,13 @@ jsonl-process_vm_readv
 jsonl-process_vm_writev
 jsonl-pwritev
 jsonl-quotactl
+jsonl-recvmmsg
 jsonl-rt_sigprocmask
+jsonl-rt_sigtimedwait
 jsonl-rt_tgsigqueueinfo
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
+jsonl-select
 jsonl-setgroups
 jsonl-setxattr
 jsonl-sigchld

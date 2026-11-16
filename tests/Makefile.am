@@ -387,6 +387,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
 	jsonl-pidfd_send_signal \
+	jsonl-ppoll \
 	jsonl-prctl \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
@@ -400,10 +401,13 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-process_vm_writev \
 	jsonl-pwritev \
 	jsonl-quotactl \
+	jsonl-recvmmsg \
 	jsonl-rt_sigprocmask \
+	jsonl-rt_sigtimedwait \
 	jsonl-rt_tgsigqueueinfo \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
+	jsonl-select \
 	jsonl-setgroups \
 	jsonl-setxattr \
 	jsonl-sigchld \
@@ -1178,6 +1182,7 @@ EXTRA_DIST = \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-pidfd_send_signal.c \
+	jsonl-ppoll.c \
 	jsonl-prctl.c \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
@@ -1191,10 +1196,13 @@ EXTRA_DIST = \
 	jsonl-process_vm_writev.c \
 	jsonl-pwritev.c \
 	jsonl-quotactl.c \
+	jsonl-recvmmsg.c \
 	jsonl-rt_sigprocmask.c \
+	jsonl-rt_sigtimedwait.c \
 	jsonl-rt_tgsigqueueinfo.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
+	jsonl-select.c \
 	jsonl-setgroups.c \
 	jsonl-setxattr.c \
 	jsonl-sigchld.c \
