@@ -594,6 +594,14 @@ extern void tprint_qcmd_end(void);
 extern void tprint_signal(int nr, const char *name);
 extern void tprint_perf_precise_ip(unsigned int val, const char *desc,
 				   const char *skid);
+extern void tprint_const_u_commented(unsigned long long val, const char *sym,
+				     const char *dflt);
+extern void tprint_anon_union_begin(void);
+extern void tprint_anon_union_end(void);
+extern void tprint_vcpu_run_begin(int cpuid);
+extern void tprint_vcpu_run_state_begin(int cpuid, bool after);
+extern void tprint_vcpu_run_state_end(void);
+extern void tprint_vcpu_run_end(void);
 extern void tprint_reserved_bytes_inline(const char *name,
 					 unsigned long long val,
 					 unsigned int first, unsigned int last);

@@ -3548,6 +3548,52 @@ tprint_perf_precise_ip(unsigned int val, const char *desc, const char *skid)
 }
 
 void
+tprint_const_u_commented(unsigned long long val, const char *sym,
+			 const char *dflt)
+{
+	PRINT_VAL_U(val);
+	if (sym || dflt)
+		tprints_comment(sym ? sym : dflt);
+}
+
+void
+tprint_anon_union_begin(void)
+{
+	tprint_union_begin();
+}
+
+void
+tprint_anon_union_end(void)
+{
+	tprint_union_end();
+}
+
+void
+tprint_vcpu_run_begin(int cpuid)
+{
+}
+
+void
+tprint_vcpu_run_state_begin(int cpuid, bool after)
+{
+	if (cpuid >= 0)
+		tprintf_string(" VCPU:%d%c ", cpuid, after ? '>' : '<');
+	else
+		tprintf_string(" VCPU%c ", after ? '>' : '<');
+}
+
+void
+tprint_vcpu_run_state_end(void)
+{
+	tprint_newline();
+}
+
+void
+tprint_vcpu_run_end(void)
+{
+}
+
+void
 tprint_reserved_bytes_inline(const char *name, unsigned long long val,
 			     unsigned int first, unsigned int last)
 {

@@ -511,7 +511,8 @@ static void
 kvm_run_structure_decode_main(struct tcb *tcp,
 			      struct kvm_run *state,
 			      struct vcpu_info *info,
-			      const char *exit_reason_str)
+			      const char *exit_reason_str,
+			      const char *exit_reason_dflt)
 {
 	tprint_struct_begin();
 
@@ -522,9 +523,9 @@ kvm_run_structure_decode_main(struct tcb *tcp,
 	tprint_struct_next();
 # endif
 
-	PRINT_FIELD_U(*state, exit_reason);
-	if (exit_reason_str)
-		tprints_comment(exit_reason_str);
+	tprints_field_name("exit_reason");
+	tprint_const_u_commented(state->exit_reason, exit_reason_str,
+				 exit_reason_dflt);
 	tprint_struct_next();
 	PRINT_FIELD_U(*state, ready_for_interrupt_injection);
 	tprint_struct_next();
@@ -542,9 +543,9 @@ kvm_run_structure_decode_main(struct tcb *tcp,
 # define DECODE_UNION(...)			\
 	do {					\
 		tprint_struct_next();		\
-		tprint_union_begin();		\
+		tprint_anon_union_begin();	\
 		__VA_ARGS__;			\
-		tprint_union_end();		\
+		tprint_anon_union_end();	\
 	} while (0)
 
 	switch (state->exit_reason) {
@@ -557,7 +558,6 @@ kvm_run_structure_decode_main(struct tcb *tcp,
 	}
 
 	tprint_struct_end();
-	tprint_newline();
 }
 
 void
@@ -565,37 +565,37 @@ kvm_run_structure_decode(struct tcb * tcp)
 {
 	int fd = tcp->u_arg[0];
 	struct vcpu_info * info = vcpu_get_info(tcp, fd);
+	const int cpuid = info ? info->cpuid : -1;
+	struct kvm_run *const leaving = syserror(tcp) ? NULL
+						      : tcp->vcpu_leaving;
+
+	tcp->vcpu_leaving = NULL;
+	if (!tcp->vcpu_entering && !leaving)
+		return;
+
+	tprint_vcpu_run_begin(cpuid);
 
 	/* Before */
 	if (tcp->vcpu_entering) {
-		if (info)
-			tprintf_string(" VCPU:%d< ", info->cpuid);
-		else
-			tprints_string(" VCPU< ");
 		const char *str = xlookup(kvm_exit_reason,
 					  tcp->vcpu_entering->exit_reason);
+		tprint_vcpu_run_state_begin(cpuid, false);
 		kvm_run_structure_decode_main(tcp, tcp->vcpu_entering, info,
-					      str);
-	}
-
-	if (syserror(tcp)) {
-		tcp->vcpu_leaving = NULL;
-		return;
+					      str, NULL);
+		tprint_vcpu_run_state_end();
 	}
 
 	/* After */
-	if (tcp->vcpu_leaving) {
-		if (info)
-			tprintf_string(" VCPU:%d> ", info->cpuid);
-		else
-			tprints_string(" VCPU> ");
+	if (leaving) {
 		const char *str = xlookup(kvm_exit_reason,
-					  tcp->vcpu_leaving->exit_reason);
-		kvm_run_structure_decode_main(tcp, tcp->vcpu_leaving, info,
-					      str ?: "KVM_EXIT_???");
+					  leaving->exit_reason);
+		tprint_vcpu_run_state_begin(cpuid, true);
+		kvm_run_structure_decode_main(tcp, leaving, info,
+					      str, "KVM_EXIT_???");
+		tprint_vcpu_run_state_end();
 	}
 
-	tcp->vcpu_leaving = NULL;
+	tprint_vcpu_run_end();
 }
 
 void
