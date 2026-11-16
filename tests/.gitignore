@@ -576,6 +576,7 @@ jsonl-nfnetlink_ctnetlink
 jsonl-nfnetlink_ctnetlink_exp
 jsonl-nfnetlink_cttimeout
 jsonl-nfnetlink_ipset
+jsonl-nfnetlink_nft_compat
 jsonl-nlattr
 jsonl-nlattr_ndmsg
 jsonl-pause
