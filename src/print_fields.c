@@ -4143,9 +4143,60 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 	}
 }
 
+/*
+ * The state of the stack field of the event being printed: not printed,
+ * printing has been requested and nothing has been printed yet, or the
+ * list of frames or the list of errors is open.
+ */
+static enum {
+	STACK_NONE,
+	STACK_PENDING,
+	STACK_FRAMES,
+	STACK_ERRORS,
+} stack_state;
+
+/* Print a string field with the string escaped as a JSON string.  */
+static void
+tprints_object_field_escaped(const char *field, const char *str)
+{
+	tprints_object_field_begin(field);
+	STRACE_PRINTS("\"");
+	for (const unsigned char *p = (const unsigned char *) str; *p; ++p) {
+		if (*p == '"' || *p == '\\')
+			STRACE_PRINTF("\\%c", *p);
+		else if (*p < ' ')
+			STRACE_PRINTF("\\u%04x", *p);
+		else
+			STRACE_PRINTF("%c", *p);
+	}
+	STRACE_PRINTS("\"");
+	tprint_object_field_end();
+}
+
+static void
+tprint_stack_list_begin(const char *name)
+{
+	if (stack_state == STACK_PENDING) {
+		tprints_object_field_begin("stack");
+		tprint_object_begin();
+		tprints_object_field_begin("frames");
+		tprint_list_begin();
+		stack_state = STACK_FRAMES;
+	}
+	if (stack_state == STACK_FRAMES && !strcmp(name, "errors")) {
+		tprint_list_end();
+		tprint_object_field_end();
+		tprints_object_field_begin("errors");
+		tprint_list_begin();
+		stack_state = STACK_ERRORS;
+	}
+}
+
 void
 tprint_stack_begin(void)
 {
+	if (structured_output)
+		stack_state = STACK_PENDING;
 }
 
 void
@@ -4153,31 +4204,81 @@ tprint_stack_frame(const char *binary, const char *symbol,
 		   unsigned long offset, unsigned long address,
 		   const char *source_file, int source_line)
 {
-	if (symbol && source_file)
-		tprintf_string(" > %s(%s+0x%lx) [0x%lx] %s:%d\n",
-			       binary, symbol, offset, address,
-			       source_file, source_line);
-	else if (symbol)
-		tprintf_string(" > %s(%s+0x%lx) [0x%lx]\n",
-			       binary, symbol, offset, address);
-	else
-		tprintf_string(" > %s() [0x%lx]\n", binary, address);
-	line_ended();
+	if (structured_output) {
+		if (stack_state != STACK_NONE) {
+			tprint_stack_list_begin("frames");
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_field_escaped("binary",
+						     binary ? binary : "");
+			if (symbol) {
+				tprints_object_field_escaped("symbol", symbol);
+				tprintf_object_field_string("offset", "%#lx",
+							    offset);
+			}
+			tprintf_object_field_string("address", "%#lx",
+						    address);
+			if (symbol && source_file) {
+				tprints_object_field_escaped("source_file",
+							     source_file);
+				tprints_object_field_begin("source_line");
+				STRACE_PRINTF("%d", source_line);
+				tprint_object_field_end();
+			}
+			tprint_object_end();
+			tprint_list_element_end();
+		}
+	} else {
+		if (symbol && source_file)
+			tprintf_string(" > %s(%s+0x%lx) [0x%lx] %s:%d\n",
+				       binary, symbol, offset, address,
+				       source_file, source_line);
+		else if (symbol)
+			tprintf_string(" > %s(%s+0x%lx) [0x%lx]\n",
+				       binary, symbol, offset, address);
+		else
+			tprintf_string(" > %s() [0x%lx]\n", binary, address);
+		line_ended();
+	}
 }
 
 void
 tprint_stack_error(const char *error, unsigned long address)
 {
-	if (address)
-		tprintf_string(" > %s [0x%lx]\n", error, address);
-	else
-		tprintf_string(" > %s\n", error);
-	line_ended();
+	if (structured_output) {
+		if (stack_state != STACK_NONE) {
+			tprint_stack_list_begin("errors");
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_field_escaped("message", error);
+			if (address)
+				tprintf_object_field_string("address", "%#lx",
+							    address);
+			tprint_object_end();
+			tprint_list_element_end();
+		}
+	} else {
+		if (address)
+			tprintf_string(" > %s [0x%lx]\n", error, address);
+		else
+			tprintf_string(" > %s\n", error);
+		line_ended();
+	}
 }
 
 void
 tprint_stack_end(void)
 {
+	if (structured_output) {
+		if (stack_state == STACK_FRAMES
+		    || stack_state == STACK_ERRORS) {
+			tprint_list_end();
+			tprint_object_field_end();
+			tprint_object_end();
+			tprint_object_field_end();
+		}
+		stack_state = STACK_NONE;
+	}
 }
 
 void
