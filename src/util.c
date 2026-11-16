@@ -2048,11 +2048,10 @@ print_array_ex(struct tcb *const tcp,
 
 		if (tfetch_mem_func) {
 			if (!tfetch_mem_func(tcp, cur, elem_size, elem_buf)) {
-				if (cur == start_addr)
+				if (cur == start_addr) {
 					printaddr(cur);
-				else {
-					tprint_more_data_follows();
-					printaddr_comment(cur);
+				} else {
+					tprint_array_element_fetch_failed(cur);
 					truncated = true;
 				}
 				break;
