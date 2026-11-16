@@ -262,63 +262,21 @@ SYS_FUNC(adjtimex64)
 #endif
 
 static void
-printcpuclockname(int clockid)
-{
-	clockid = clockid & CPUCLOCK_CLOCK_MASK;
-	const char *const str = xlookup(cpuclocknames, clockid);
-
-	if (str) {
-		STRACE_PRINT_COLOR_SEQ(COLOR_CONST);
-		STRACE_PRINTS(str);
-		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
-	} else
-		PRINT_VAL_X(clockid);
-}
-
-static void
 printclockname(int clockid)
 {
 	if (clockid < 0) {
-		PRINT_VAL_D(clockid);
-
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-			return;
-
-		tprint_comment_begin();
+		const int pid = CPUCLOCK_PID(clockid);
+		const bool per_thread = CPUCLOCK_PERTHREAD(clockid);
 
 		if ((clockid & CLOCKFD_MASK) == CLOCKFD) {
-			tprints_fn_begin("FD_TO_CLOCKID");
-			PRINT_VAL_D(CLOCKID_TO_FD(clockid));
-		} else {
-			tprints_fn_begin(CPUCLOCK_PERTHREAD(clockid) ?
-					  "MAKE_THREAD_CPUCLOCK" :
-					  "MAKE_PROCESS_CPUCLOCK");
-			PRINT_VAL_D(CPUCLOCK_PID(clockid));
-
-			tprint_fn_next();
-			printcpuclockname(clockid);
+			tprint_clockid_fd(clockid, CLOCKID_TO_FD(clockid));
+		} else if (tprint_clockid_cpu_begin(clockid, pid, per_thread)) {
+			printxvals_ex(clockid & CPUCLOCK_CLOCK_MASK, NULL,
+				      XLAT_STYLE_ABBREV, cpuclocknames, NULL);
+			tprint_clockid_cpu_end();
 		}
-		tprint_fn_end();
-		tprint_comment_end();
-
 	} else if (clockid >= CLOCK_AUX && clockid <= CLOCK_AUX_LAST) {
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-			PRINT_VAL_X(clockid);
-
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-			return;
-
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			tprint_comment_begin();
-
-		/* The surrounding code handles raw and verbose output. */
-		print_xlat_ex(CLOCK_AUX, "CLOCK_AUX", XLAT_STYLE_ABBREV);
-		tprint_plus();
-		PRINT_VAL_U(clockid - CLOCK_AUX);
-
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			tprint_comment_end();
-
+		tprint_clockid_aux(clockid, clockid - CLOCK_AUX);
 	} else
 		printxval(clocknames, clockid, "CLOCK_???");
 }

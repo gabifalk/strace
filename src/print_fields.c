@@ -694,6 +694,68 @@ timescale_to_unit(int scale)
 	}
 }
 
+void
+tprint_clockid_fd(int clockid, unsigned int fd)
+{
+	PRINT_VAL_D(clockid);
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		tprint_comment_begin();
+		tprints_fn_begin("FD_TO_CLOCKID");
+		PRINT_VAL_U(fd);
+		tprint_fn_end();
+		tprint_comment_end();
+	}
+}
+
+/*
+ * Start printing a CPU clock id; return false if its clock part
+ * is not to be printed.
+ */
+bool
+tprint_clockid_cpu_begin(int clockid, int pid, bool per_thread)
+{
+	bool print_clock = true;
+
+	PRINT_VAL_D(clockid);
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
+		print_clock = false;
+	} else {
+		tprint_comment_begin();
+		tprints_fn_begin(per_thread ? "MAKE_THREAD_CPUCLOCK"
+					    : "MAKE_PROCESS_CPUCLOCK");
+		PRINT_VAL_D(pid);
+		tprint_fn_next();
+	}
+
+	return print_clock;
+}
+
+void
+tprint_clockid_cpu_end(void)
+{
+	tprint_fn_end();
+	tprint_comment_end();
+}
+
+void
+tprint_clockid_aux(int clockid, unsigned int index)
+{
+	const enum xlat_style style = xlat_verbose(xlat_verbosity);
+
+	if (style != XLAT_STYLE_ABBREV)
+		PRINT_VAL_X(clockid);
+	if (style != XLAT_STYLE_RAW) {
+		if (style == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+		print_xlat_ex(clockid - index, "CLOCK_AUX",
+			      XLAT_STYLE_ABBREV);
+		tprint_plus();
+		PRINT_VAL_U(index);
+		if (style == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	}
+}
+
 /*
  * Print the I/O priority value `ioprio' whose decoded form is `str';
  * the raw value is printed as a signed decimal number if `signed_raw',
