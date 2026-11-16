@@ -89,6 +89,12 @@ tprint_object_end(void)
 }
 
 static inline void
+tprints_object_field_null(const char *field)
+{
+	(void) field;
+}
+
+static inline void
 tprint_type_const(void)
 {
 }
@@ -213,7 +219,12 @@ tprint_space(void)
 static inline void
 tprint_null(void)
 {
-	STRACE_PRINTS("NULL");
+	if (structured_output) {
+		tprints_object_type("addr");
+		tprints_object_field_null("raw");
+	} else {
+		STRACE_PRINTS("NULL");
+	}
 }
 
 static inline void
