@@ -4143,6 +4143,20 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 	}
 }
 
+void
+tprint_summary_personality(FILE *outf, const char *name)
+{
+	fprintf(outf, "System call usage summary for %s mode:\n", name);
+}
+
+void
+tprint_summary(const struct summary_row *rows, size_t nrows,
+	       const struct summary_row *total, const char *const *columns,
+	       void (*print_table)(void *), void *data)
+{
+	print_table(data);
+}
+
 /*
  * The state of the stack field of the event being printed: not printed,
  * printing has been requested and nothing has been printed yet, or the

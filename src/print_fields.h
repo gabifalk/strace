@@ -60,6 +60,21 @@ extern void tprint_ioctl_cmd_xval(const struct xlat *xlat,
 extern void tprints_field_xval_entering(const char *name, uint64_t val,
 					const struct xlat *xlat,
 					const char *dflt);
+struct summary_row {
+	const char *syscall;
+	double time_percent;
+	double total_time;
+	double min_time;
+	double max_time;
+	double avg_time;
+	uint64_t calls;
+	uint64_t errors;
+};
+extern void tprint_summary_personality(FILE *outf, const char *name);
+extern void tprint_summary(const struct summary_row *rows, size_t nrows,
+			   const struct summary_row *total,
+			   const char *const *columns,
+			   void (*print_table)(void *), void *data);
 extern void tprint_stack_begin(void);
 extern void tprint_stack_frame(const char *binary, const char *symbol,
 			       unsigned long offset, unsigned long address,

@@ -622,59 +622,38 @@ print_summary_syscall_name(FILE *outf, const char *name,
 	}
 }
 
-static void
-call_summary_pers(FILE *outf)
+static const char *
+csc_column_name(uint8_t col)
 {
-	/*
-	 * unknown system calls start at index nsyscalls
-	 * and their index may differ from their number
-	 */
-	kernel_ulong_t *indices;
-	size_t indices_size = nsyscalls + get_unknown_bucket_size();
+	switch (col) {
+	case CSC_TIME_100S:  return "time_percent";
+	case CSC_TIME_TOTAL: return "total_time";
+	case CSC_TIME_MIN:   return "min_time";
+	case CSC_TIME_MAX:   return "max_time";
+	case CSC_TIME_AVG:   return "avg_time";
+	case CSC_CALLS:      return "calls";
+	case CSC_ERRORS:     return "errors";
+	case CSC_SC_NAME:    return "syscall";
+	default:             return NULL;
+	}
+}
+
+struct summary_table_data {
+	FILE *outf;
+	const kernel_ulong_t *indices;
+	size_t indices_size;
+	const struct summary_stats *stats;
+};
+
+static void
+print_summary_table(void *data)
+{
+	const struct summary_table_data *const d = data;
+	FILE *const outf = d->outf;
+	const kernel_ulong_t *const indices = d->indices;
+	const size_t indices_size = d->indices_size;
+	const struct summary_stats stats = *d->stats;
 	size_t last_column = 0;
-
-	struct summary_stats stats = {
-		.tv_cum      	 = zero_ts,
-		.tv_min      	 = &max_ts,
-		.tv_min_max  	 = &zero_ts,
-		.tv_max      	 = &zero_ts,
-		.tv_avg_max  	 = &zero_ts,
-		.tv_wall_cum 	 = zero_ts,
-		.tv_wall_min 	 = &max_ts,
-		.tv_wall_min_max = &zero_ts,
-		.tv_wall_max 	 = &zero_ts,
-		.tv_wall_avg_max = &zero_ts,
-		.call_cum    	 = 0,
-		.error_cum   	 = 0,
-		.sc_name_max 	 = 0
-	};
-
-	/* sort, calculate statistics (for known syscalls) */
-	indices = xcalloc(indices_size, sizeof(indices[0]));
-	for (size_t i = 0; i < nsyscalls; ++i) {
-		indices[i] = i;
-		if (counts[i].calls == 0)
-			continue;
-
-		calc_summary_stats(&stats, &counts[i], sysent[i].sys_name);
-	}
-
-	/* for unknown syscalls */
-	for (size_t i = 0; i < get_unknown_bucket_size(); ++i) {
-		struct unknown_call_counts *ucc = get_unknown_by_idx(i);
-		struct call_counts *cc = &ucc->call_counts;
-
-		indices[nsyscalls + i] = ucc->scno;
-
-		calc_summary_stats(&stats, cc, ucc->sys_name);
-	}
-
-	stats.float_tv_cum = ts_float(&stats.tv_cum);
-	stats.float_tv_wall_cum = summary_needs_wall()
-				  ? ts_float(&stats.tv_wall_cum) : 0;
-
-	if (sortfun)
-		qsort((void *) indices, indices_size, sizeof(indices[0]), sortfun);
 
 	enum column_flags {
 		CF_L = 1 << 0, /* Left-aligned column */
@@ -839,8 +818,6 @@ call_summary_pers(FILE *outf)
 		fputc('\n', outf);
 	}
 
-	free(indices);
-
 	/* footer */
 	for (size_t i = 0; i <= last_column; ++i) {
 		if (i)
@@ -879,6 +856,120 @@ call_summary_pers(FILE *outf)
 #undef FC_
 }
 
+static void
+call_summary_pers(FILE *outf)
+{
+	/*
+	 * unknown system calls start at index nsyscalls
+	 * and their index may differ from their number
+	 */
+	kernel_ulong_t *indices;
+	size_t indices_size = nsyscalls + get_unknown_bucket_size();
+
+	struct summary_stats stats = {
+		.tv_cum      	 = zero_ts,
+		.tv_min      	 = &max_ts,
+		.tv_min_max  	 = &zero_ts,
+		.tv_max      	 = &zero_ts,
+		.tv_avg_max  	 = &zero_ts,
+		.tv_wall_cum 	 = zero_ts,
+		.tv_wall_min 	 = &max_ts,
+		.tv_wall_min_max = &zero_ts,
+		.tv_wall_max 	 = &zero_ts,
+		.tv_wall_avg_max = &zero_ts,
+		.call_cum    	 = 0,
+		.error_cum   	 = 0,
+		.sc_name_max 	 = 0
+	};
+
+	/* sort, calculate statistics (for known syscalls) */
+	indices = xcalloc(indices_size, sizeof(indices[0]));
+	for (size_t i = 0; i < nsyscalls; ++i) {
+		indices[i] = i;
+		if (counts[i].calls == 0)
+			continue;
+
+		calc_summary_stats(&stats, &counts[i], sysent[i].sys_name);
+	}
+
+	/* for unknown syscalls */
+	for (size_t i = 0; i < get_unknown_bucket_size(); ++i) {
+		struct unknown_call_counts *ucc = get_unknown_by_idx(i);
+		struct call_counts *cc = &ucc->call_counts;
+
+		indices[nsyscalls + i] = ucc->scno;
+
+		calc_summary_stats(&stats, cc, ucc->sys_name);
+	}
+
+	stats.float_tv_cum = ts_float(&stats.tv_cum);
+	stats.float_tv_wall_cum = summary_needs_wall()
+				  ? ts_float(&stats.tv_wall_cum) : 0;
+
+	if (sortfun)
+		qsort((void *) indices, indices_size, sizeof(indices[0]), sortfun);
+
+	struct summary_row *rows = xcalloc(indices_size, sizeof(*rows));
+	size_t nrows = 0;
+
+	for (size_t j = 0; j < indices_size; ++j) {
+		kernel_ulong_t idx = indices[j];
+		struct call_counts *cc = get_syscall_cc(idx);
+		double float_syscall_time;
+		double percent;
+
+		if (cc->calls == 0)
+			continue;
+
+		float_syscall_time = ts_float(&cc->time);
+		percent = (100.0 * float_syscall_time);
+		/* else: float_tv_cum can be 0.0 too and we get 0/0 = NAN */
+		if (percent != 0.0)
+			percent /= stats.float_tv_cum;
+
+		rows[nrows++] = (struct summary_row) {
+			.syscall = get_syscall_name(idx),
+			.time_percent = percent,
+			.total_time = float_syscall_time,
+			.min_time = ts_float(&cc->time_min),
+			.max_time = ts_float(&cc->time_max),
+			.avg_time = ts_float(&cc->time_avg),
+			.calls = cc->calls,
+			.errors = cc->errors,
+		};
+	}
+
+	const struct summary_row total = {
+		.time_percent = 100.0,
+		.total_time = stats.float_tv_cum,
+		.min_time = ts_float(stats.tv_min),
+		.max_time = ts_float(stats.tv_max),
+		.avg_time = stats.float_tv_cum / stats.call_cum,
+		.calls = stats.call_cum,
+		.errors = stats.error_cum,
+	};
+
+	const char *column_names[CSC_MAX + 1] = { NULL };
+	for (size_t i = 0, n = 0; i < ARRAY_SIZE(columns) && columns[i]; ++i) {
+		const char *name = csc_column_name(columns[i]);
+
+		if (name)
+			column_names[n++] = name;
+	}
+
+	struct summary_table_data data = {
+		.outf = outf,
+		.indices = indices,
+		.indices_size = indices_size,
+		.stats = &stats,
+	};
+	tprint_summary(rows, nrows, &total, column_names,
+		       print_summary_table, &data);
+
+	free(rows);
+	free(indices);
+}
+
 void
 call_summary(FILE *outf)
 {
@@ -891,9 +982,7 @@ call_summary(FILE *outf)
 		if (current_personality != i)
 			set_personality(i);
 		if (i)
-			fprintf(outf,
-				"System call usage summary for %s mode:\n",
-				personality_names[i]);
+			tprint_summary_personality(outf, personality_names[i]);
 		call_summary_pers(outf);
 	}
 
