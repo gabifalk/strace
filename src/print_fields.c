@@ -830,14 +830,14 @@ tprint_flags_groups_end(void)
 	}
 }
 
-void
-tprint_flags_group_begin(unsigned long long raw)
+static void
+tprints_flags_typed_group_begin(unsigned long long raw, const char *group_type)
 {
 	if (structured_output) {
 		tprint_list_element_begin();
 		tprint_object_begin();
 		tprintf_object_field_string("raw", "%#llx", raw);
-		tprints_object_field_string("group_type", "flags");
+		tprints_object_field_string("group_type", group_type);
 		tprints_object_field_begin("elems");
 		tprint_list_begin();
 		tprint_list_element_begin();
@@ -847,15 +847,21 @@ tprint_flags_group_begin(unsigned long long raw)
 }
 
 void
+tprint_flags_group_begin(unsigned long long raw)
+{
+	tprints_flags_typed_group_begin(raw, "flags");
+}
+
+void
 tprint_flags_shift_group_begin(unsigned long long raw)
 {
-	tprint_flags_group_begin(raw);
+	tprints_flags_typed_group_begin(raw, "shift");
 }
 
 void
 tprint_flags_mode_group_begin(unsigned long long raw)
 {
-	tprint_flags_group_begin(raw);
+	tprints_flags_typed_group_begin(raw, "mode");
 }
 
 void
