@@ -93,7 +93,13 @@ tprint_array_begin(void)
 void
 tprint_pair_begin(void)
 {
-	tprint_array_begin();
+	if (structured_output) {
+		tprints_object_field_string("type", "pair");
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else {
+		tprint_array_begin();
+	}
 }
 
 void
