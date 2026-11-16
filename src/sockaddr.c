@@ -664,6 +664,7 @@ print_sockaddr_data_raw(const void *const buf, const int addrlen)
 	const int datalen = addrlen - SIZEOF_SA_FAMILY;
 
 	tprints_field_name("sa_data");
+	tprints_object_type("string");
 	print_quoted_string(data, datalen, 0);
 }
 
