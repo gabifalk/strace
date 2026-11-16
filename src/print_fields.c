@@ -4069,12 +4069,15 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 void
 tprint_event_trailers(void (*print_fn)(struct tcb *), struct tcb *tcp)
 {
+	if (structured_output)
+		print_fn(tcp);
 }
 
 void
 tprint_line_trailers(void (*print_fn)(struct tcb *), struct tcb *tcp)
 {
-	print_fn(tcp);
+	if (!structured_output)
+		print_fn(tcp);
 }
 
 void
