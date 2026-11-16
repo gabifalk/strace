@@ -3551,46 +3551,77 @@ void
 tprint_const_u_commented(unsigned long long val, const char *sym,
 			 const char *dflt)
 {
-	PRINT_VAL_U(val);
-	if (sym || dflt)
-		tprints_comment(sym ? sym : dflt);
+	if (structured_output) {
+		tprints_object_type("const");
+		tprintf_object_field_string("raw", "%llu", val);
+		if (sym)
+			tprints_object_field_string("sym", sym);
+		else if (dflt)
+			tprints_object_field_string("sym_pattern", dflt);
+	} else {
+		PRINT_VAL_U(val);
+		if (sym || dflt)
+			tprints_comment(sym ? sym : dflt);
+	}
 }
 
 void
 tprint_anon_union_begin(void)
 {
-	tprint_union_begin();
+	if (!structured_output)
+		tprint_union_begin();
 }
 
 void
 tprint_anon_union_end(void)
 {
-	tprint_union_end();
+	if (!structured_output)
+		tprint_union_end();
 }
 
 void
 tprint_vcpu_run_begin(int cpuid)
 {
+	if (structured_output) {
+		tprints_object_field_begin("vcpu_run");
+		tprint_object_begin();
+		tprints_object_type("kvm_vcpu_run");
+		if (cpuid >= 0)
+			tprintf_object_field_string("vcpu", "%d", cpuid);
+	}
 }
 
 void
 tprint_vcpu_run_state_begin(int cpuid, bool after)
 {
-	if (cpuid >= 0)
+	if (structured_output) {
+		tprints_object_field_begin(after ? "after" : "before");
+		tprint_object_begin();
+	} else if (cpuid >= 0) {
 		tprintf_string(" VCPU:%d%c ", cpuid, after ? '>' : '<');
-	else
+	} else {
 		tprintf_string(" VCPU%c ", after ? '>' : '<');
+	}
 }
 
 void
 tprint_vcpu_run_state_end(void)
 {
-	tprint_newline();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_newline();
+	}
 }
 
 void
 tprint_vcpu_run_end(void)
 {
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
 
 void
