@@ -1605,7 +1605,7 @@ printstr_ex(struct tcb *const tcp, const kernel_ulong_t addr,
 		   && ((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
 		       || len > max_strlen);
 
-	tprints_object_type("string");
+	tprints_object_type(style & QUOTE_FORCE_HEX ? "bytes" : "string");
 	tprints_quoted_string(outstr, str,
 			      size - omitted_trailing_0(str, size, style),
 			      style & QUOTE_0_TERMINATED);
