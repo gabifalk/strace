@@ -437,7 +437,7 @@ print_btrfs_timespec(const MPERS_PTR_ARG(struct_btrfs_ioctl_timespec *) const ar
 	tprint_struct_next();
 	PRINT_FIELD_U(*p, nsec);
 	tprint_struct_end();
-	tprints_comment(sprinttime_nsec(p->sec, p->nsec));
+	tprints_timestamp_comment(sprinttime_nsec(p->sec, p->nsec));
 }
 
 static void
