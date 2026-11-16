@@ -317,6 +317,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nfnetlink_cthelper \
 	jsonl-nfnetlink_ctnetlink \
 	jsonl-nfnetlink_ctnetlink_exp \
+	jsonl-nfnetlink_cttimeout \
 	jsonl-nlattr \
 	jsonl-nlattr_ndmsg \
 	jsonl-pause \
@@ -1026,6 +1027,7 @@ EXTRA_DIST = \
 	jsonl-nfnetlink_cthelper.c \
 	jsonl-nfnetlink_ctnetlink.c \
 	jsonl-nfnetlink_ctnetlink_exp.c \
+	jsonl-nfnetlink_cttimeout.c \
 	jsonl-nlattr.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-pause.c \
