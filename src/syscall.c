@@ -1052,9 +1052,9 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 	print_injected_note(tcp);
 	if (Tflag)
 		print_syscall_duration(tcp, ts);
-	tprint_event_end();
-	tprint_newline();
+	tprint_syscall_exit_line_end();
 	dumpio(tcp);
+	tprint_syscall_exit_event_end();
 	line_ended();
 
 #ifdef ENABLE_STACKTRACE

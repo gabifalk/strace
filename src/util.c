@@ -1699,19 +1699,22 @@ dumpiov_upto(struct tcb *const tcp, const int len, const kernel_ulong_t addr,
 		return;
 	}
 	if (umoven(tcp, addr, size, iov) >= 0) {
-		for (int i = 0; i < len; ++i) {
+		int i;
+
+		for (i = 0; i < len; ++i) {
 			kernel_ulong_t iov_len = iov_iov_len(i);
 			if (iov_len > data_size)
 				iov_len = data_size;
 			if (!iov_len)
 				break;
 			data_size -= iov_len;
-			/* include the buffer number to make it easy to
-			 * match up the trace with the source */
-			tprintf_string(" * %" PRI_klu " bytes in buffer %d\n",
-				       iov_len, i);
+			if (!i)
+				tprint_io_dump_iov_begin();
+			tprint_io_dump_iov_buffer(iov_len, i);
 			dumpstr(tcp, iov_iov_base(i), iov_len);
 		}
+		if (i)
+			tprint_io_dump_iov_end();
 	}
 	free(iov);
 #undef sizeof_iov
@@ -1720,9 +1723,9 @@ dumpiov_upto(struct tcb *const tcp, const int len, const kernel_ulong_t addr,
 #undef iov
 }
 
-void
-dumpstr(struct tcb *const tcp, const kernel_ulong_t addr,
-	const kernel_ulong_t len)
+static void
+dumpstr_data(struct tcb *const tcp, const kernel_ulong_t addr,
+	     const kernel_ulong_t len)
 {
 	/* xx xx xx xx xx xx xx xx  xx xx xx xx xx xx xx xx  1234567890123456 */
 	enum {
@@ -1803,17 +1806,9 @@ dumpstr(struct tcb *const tcp, const kernel_ulong_t addr,
 			kernel_ulong_t fetch_size = MIN(len - i, alloc_size);
 
 			if (umoven(tcp, addr + i, fetch_size, str) < 0) {
-				/*
-				 * Don't silently abort if we have printed
-				 * something already.
-				 */
-				if (i)
-					tprintf_string(" | <Cannot fetch %" PRI_klu
-						       " byte%s from pid %d"
-						       " @%#" PRI_klx ">\n",
-						       fetch_size,
-						       fetch_size == 1 ? "" : "s",
-						       tcp->pid, addr + i);
+				tprint_io_dump_fetch_failed(len, fetch_size,
+							    tcp->pid, addr + i,
+							    i);
 				return;
 			}
 			src = str;
@@ -1849,9 +1844,23 @@ dumpstr(struct tcb *const tcp, const kernel_ulong_t addr,
 			src++;
 		} while (++i & DUMPSTR_BYTES_MASK);
 
-		tprintf_string(" | %0*" PRI_klx "  %s |\n",
-			       offs_chars, i - DUMPSTR_WIDTH_BYTES, outbuf);
+		const kernel_ulong_t offs = i - DUMPSTR_WIDTH_BYTES;
+		tprint_io_dump_line(outbuf, offs, offs_chars,
+				    src - DUMPSTR_WIDTH_BYTES,
+				    MIN(len - offs, DUMPSTR_WIDTH_BYTES));
 	}
+}
+
+void
+dumpstr(struct tcb *const tcp, const kernel_ulong_t addr,
+	const kernel_ulong_t len)
+{
+	if (!len)
+		return;
+
+	tprint_io_dump_begin();
+	dumpstr_data(tcp, addr, len);
+	tprint_io_dump_end();
 }
 
 bool

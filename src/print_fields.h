@@ -215,6 +215,21 @@ extern void tprint_syscall_duration(long long sec, long nsec);
 extern void tprint_sysret_end(void);
 extern void tprint_sysret_errno(unsigned long u_error, const char *sym,
 				const char *str);
+extern void tprint_syscall_exit_line_end(void);
+extern void tprint_syscall_exit_event_end(void);
+extern void tprint_io_dump_begin(void);
+extern void tprint_io_dump_line(const char *text, unsigned long long offset,
+				int offset_width, const void *data,
+				unsigned int size);
+extern void tprint_io_dump_fetch_failed(unsigned long long size,
+					unsigned long long fetch_size, int pid,
+					unsigned long long addr,
+					unsigned long long fetched);
+extern void tprint_io_dump_end(void);
+extern void tprint_io_dump_iov_begin(void);
+extern void tprint_io_dump_iov_buffer(unsigned long long size,
+				      unsigned int index);
+extern void tprint_io_dump_iov_end(void);
 
 static inline void
 tprint_array_index_end(void)

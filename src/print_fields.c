@@ -565,3 +565,67 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 		STRACE_PRINTF("(errno %lu)", u_error);
 	}
 }
+
+void
+tprint_syscall_exit_line_end(void)
+{
+	tprint_event_end();
+	tprint_newline();
+}
+
+void
+tprint_syscall_exit_event_end(void)
+{
+}
+
+void
+tprint_io_dump_begin(void)
+{
+}
+
+void
+tprint_io_dump_line(const char *text, unsigned long long offset,
+		    int offset_width, const void *data, unsigned int size)
+{
+	tprintf_string(" | %0*llx  %s |\n", offset_width, offset, text);
+}
+
+void
+tprint_io_dump_fetch_failed(unsigned long long size,
+			    unsigned long long fetch_size, int pid,
+			    unsigned long long addr, unsigned long long fetched)
+{
+	/*
+	 * Don't silently abort if something has been printed already.
+	 */
+	if (fetched)
+		tprintf_string(" | <Cannot fetch %llu byte%s from pid %d"
+			       " @%#llx>\n",
+			       fetch_size, fetch_size == 1 ? "" : "s",
+			       pid, addr);
+}
+
+void
+tprint_io_dump_end(void)
+{
+}
+
+void
+tprint_io_dump_iov_begin(void)
+{
+}
+
+void
+tprint_io_dump_iov_buffer(unsigned long long size, unsigned int index)
+{
+	/*
+	 * Include the buffer number to make it easy to match up the trace
+	 * with the source.
+	 */
+	tprintf_string(" * %llu bytes in buffer %u\n", size, index);
+}
+
+void
+tprint_io_dump_iov_end(void)
+{
+}
