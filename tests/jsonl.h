@@ -554,6 +554,18 @@ jsonl_flags_open(uint64_t raw)
 	printf(", \"group_type\": \"flags\", \"elems\": [");
 }
 
+/* Like jsonl_flags_open, for a flags value printed without a default name. */
+static inline void
+jsonl_flags_open_dflt_null(uint64_t raw)
+{
+	printf("\"type\": \"flags\", \"raw\": ");
+	jsonl_xlat_raw(raw);
+	printf(", \"groups\": [{\"raw\": ");
+	jsonl_xlat_raw(raw);
+	printf(", \"group_type\": \"flags\", \"dflt_null\": \"true\","
+	       " \"elems\": [");
+}
+
 /* A matched flag: {"type": "const", "raw": "<raw>", "sym": "<sym>"}. */
 static inline void
 jsonl_flags_const(uint64_t raw, const char *sym, bool first)
