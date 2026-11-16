@@ -27,6 +27,7 @@ print_f_handle(struct tcb *tcp, kernel_ulong_t addr, unsigned int handle_bytes)
 	addr += sizeof(file_handle_header);
 	if (addr > sizeof(file_handle_header) &&
 	    !umoven(tcp, addr, len, f_handle)) {
+		tprints_object_type("bytes");
 		print_quoted_string(f_handle, len, QUOTE_FORCE_HEX);
 		if (handle_bytes > len)
 			tprint_more_data_follows();
@@ -66,6 +67,8 @@ SYS_FUNC(name_to_handle_at)
 
 		tprint_struct_begin();
 		PRINT_FIELD_U(h, handle_bytes);
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 
 		set_tcb_priv_ulong(tcp, h.handle_bytes);
 
@@ -73,11 +76,13 @@ SYS_FUNC(name_to_handle_at)
 	} else {
 		if ((!syserror(tcp) || EOVERFLOW == tcp->u_error)
 		    && !umove(tcp, addr, &h)) {
+			const bool changed =
+				h.handle_bytes != get_tcb_priv_ulong(tcp);
 
-			if (h.handle_bytes != get_tcb_priv_ulong(tcp)) {
-				tprint_value_changed();
+			tprint_struct_exiting_begin(2, "handle");
+			if (tprints_field_exiting_value("handle_bytes", true,
+							changed))
 				PRINT_VAL_U(h.handle_bytes);
-			}
 			if (!syserror(tcp)) {
 				tprint_struct_next();
 				PRINT_FIELD_D(h, handle_type);
@@ -85,8 +90,10 @@ SYS_FUNC(name_to_handle_at)
 				tprints_field_name("f_handle");
 				print_f_handle(tcp, addr, h.handle_bytes);
 			}
+			tprint_struct_end();
+		} else {
+			tprint_struct_exiting_abandon();
 		}
-		tprint_struct_end();
 
 		/* mount_id */
 		tprints_arg_next_name("mount_id");
