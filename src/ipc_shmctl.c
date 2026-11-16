@@ -145,10 +145,10 @@ SYS_FUNC(shmctl)
 		tprints_arg_next_name("op");
 		PRINTCTL(shmctl_flags, tcp->u_arg[1], "SHM_???");
 
-		tprints_arg_next_name("buf");
 		switch (cmd) {
 		case IPC_SET:
 			/* buf */
+			tprints_arg_next_name("buf");
 			print_shmid_ds(tcp, addr, cmd);
 			return RVAL_DECODED;
 
@@ -158,14 +158,17 @@ SYS_FUNC(shmctl)
 		case IPC_INFO:
 		case SHM_INFO:
 			/* decode on exiting */
+			tprints_arg_next_name_deferred("buf");
 			break;
 
 		default:
 			/* buf */
+			tprints_arg_next_name("buf");
 			printaddr(addr);
 			return RVAL_DECODED;
 		}
 	} else {
+		tprints_arg_exiting_name(2, "buf");
 		switch (cmd) {
 		case IPC_STAT:
 		case SHM_STAT:

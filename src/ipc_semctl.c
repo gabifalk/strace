@@ -145,17 +145,17 @@ SYS_FUNC(semctl)
 		tprints_arg_next_name("op");
 		PRINTCTL(semctl_flags, tcp->u_arg[2], "SEM_???");
 
-		tprints_arg_next_name("arg");
-		if (indirect_addr) {
-			semun_ptr_t ptr;
-			if (umove_or_printaddr(tcp, tcp->u_arg[3], &ptr))
-				return RVAL_DECODED;
-			addr = ptr;
-		} else {
-			addr = tcp->u_arg[3];
+		semun_ptr_t ptr = 0;
+		if (indirect_addr && !tfetch_obj(tcp, tcp->u_arg[3], &ptr)) {
+			tprints_arg_next_name("arg");
+			printaddr(tcp->u_arg[3]);
+			return RVAL_DECODED;
 		}
+		addr = indirect_addr ? ptr : tcp->u_arg[3];
+
 		switch (cmd) {
 		case IPC_SET:
+			tprints_arg_next_name("arg");
 			print_semid_ds(tcp, addr, cmd, indirect_addr);
 			return RVAL_DECODED;
 
@@ -165,10 +165,12 @@ SYS_FUNC(semctl)
 		case IPC_INFO:
 		case SEM_INFO:
 			/* decode on exiting */
+			tprints_arg_next_name_deferred("arg");
 			set_tcb_priv_ulong(tcp, addr);
 			break;
 
 		default:
+			tprints_arg_next_name("arg");
 			if (indirect_addr)
 				tprint_indirect_begin();
 			printaddr(addr);
@@ -177,6 +179,7 @@ SYS_FUNC(semctl)
 			return RVAL_DECODED;
 		}
 	} else {
+		tprints_arg_exiting_name(3, "arg");
 		addr = get_tcb_priv_ulong(tcp);
 		switch (cmd) {
 		case IPC_STAT:
