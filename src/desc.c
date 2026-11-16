@@ -65,19 +65,21 @@ decode_select(struct tcb *const tcp, const kernel_ulong_t *const args,
 			}
 			if (umoven_or_printaddr(tcp, addr, fdsize, fds))
 				continue;
-			tprint_bitset_begin();
+			tprint_fd_set_begin();
 			bool next = false;
 			for (int j = 0;; ++j) {
 				j = next_set_bit(fds, j, nfds);
 				if (j < 0)
 					break;
 				if (next)
-					tprint_bitset_next();
+					tprint_fd_set_next();
 				else
 					next = true;
+				tprint_object_begin();
 				printfd(tcp, j);
+				tprint_object_end();
 			}
-			tprint_bitset_end();
+			tprint_fd_set_end();
 		}
 		free(fds);
 		tprints_arg_next_name("timeout");

@@ -199,6 +199,10 @@ extern void tprints_arg_next_name(const char *name);
 extern void tprints_fn_begin(const char *name);
 extern void tprint_fn_next(void);
 extern void tprint_fn_end(void);
+
+extern void tprint_fd_set_begin(void);
+extern void tprint_fd_set_next(void);
+extern void tprint_fd_set_end(void);
 extern void tprint_bitset_begin(void);
 extern void tprint_bitset_next(void);
 extern void tprint_bitset_end(void);

@@ -250,6 +250,24 @@ tprint_fn_end(void)
 }
 
 void
+tprint_fd_set_begin(void)
+{
+	tprint_bitset_begin();
+}
+
+void
+tprint_fd_set_next(void)
+{
+	tprint_bitset_next();
+}
+
+void
+tprint_fd_set_end(void)
+{
+	tprint_bitset_end();
+}
+
+void
 tprint_bitset_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
