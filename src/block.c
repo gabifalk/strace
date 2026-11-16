@@ -157,6 +157,7 @@ MPERS_PRINTER_DECL(int, block_ioctl, struct tcb *const tcp,
 			if (umove_or_printaddr(tcp, arg, &buts))
 				break;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_U(buts, act_mask);
 			tprint_struct_next();
 			PRINT_FIELD_U(buts, buf_size);
@@ -168,14 +169,18 @@ MPERS_PRINTER_DECL(int, block_ioctl, struct tcb *const tcp,
 			PRINT_FIELD_U(buts, end_lba);
 			tprint_struct_next();
 			PRINT_FIELD_TGID(buts, pid, tcp);
+			tprint_struct_entering_end();
 			return 0;
 		} else {
 			struct_blk_user_trace_setup buts;
 
-			if (!syserror(tcp) && !umove(tcp, arg, &buts)) {
-				tprint_struct_next();
-				PRINT_FIELD_CSTRING(buts, name);
+			if (syserror(tcp) || umove(tcp, arg, &buts)) {
+				tprint_struct_exiting_abandon();
+				break;
 			}
+			tprint_struct_exiting_begin(2, "argp");
+			tprint_struct_exiting_next();
+			PRINT_FIELD_CSTRING(buts, name);
 			tprint_struct_end();
 			break;
 		}
