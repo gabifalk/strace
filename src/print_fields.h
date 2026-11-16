@@ -281,6 +281,18 @@ extern void tprint_sockaddr_family_begin(void);
 extern void tprint_sockaddr_family_end(void);
 extern void tprint_sockaddr_next(void);
 extern void tprint_sockaddr_end(void);
+extern void tprint_sockaddr_in(const char *addr, unsigned int port,
+			       void (*print_struct_fields)(const void *),
+			       const void *data);
+extern void tprint_sockaddr_in6(const char *addr, unsigned int port,
+				unsigned int flowinfo, bool has_scope_id,
+				unsigned int scope_id,
+				void (*print_struct_fields)(const void *),
+				const void *data);
+extern void tprint_sockaddr_nl(unsigned int pad, unsigned int pid,
+			       unsigned int groups,
+			       void (*print_struct_fields)(const void *),
+			       const void *data);
 extern void tprint_sun_path_name(void);
 extern void tprint_sun_path_abstract(void);
 extern void tprints_quoted_string(const char *quoted, const char *raw,

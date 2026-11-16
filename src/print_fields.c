@@ -1209,36 +1209,98 @@ tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags, unsigned int n,
 void
 tprint_sockaddr_begin(void)
 {
-	tprint_struct_begin();
+	if (structured_output)
+		tprints_object_type("sockaddr");
+	else
+		tprint_struct_begin();
 }
 
 void
 tprint_sockaddr_family_begin(void)
 {
-	tprints_field_name("sa_family");
+	if (structured_output) {
+		tprints_object_field_begin("family");
+		tprint_object_begin();
+	} else {
+		tprints_field_name("sa_family");
+	}
 }
 
 void
 tprint_sockaddr_family_end(void)
 {
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
 
 void
 tprint_sockaddr_next(void)
 {
-	tprint_struct_next();
+	if (!structured_output)
+		tprint_struct_next();
 }
 
 void
 tprint_sockaddr_end(void)
 {
-	tprint_struct_end();
+	if (!structured_output)
+		tprint_struct_end();
+}
+
+void
+tprint_sockaddr_in(const char *addr, unsigned int port,
+		   void (*print_struct_fields)(const void *), const void *data)
+{
+	if (structured_output) {
+		tprints_object_field_string("addr", addr);
+		tprintf_object_field_string("port", "%u", port);
+	} else {
+		print_struct_fields(data);
+	}
+}
+
+void
+tprint_sockaddr_in6(const char *addr, unsigned int port,
+		    unsigned int flowinfo, bool has_scope_id,
+		    unsigned int scope_id,
+		    void (*print_struct_fields)(const void *), const void *data)
+{
+	if (structured_output) {
+		tprints_object_field_string("addr", addr);
+		tprintf_object_field_string("port", "%u", port);
+		tprintf_object_field_string("flowinfo", "%u", flowinfo);
+		if (has_scope_id) {
+			tprintf_object_field_string("scope_id", "%u",
+						    scope_id);
+		}
+	} else {
+		print_struct_fields(data);
+	}
+}
+
+void
+tprint_sockaddr_nl(unsigned int pad, unsigned int pid, unsigned int groups,
+		   void (*print_struct_fields)(const void *), const void *data)
+{
+	if (structured_output) {
+		if (pad)
+			tprintf_object_field_string("nl_pad", "%#x", pad);
+		tprintf_object_field_string("pid", "%u", pid);
+		tprintf_object_field_string("groups", "%#x", groups);
+	} else {
+		print_struct_fields(data);
+	}
 }
 
 void
 tprint_sun_path_name(void)
 {
-	tprints_field_name("sun_path");
+	if (structured_output)
+		tprints_field_name("path");
+	else
+		tprints_field_name("sun_path");
 }
 
 void

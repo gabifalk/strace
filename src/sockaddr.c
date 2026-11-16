@@ -109,6 +109,21 @@ struct sockaddr_ipx {
 	unsigned char sipx_zero;
 };
 
+struct sockaddr_data {
+	void (*printer)(struct tcb *, const void *, int);
+	struct tcb *tcp;
+	const void *buf;
+	int addrlen;
+};
+
+static void
+print_sockaddr_struct_fields(const void *data)
+{
+	const struct sockaddr_data *const sd = data;
+
+	sd->printer(sd->tcp, sd->buf, sd->addrlen);
+}
+
 static void
 print_sockaddr_data_un(struct tcb *tcp, const void *const buf, const int addrlen)
 {
@@ -254,6 +269,21 @@ print_sockaddr_data_in(struct tcb *tcp, const void *const buf,
 	PRINT_FIELD_INET_ADDR(*sa_in, sin_addr, AF_INET);
 }
 
+static void
+print_sockaddr_in(struct tcb *tcp, const void *const buf, const int addrlen)
+{
+	const struct sockaddr_in *const sa_in = buf;
+	const struct sockaddr_data sd = {
+		print_sockaddr_data_in, tcp, buf, addrlen
+	};
+	char addr[INET_ADDRSTRLEN];
+
+	tprint_sockaddr_in(inet_ntop(AF_INET, &sa_in->sin_addr, addr,
+				     sizeof(addr)) ?: "",
+			   ntohs(sa_in->sin_port),
+			   print_sockaddr_struct_fields, &sd);
+}
+
 #define SIN6_MIN_LEN offsetof(struct sockaddr_in6, sin6_scope_id)
 
 static void
@@ -299,6 +329,24 @@ print_sockaddr_data_in6(struct tcb *tcp, const void *const buf,
 		tprint_struct_next();
 		PRINT_FIELD_U(*sa_in6, sin6_scope_id);
 	}
+}
+
+static void
+print_sockaddr_in6(struct tcb *tcp, const void *const buf, const int addrlen)
+{
+	const struct sockaddr_in6 *const sa_in6 = buf;
+	const struct sockaddr_data sd = {
+		print_sockaddr_data_in6, tcp, buf, addrlen
+	};
+	const bool has_scope_id = addrlen > (int) SIN6_MIN_LEN;
+	char addr[INET6_ADDRSTRLEN];
+
+	tprint_sockaddr_in6(inet_ntop(AF_INET6, &sa_in6->sin6_addr, addr,
+				      sizeof(addr)) ?: "",
+			    ntohs(sa_in6->sin6_port),
+			    ntohl(sa_in6->sin6_flowinfo), has_scope_id,
+			    has_scope_id ? sa_in6->sin6_scope_id : 0,
+			    print_sockaddr_struct_fields, &sd);
 }
 
 /**
@@ -522,6 +570,18 @@ print_sockaddr_data_nl(struct tcb *tcp, const void *const buf, const int addrlen
 	PRINT_FIELD_TGID(*sa_nl, nl_pid, tcp);
 	tprint_struct_next();
 	PRINT_FIELD_0X(*sa_nl, nl_groups);
+}
+
+static void
+print_sockaddr_nl(struct tcb *tcp, const void *const buf, const int addrlen)
+{
+	const struct sockaddr_nl *const sa_nl = buf;
+	const struct sockaddr_data sd = {
+		print_sockaddr_data_nl, tcp, buf, addrlen
+	};
+
+	tprint_sockaddr_nl(sa_nl->nl_pad, sa_nl->nl_pid, sa_nl->nl_groups,
+			   print_sockaddr_struct_fields, &sd);
 }
 
 static void
@@ -1109,12 +1169,12 @@ static const struct {
 	const int min_len;
 } sa_printers[] = {
 	[AF_UNIX] = { print_sockaddr_data_un, SIZEOF_SA_FAMILY + 1 },
-	[AF_INET] = { print_sockaddr_data_in, sizeof(struct sockaddr_in) },
+	[AF_INET] = { print_sockaddr_in, sizeof(struct sockaddr_in) },
 	[AF_AX25] = { print_sockaddr_data_ax25, sizeof(struct sockaddr_ax25) },
 	[AF_IPX] = { print_sockaddr_data_ipx, sizeof(struct sockaddr_ipx) },
 	[AF_X25] = { print_sockaddr_data_x25, sizeof(struct sockaddr_x25) },
-	[AF_INET6] = { print_sockaddr_data_in6, SIN6_MIN_LEN },
-	[AF_NETLINK] = { print_sockaddr_data_nl, sizeof(struct sockaddr_nl) },
+	[AF_INET6] = { print_sockaddr_in6, SIN6_MIN_LEN },
+	[AF_NETLINK] = { print_sockaddr_nl, sizeof(struct sockaddr_nl) },
 	[AF_PACKET] = { print_sockaddr_data_ll, sizeof(struct sockaddr_ll) },
 	[AF_TIPC] = { print_sockaddr_data_tipc, sizeof(struct sockaddr_tipc) },
 	[AF_BLUETOOTH] = { print_sockaddr_data_bt, SIZEOF_SA_FAMILY + 1 },
