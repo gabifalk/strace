@@ -267,6 +267,24 @@ extern void tprints_fn_begin(const char *name);
 extern void tprint_fn_next(void);
 extern void tprint_fn_end(void);
 
+static inline void
+tprints_ioctl_cmd_begin(const char *name)
+{
+	tprints_fn_begin(name);
+}
+
+static inline void
+tprint_ioctl_cmd_next(void)
+{
+	tprint_fn_next();
+}
+
+static inline void
+tprint_ioctl_cmd_end(void)
+{
+	tprint_fn_end();
+}
+
 extern void tprint_fd_set_begin(void);
 extern void tprint_fd_set_next(void);
 extern void tprint_fd_set_end(void);
