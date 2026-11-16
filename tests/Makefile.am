@@ -286,6 +286,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-access-secontext \
 	jsonl-adjtimex \
 	jsonl-aio \
+	jsonl-bpf \
 	jsonl-chdir \
 	jsonl-clock_gettime \
 	jsonl-clone3 \
@@ -1134,6 +1135,7 @@ EXTRA_DIST = \
 	jsonl-access.c \
 	jsonl-adjtimex.c \
 	jsonl-aio.c \
+	jsonl-bpf.c \
 	jsonl-chdir.c \
 	jsonl-clock_gettime.c \
 	jsonl-clone3.c \

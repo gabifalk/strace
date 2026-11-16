@@ -543,6 +543,7 @@ jsonl-access
 jsonl-access-secontext
 jsonl-adjtimex
 jsonl-aio
+jsonl-bpf
 jsonl-chdir
 jsonl-clock_gettime
 jsonl-clone3
