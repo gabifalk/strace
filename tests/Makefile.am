@@ -294,7 +294,11 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-dup-yy \
 	jsonl-execve \
 	jsonl-exit_args_lost \
+	jsonl-fcntl-getfd \
+	jsonl-fcntl-getfl \
 	jsonl-fcntl-getlease \
+	jsonl-fcntl-seals \
+	jsonl-fcntl-sig \
 	jsonl-file_setattr \
 	jsonl-fork-f \
 	jsonl-fsconfig \
@@ -385,6 +389,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_tcmsg \
 	jsonl-nlattr_unix_diag_msg \
 	jsonl-pause \
+	jsonl-personality \
 	jsonl-pidfd_getfd-yy \
 	jsonl-pidfd_send_signal \
 	jsonl-ppoll \
@@ -406,6 +411,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-rt_sigtimedwait \
 	jsonl-rt_tgsigqueueinfo \
 	jsonl-sched_get_priority_mxx \
+	jsonl-sched_getscheduler \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-select \
 	jsonl-setgroups \
@@ -419,9 +425,11 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-swapon \
 	jsonl-sysinfo \
 	jsonl-timespec \
+	jsonl-unshare \
 	jsonl-ustat \
 	jsonl-utime \
 	jsonl-v4l2 \
+	jsonl-v4l2-create_bufs \
 	jsonl-vfork-f \
 	jsonl-xattr \
 	kcmp-y--pidns-translation \
@@ -1090,7 +1098,11 @@ EXTRA_DIST = \
 	jsonl-dup-yy.c \
 	jsonl-execve.c \
 	jsonl-exit_args_lost.c \
+	jsonl-fcntl-getfd.c \
+	jsonl-fcntl-getfl.c \
 	jsonl-fcntl-getlease.c \
+	jsonl-fcntl-seals.c \
+	jsonl-fcntl-sig.c \
 	jsonl-file_setattr.c \
 	jsonl-fork-f.c \
 	jsonl-fsconfig.c \
@@ -1180,6 +1192,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_tcmsg.c \
 	jsonl-nlattr_unix_diag_msg.c \
 	jsonl-pause.c \
+	jsonl-personality.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-pidfd_send_signal.c \
 	jsonl-ppoll.c \
@@ -1201,6 +1214,7 @@ EXTRA_DIST = \
 	jsonl-rt_sigtimedwait.c \
 	jsonl-rt_tgsigqueueinfo.c \
 	jsonl-sched_get_priority_mxx.c \
+	jsonl-sched_getscheduler.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-select.c \
 	jsonl-setgroups.c \
@@ -1214,8 +1228,10 @@ EXTRA_DIST = \
 	jsonl-swapon.c \
 	jsonl-sysinfo.c \
 	jsonl-timespec.c \
+	jsonl-unshare.c \
 	jsonl-ustat.c \
 	jsonl-utime.c \
+	jsonl-v4l2-create_bufs.c \
 	jsonl-v4l2.c \
 	jsonl-vfork-f.c \
 	jsonl-xattr.c \

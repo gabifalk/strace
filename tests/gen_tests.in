@@ -570,7 +570,11 @@ jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
 jsonl-merged-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
 jsonl-merged-exit_args_lost	-f -qqq -e trace=readv
+jsonl-merged-fcntl-getfd	-e trace=fcntl
+jsonl-merged-fcntl-getfl	-e trace=fcntl
 jsonl-merged-fcntl-getlease	-e trace=fcntl
+jsonl-merged-fcntl-seals	-e trace=fcntl
+jsonl-merged-fcntl-sig	-e trace=fcntl
 jsonl-merged-file_setattr	-e trace=file_setattr
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-fsconfig	-s300 -y -e trace=fsconfig
@@ -661,6 +665,7 @@ jsonl-merged-nlattr_tcamsg	-e trace=sendto
 jsonl-merged-nlattr_tcmsg	-e trace=sendto
 jsonl-merged-nlattr_unix_diag_msg	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
+jsonl-merged-personality	-e trace=personality
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-merged-ppoll	-e trace=ppoll
@@ -682,6 +687,7 @@ jsonl-merged-rt_sigprocmask	-e trace=rt_sigprocmask
 jsonl-merged-rt_sigtimedwait	-e trace=rt_sigtimedwait
 jsonl-merged-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
+jsonl-merged-sched_getscheduler	-e trace=sched_getscheduler
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-select	-e trace=select
 jsonl-merged-setgroups	-s2 -e trace=setgroups
@@ -695,9 +701,11 @@ jsonl-merged-superseded	-qq -f -e trace=none
 jsonl-merged-swapon	-e trace=swapon
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
+jsonl-merged-unshare	--namespace=new -e trace=unshare -e inject=unshare:retval=0
 jsonl-merged-ustat	-e trace=ustat
 jsonl-merged-utime	-e trace=utime
 jsonl-merged-v4l2	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-v4l2-create_bufs	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
@@ -713,7 +721,11 @@ jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup
 jsonl-split-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
 jsonl-split-exit_args_lost	-f -qqq -e trace=readv
+jsonl-split-fcntl-getfd	-e trace=fcntl
+jsonl-split-fcntl-getfl	-e trace=fcntl
 jsonl-split-fcntl-getlease	-e trace=fcntl
+jsonl-split-fcntl-seals	-e trace=fcntl
+jsonl-split-fcntl-sig	-e trace=fcntl
 jsonl-split-file_setattr	-e trace=file_setattr
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-fsconfig	-s300 -y -e trace=fsconfig
@@ -804,6 +816,7 @@ jsonl-split-nlattr_tcamsg	-e trace=sendto
 jsonl-split-nlattr_tcmsg	-e trace=sendto
 jsonl-split-nlattr_unix_diag_msg	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
+jsonl-split-personality	-e trace=personality
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-split-ppoll	-e trace=ppoll
@@ -825,6 +838,7 @@ jsonl-split-rt_sigprocmask	-e trace=rt_sigprocmask
 jsonl-split-rt_sigtimedwait	-e trace=rt_sigtimedwait
 jsonl-split-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
+jsonl-split-sched_getscheduler	-e trace=sched_getscheduler
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-split-select	-e trace=select
 jsonl-split-setgroups	-s2 -e trace=setgroups
@@ -838,9 +852,11 @@ jsonl-split-superseded	-qq -f -e trace=none
 jsonl-split-swapon	-e trace=swapon
 jsonl-split-sysinfo	-e trace=sysinfo
 jsonl-split-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
+jsonl-split-unshare	--namespace=new -e trace=unshare -e inject=unshare:retval=0
 jsonl-split-ustat	-e trace=ustat
 jsonl-split-utime	-e trace=utime
 jsonl-split-v4l2	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-v4l2-create_bufs	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-split-vfork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 kcmp	-a22

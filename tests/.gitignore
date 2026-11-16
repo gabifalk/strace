@@ -551,7 +551,11 @@ jsonl-dup-y
 jsonl-dup-yy
 jsonl-execve
 jsonl-exit_args_lost
+jsonl-fcntl-getfd
+jsonl-fcntl-getfl
 jsonl-fcntl-getlease
+jsonl-fcntl-seals
+jsonl-fcntl-sig
 jsonl-file_setattr
 jsonl-fork-f
 jsonl-fsconfig
@@ -642,6 +646,7 @@ jsonl-nlattr_tcamsg
 jsonl-nlattr_tcmsg
 jsonl-nlattr_unix_diag_msg
 jsonl-pause
+jsonl-personality
 jsonl-pidfd_getfd-yy
 jsonl-pidfd_send_signal
 jsonl-ppoll
@@ -663,6 +668,7 @@ jsonl-rt_sigprocmask
 jsonl-rt_sigtimedwait
 jsonl-rt_tgsigqueueinfo
 jsonl-sched_get_priority_mxx
+jsonl-sched_getscheduler
 jsonl-seccomp_get_notif_sizes
 jsonl-select
 jsonl-setgroups
@@ -676,9 +682,11 @@ jsonl-superseded
 jsonl-swapon
 jsonl-sysinfo
 jsonl-timespec
+jsonl-unshare
 jsonl-ustat
 jsonl-utime
 jsonl-v4l2
+jsonl-v4l2-create_bufs
 jsonl-vfork-f
 jsonl-xattr
 kcmp
