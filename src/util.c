@@ -1048,28 +1048,8 @@ printeventfd(pid_t pid_of_fd, int fd, const char *path)
 	scan_fdinfo_lines(pid_of_fd, fd, ARRSZ_PAIR(fdinfo_lines));
 
 	if (efd_counter) {
-		tprint_associated_info_begin();
-		tprint_struct_begin();
-		tprints_field_name("eventfd-count");
-		if (efd_counter[0] != '0')
-			tprints_string("0x");
-		tprints_string(efd_counter);
+		tprint_fd_info_eventfd(efd_counter, efd_id, efd_semaphore);
 		free(efd_counter);
-
-		if (efd_id != -1) {
-			tprint_struct_next();
-			tprints_field_name("eventfd-id");
-			PRINT_VAL_U(efd_id);
-
-			if (efd_semaphore != -1) {
-				tprint_struct_next();
-				tprints_field_name("eventfd-semaphore");
-				PRINT_VAL_U(efd_semaphore);
-			}
-		}
-
-		tprint_struct_end();
-		tprint_associated_info_end();
 	} else
 		print_fd_info_type_string("path", path);
 

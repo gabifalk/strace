@@ -436,6 +436,32 @@ tprints_fd_info_signalfd(const char *sigmask)
 }
 
 void
+tprint_fd_info_eventfd(const char *count, int id, int semaphore)
+{
+	tprint_associated_info_begin();
+	tprint_struct_begin();
+	tprints_field_name("eventfd-count");
+	if (count[0] != '0')
+		STRACE_PRINTS("0x");
+	STRACE_PRINTS(count);
+
+	if (id != -1) {
+		tprint_struct_next();
+		tprints_field_name("eventfd-id");
+		PRINT_VAL_U(id);
+
+		if (semaphore != -1) {
+			tprint_struct_next();
+			tprints_field_name("eventfd-semaphore");
+			PRINT_VAL_U(semaphore);
+		}
+	}
+
+	tprint_struct_end();
+	tprint_associated_info_end();
+}
+
+void
 tprints_assoc_type_string(const char *type, const char *str, size_t len,
 			  bool deleted)
 {
