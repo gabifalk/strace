@@ -461,6 +461,7 @@ extern void tprint_sun_path_name(void);
 extern void tprint_sun_path_abstract(void);
 extern void tprints_quoted_string(const char *quoted, const char *raw,
 				  unsigned int size, bool nul_terminated);
+extern void tprint_superseded(int old_pid);
 extern void tprint_exit_args_lost(void);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);

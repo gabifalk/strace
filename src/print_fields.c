@@ -2018,6 +2018,12 @@ tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
 		STRACE_PRINTS(quoted);
 }
 
+void
+tprint_superseded(int old_pid)
+{
+	tprintf_string("+++ superseded by execve in pid %d +++", old_pid);
+}
+
 static bool exit_args_lost;
 
 void
