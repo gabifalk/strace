@@ -572,7 +572,9 @@ print_sockaddr_data_ll(struct tcb *tcp, const void *const buf,
 				tprint_more_data_follows();
 				break;
 			}
+			tprint_object_begin();
 			PRINT_VAL_0X(sa_ll->sll_addr[i]);
+			tprint_object_end();
 		}
 		tprint_array_end();
 	}
