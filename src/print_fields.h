@@ -268,6 +268,7 @@ extern void tprint_arg_exiting_changed_begin(unsigned int index,
 					     const char *name);
 extern void tprints_arg_exiting_name(unsigned int index, const char *name);
 extern void tprint_struct_exiting_abandon(void);
+extern void tprint_struct_exiting_abandon_more_data(void);
 extern void tprints_field_exiting_name(const char *name);
 extern void tprints_field_exiting_d(const char *name, long long entering_val,
 				    long long exiting_val);

@@ -127,6 +127,16 @@ tprint_struct_exiting_abandon(void)
 }
 
 void
+tprint_struct_exiting_abandon_more_data(void)
+{
+	if (!structured_output) {
+		tprint_struct_next();
+		tprint_more_data_follows();
+		tprint_struct_end();
+	}
+}
+
+void
 tprints_field_exiting_name(const char *name)
 {
 	if (structured_output)

@@ -31,9 +31,10 @@ perf_ioctl_query_bpf(struct tcb *const tcp, const kernel_ulong_t arg)
 			return RVAL_IOCTL_DECODED;
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		tprints_field_name("ids_len");
 		PRINT_VAL_U(info);
-		tprint_struct_next();
+		tprint_struct_entering_end();
 
 		return 0;
 	}
@@ -41,12 +42,13 @@ perf_ioctl_query_bpf(struct tcb *const tcp, const kernel_ulong_t arg)
 	if (syserror(tcp) ||
 	    umove(tcp, arg + offsetof(struct perf_event_query_bpf, prog_cnt),
 		  &info)) {
-		tprint_more_data_follows();
-		tprint_struct_end();
+		tprint_struct_exiting_abandon_more_data();
 
 		return RVAL_IOCTL_DECODED;
 	}
 
+	tprint_struct_exiting_begin(2, "argp");
+	tprint_struct_exiting_next();
 	tprints_field_name("prog_cnt");
 	PRINT_VAL_U(info);
 
