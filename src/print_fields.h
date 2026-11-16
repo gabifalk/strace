@@ -260,6 +260,8 @@ tprint_array_element_next(void)
 extern void tprint_array_element_fetch_failed(unsigned long long addr);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);
+extern void tprints_array_index_const_u(unsigned long long idx,
+					const char *sym);
 extern void tprints_syscall_name(const char *name);
 extern void tprints_arg_begin(const char *name);
 extern void tprint_arg_next(void);
@@ -412,6 +414,8 @@ extern void tprints_shift_value_xlat_u(unsigned long long raw,
 extern void tprint_shift_value_begin(unsigned long long raw);
 extern void tprint_shift_value_end_u(unsigned int amount);
 extern void tprints_shift_value_end(const char *shift);
+extern void tprint_shift_value_end_xlat(unsigned int amount,
+					const char *shift);
 extern void tprint_mac_addr(const void *addr, unsigned int size,
 			    const char *str);
 extern void tprint_fn_hton_begin(unsigned int size);

@@ -156,6 +156,15 @@ tprint_array_index_equal(void)
 }
 
 void
+tprints_array_index_const_u(unsigned long long idx, const char *sym)
+{
+	if (sym)
+		tprints_string(sym);
+	else
+		PRINT_VAL_U(idx);
+}
+
+void
 tprints_syscall_name(const char *name)
 {
 	if (!name) {
@@ -1081,6 +1090,14 @@ tprints_shift_value_end(const char *shift)
 		tprints_string(shift);
 		tprint_shift_end();
 	}
+}
+
+void
+tprint_shift_value_end_xlat(unsigned int amount, const char *shift)
+{
+	tprint_shift();
+	print_xlat_ex(amount, shift, XLAT_STYLE_DEFAULT);
+	tprint_shift_end();
 }
 
 void

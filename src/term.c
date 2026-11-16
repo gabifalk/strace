@@ -58,40 +58,38 @@ decode_oflag(uint64_t val)
 		{ term_oflags_ffdly,  FFDLY,  "FF?"  },
 	};
 
-	tprint_flags_begin();
+	tprint_flags_value_begin(val);
 	for (unsigned int i = 0; i < ARRAY_SIZE(xlats); i++) {
 		printxval64(xlats[i].xl, val & xlats[i].mask, xlats[i].dfl);
-		tprint_flags_or();
+		tprint_flags_value_or();
 
 		val &= ~xlats[i].mask;
 	}
 
 	printflags64_in(term_oflags, val, NULL);
-	tprint_flags_end();
+	tprint_flags_value_end();
 }
 
 static void
 decode_cflag(uint64_t val)
 {
-	tprint_flags_begin();
+	tprint_flags_value_begin(val);
 	printxval64(baud_options, val & CBAUD, "B???");
-	tprint_flags_or();
+	tprint_flags_value_or();
 
 	if (val & CIBAUD) {
-		tprint_shift_begin();
+		tprint_shift_value_begin(val & CIBAUD);
 		printxval64(baud_options, (val & CIBAUD) >> IBSHIFT, "B???");
-		tprint_shift();
-		print_xlat(IBSHIFT);
-		tprint_shift_end();
-		tprint_flags_or();
+		tprint_shift_value_end_xlat(IBSHIFT, "IBSHIFT");
+		tprint_flags_value_or();
 	}
 
 	printxval64(term_cflags_csize, val & CSIZE, "CS?");
-	tprint_flags_or();
+	tprint_flags_value_or();
 
 	val &= ~(CBAUD | CIBAUD | CSIZE);
 	printflags64_in(term_cflags, val, NULL);
-	tprint_flags_end();
+	tprint_flags_value_end();
 }
 
 static void
@@ -122,15 +120,14 @@ print_cc_char(bool *first, const unsigned char *data, const char *s,
 	else
 		tprint_array_next();
 
+	tprint_object_begin();
 	tprint_array_index_begin();
-	if (s)
-		tprints_string(s);
-	else
-		PRINT_VAL_U(idx);
+	tprints_array_index_const_u(idx, s);
 	tprint_array_index_equal();
 
 	PRINT_VAL_X(data[idx]);
 	tprint_array_index_end();
+	tprint_object_end();
 }
 
 static void
