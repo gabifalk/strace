@@ -172,7 +172,7 @@ dm_decode_dm_target_spec(struct tcb *const tcp, const kernel_ulong_t addr,
 
 	if (abbrev(tcp)) {
 		if (ioc->target_count) {
-			tprint_array_next();
+			tprint_array_element_next();
 			tprint_more_data_follows();
 		}
 
@@ -180,7 +180,7 @@ dm_decode_dm_target_spec(struct tcb *const tcp, const kernel_ulong_t addr,
 	}
 
 	for (uint32_t i = 0; i < ioc->target_count; ++i) {
-		tprint_array_next();
+		tprint_array_element_next();
 
 		if (i && offset <= offset_end)
 			goto misplaced;
@@ -250,7 +250,7 @@ dm_decode_dm_target_deps(struct tcb *const tcp, const kernel_ulong_t addr,
 	if (ioc->data_start == ioc->data_size)
 		return;
 
-	tprint_array_next();
+	tprint_array_element_next();
 
 	if (abbrev(tcp)) {
 		tprint_more_data_follows();
@@ -308,13 +308,13 @@ dm_decode_dm_name_list(struct tcb *const tcp, const kernel_ulong_t addr,
 		return;
 
 	if (abbrev(tcp)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		tprint_more_data_follows();
 		return;
 	}
 
 	for (uint32_t count = 0;; ++count) {
-		tprint_array_next();
+		tprint_array_element_next();
 
 		if (count && offset <= offset_end)
 			goto misplaced;
@@ -399,13 +399,13 @@ dm_decode_dm_target_versions(struct tcb *const tcp, const kernel_ulong_t addr,
 		return;
 
 	if (abbrev(tcp)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		tprint_more_data_follows();
 		return;
 	}
 
 	for (uint32_t count = 0;; ++count) {
-		tprint_array_next();
+		tprint_array_element_next();
 
 		if (count && offset <= offset_end)
 			goto misplaced;
@@ -452,7 +452,7 @@ dm_decode_dm_target_msg(struct tcb *const tcp, const kernel_ulong_t addr,
 	if (ioc->data_start == ioc->data_size)
 		return;
 
-	tprint_array_next();
+	tprint_array_element_next();
 
 	if (abbrev(tcp)) {
 		tprint_more_data_follows();
@@ -487,7 +487,7 @@ static void
 dm_decode_string(struct tcb *const tcp, const kernel_ulong_t addr,
 		 const struct dm_ioctl *const ioc)
 {
-	tprint_array_next();
+	tprint_array_element_next();
 
 	if (abbrev(tcp)) {
 		tprint_more_data_follows();
@@ -600,8 +600,10 @@ dm_known_ioctl(struct tcb *const tcp, const unsigned int code,
 		tprint_value_changed();
 
 	tprint_array_begin();
+	tprint_object_begin();
 	if (dm_decode_header(tcp, code, arg, ioc))
 		dm_decode_payload(tcp, code, arg, ioc);
+	tprint_object_end();
 	tprint_array_end();
 
 	return entering(tcp) ? 0 : RVAL_IOCTL_DECODED;
