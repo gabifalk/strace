@@ -48,13 +48,22 @@ print_struct_seccomp_notif(struct tcb *const tcp, const kernel_ulong_t addr)
 	CHECK_TYPE_SIZE(struct seccomp_notif, 80);
 	struct seccomp_notif notif;
 
+	if (entering(tcp)) {
+		tprint_arg_next();
+		if (addr && verbose(tcp) && !umove(tcp, addr, &notif) &&
+		    is_filled((const char *) &notif, 0, sizeof(notif))) {
+			set_tcb_priv_ulong(tcp, 1);
+			return 0;
+		}
+		tprints_arg_name("argp");
+	} else if (get_tcb_priv_ulong(tcp)) {
+		tprints_arg_name("argp");
+	} else {
+		tprints_arg_exiting_name(2, "argp");
+	}
+
 	if (umove_or_printaddr(tcp, addr, &notif))
 		return RVAL_IOCTL_DECODED;
-
-	if (entering(tcp)) {
-		if (is_filled((const char *) &notif, 0, sizeof(notif)))
-			return 0;
-	}
 
 	tprint_struct_begin();
 	PRINT_FIELD_X(notif, id);
@@ -128,9 +137,6 @@ seccomp_ioctl(struct tcb *const tcp, const unsigned int code,
 {
 	switch (code) {
 	case SECCOMP_IOCTL_NOTIF_RECV:
-		if (entering(tcp))
-			tprints_arg_next_name("argp");
-
 		return print_struct_seccomp_notif(tcp, arg);
 
 	case SECCOMP_IOCTL_NOTIF_SEND:
