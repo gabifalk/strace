@@ -599,12 +599,25 @@ tprint_unavailable(void)
 }
 
 void
+tprint_unavailable_error(const char *msg)
+{
+	tprint_unavailable();
+	tprints_comment(msg);
+}
+
+void
 tprint_struct_addr(unsigned long long addr)
 {
 	if (structured_output)
 		tprintf_object_field_string("addr", "%#llx", addr);
 	else
 		tprintf_comment("%#llx", addr);
+}
+
+void
+tprint_struct_decode_error(const char *msg)
+{
+	tprints_comment(msg);
 }
 
 void

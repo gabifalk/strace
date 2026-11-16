@@ -170,6 +170,7 @@ tprint_struct_fields_end(void)
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);
+extern void tprint_struct_decode_error(const char *msg);
 extern void tprint_struct_addr(unsigned long long addr);
 extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
@@ -229,6 +230,7 @@ extern void tprint_more_data_follows(void);
 extern void tprint_value_changed(void);
 extern void tprint_alternative_value(void);
 extern void tprint_unavailable(void);
+extern void tprint_unavailable_error(const char *msg);
 extern void tprint_flags_or(void);
 extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
