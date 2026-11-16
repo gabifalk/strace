@@ -42,22 +42,37 @@ pidfd_ioctl_is_get_info(const unsigned int code)
 }
 
 static void
+pidfd_ioctl_exiting_begin(void)
+{
+	tprint_struct_exiting_begin(2, "argp");
+	tprint_struct_exiting_next();
+}
+
+static void
+pidfd_ioctl_next_field(void (**prefix_fun)(void))
+{
+	(*prefix_fun)();
+	*prefix_fun = tprint_struct_next;
+}
+
+static void
 pidfd_ioctl_print_pidfd_info_fields(struct tcb *tcp,
 				    const struct pidfd_info *info,
-				    const unsigned int usize)
+				    const unsigned int usize,
+				    void (**prefix_fun)(void))
 {
 	const unsigned int len = MIN(sizeof(*info), usize);
 	const uint64_t m = info->mask;
 
 	if ((m & PIDFD_INFO_CGROUPID)
 	    && len >= offsetofend(struct pidfd_info, cgroupid)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		PRINT_FIELD_U(*info, cgroupid);
 	}
 
 	if ((m & PIDFD_INFO_PID)
 	    && len >= offsetofend(struct pidfd_info, ppid)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		PRINT_FIELD_TID(*info, pid, tcp);
 		tprint_struct_next();
 		PRINT_FIELD_TGID(*info, tgid, tcp);
@@ -67,7 +82,7 @@ pidfd_ioctl_print_pidfd_info_fields(struct tcb *tcp,
 
 	if ((m & PIDFD_INFO_CREDS)
 	    && len >= offsetofend(struct pidfd_info, fsgid)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		tprints_field_name("ruid");
 		printuid(info->ruid);
 		tprint_struct_next();
@@ -95,14 +110,14 @@ pidfd_ioctl_print_pidfd_info_fields(struct tcb *tcp,
 
 	if ((m & PIDFD_INFO_EXIT)
 	    && len >= offsetofend(struct pidfd_info, exit_code)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		tprints_field_name("exit_code");
 		print_wait_status(info->exit_code);
 	}
 
 	if ((m & PIDFD_INFO_COREDUMP)
 	    && len >= offsetofend(struct pidfd_info, coredump_mask)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		PRINT_FIELD_FLAGS(*info, coredump_mask,
 				  pidfd_coredump_mask,
 				  "PIDFD_COREDUMP_???");
@@ -110,21 +125,21 @@ pidfd_ioctl_print_pidfd_info_fields(struct tcb *tcp,
 
 	if ((m & PIDFD_INFO_COREDUMP_SIGNAL)
 	    && len >= offsetofend(struct pidfd_info, coredump_signal)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		tprints_field_name("coredump_signal");
 		printsignal(info->coredump_signal);
 	}
 
 	if ((m & PIDFD_INFO_COREDUMP_CODE)
 	    && len >= offsetofend(struct pidfd_info, coredump_code)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		tprints_field_name("coredump_code");
 		PRINT_VAL_U(info->coredump_code);
 	}
 
 	if ((m & PIDFD_INFO_SUPPORTED_MASK)
 	    && len >= offsetofend(struct pidfd_info, supported_mask)) {
-		tprint_struct_next();
+		pidfd_ioctl_next_field(prefix_fun);
 		PRINT_FIELD_FLAGS(*info, supported_mask, pidfd_info_mask,
 				  "PIDFD_INFO_???");
 	}
@@ -167,8 +182,10 @@ pidfd_ioctl(struct tcb *tcp, unsigned int code, kernel_ulong_t arg)
 		}
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		tprints_field_name("mask");
 		printflags64(pidfd_info_mask, info.mask, "PIDFD_INFO_???");
+		tprint_struct_entering_end();
 
 		return 0;
 	}
@@ -178,7 +195,7 @@ pidfd_ioctl(struct tcb *tcp, unsigned int code, kernel_ulong_t arg)
 	if (sizeof(info.mask) > sizeof(long)) {
 		typeof(info.mask) *req_mask_p = get_tcb_priv_data(tcp);
 		if (!req_mask_p) {
-			tprint_struct_end();
+			tprint_struct_exiting_abandon();
 			return RVAL_IOCTL_DECODED;
 		}
 		req_mask = *req_mask_p;
@@ -187,16 +204,25 @@ pidfd_ioctl(struct tcb *tcp, unsigned int code, kernel_ulong_t arg)
 	}
 
 	const unsigned int len = MIN(sizeof(info), usize);
-	if (tfetch_mem(tcp, arg, len, &info)) {
-		if (info.mask != req_mask) {
-			tprint_value_changed();
-			printflags64(pidfd_info_mask, info.mask,
-				     "PIDFD_INFO_???");
-		}
-		pidfd_ioctl_print_pidfd_info_fields(tcp, &info, usize);
+	if (!tfetch_mem(tcp, arg, len, &info)) {
+		tprint_struct_exiting_abandon();
+		return RVAL_IOCTL_DECODED;
 	}
 
-	tprint_struct_end();
+	void (*prefix_fun)(void) = pidfd_ioctl_exiting_begin;
+
+	if (info.mask != req_mask) {
+		tprint_struct_exiting_begin(2, "argp");
+		tprints_field_exiting_name("mask");
+		printflags64(pidfd_info_mask, info.mask, "PIDFD_INFO_???");
+		prefix_fun = tprint_struct_next;
+	}
+	pidfd_ioctl_print_pidfd_info_fields(tcp, &info, usize, &prefix_fun);
+
+	if (prefix_fun == pidfd_ioctl_exiting_begin)
+		tprint_struct_exiting_abandon();
+	else
+		tprint_struct_end();
 
 	return RVAL_IOCTL_DECODED;
 }
