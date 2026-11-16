@@ -253,6 +253,18 @@ tprints_arg_next_name(const char *name)
 }
 
 void
+tprint_arg_inout_exiting_d(int entering_val, int exiting_val)
+{
+	tprint_indirect_begin();
+	if (entering_val != exiting_val) {
+		PRINT_VAL_D(entering_val);
+		tprint_value_changed();
+	}
+	PRINT_VAL_D(exiting_val);
+	tprint_indirect_end();
+}
+
+void
 tprints_fn_begin(const char *name)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_CALL);

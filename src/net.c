@@ -242,13 +242,7 @@ decode_sockname(struct tcb *tcp)
 
 		/* addrlen */
 		tprints_arg_next_name("addrlen");
-		tprint_indirect_begin();
-		if (ulen != rlen) {
-			PRINT_VAL_D(ulen);
-			tprint_value_changed();
-		}
-		PRINT_VAL_D(rlen);
-		tprint_indirect_end();
+		tprint_arg_inout_exiting_d(ulen, rlen);
 	}
 
 	return RVAL_DECODED;

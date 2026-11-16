@@ -272,6 +272,7 @@ extern void tprints_arg_name_unconditionally(const char *name);
 extern void tprints_arg_next_name_unconditionally(const char *name);
 extern void tprints_arg_name(const char *name);
 extern void tprints_arg_next_name(const char *name);
+extern void tprint_arg_inout_exiting_d(int entering_val, int exiting_val);
 extern void tprints_fn_begin(const char *name);
 extern void tprint_fn_next(void);
 extern void tprint_fn_end(void);
