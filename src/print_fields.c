@@ -158,10 +158,16 @@ tprint_array_index_equal(void)
 void
 tprints_array_index_const_u(unsigned long long idx, const char *sym)
 {
-	if (sym)
+	if (structured_output) {
+		tprint_type_const();
+		tprintf_object_field_string("raw", "%llu", idx);
+		if (sym)
+			tprints_object_field_string("sym", sym);
+	} else if (sym) {
 		tprints_string(sym);
-	else
+	} else {
 		PRINT_VAL_U(idx);
+	}
 }
 
 void
@@ -1095,9 +1101,13 @@ tprints_shift_value_end(const char *shift)
 void
 tprint_shift_value_end_xlat(unsigned int amount, const char *shift)
 {
-	tprint_shift();
-	print_xlat_ex(amount, shift, XLAT_STYLE_DEFAULT);
-	tprint_shift_end();
+	if (structured_output) {
+		tprints_shift_value_end(shift);
+	} else {
+		tprint_shift();
+		print_xlat_ex(amount, shift, XLAT_STYLE_DEFAULT);
+		tprint_shift_end();
+	}
 }
 
 void
