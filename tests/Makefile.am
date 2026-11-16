@@ -333,6 +333,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
 	jsonl-ioctl_block \
+	jsonl-ioctl_btrfs \
 	jsonl-ioctl_dm \
 	jsonl-ioctl_perf \
 	jsonl-ioctl_ptp \
@@ -1186,6 +1187,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \
 	jsonl-ioctl_block.c \
+	jsonl-ioctl_btrfs.c \
 	jsonl-ioctl_dm.c \
 	jsonl-ioctl_perf.c \
 	jsonl-ioctl_ptp.c \

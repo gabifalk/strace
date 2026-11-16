@@ -590,6 +590,7 @@ jsonl-ioctl_gpio
 jsonl-ioctl_lirc
 jsonl-ioctl_random
 jsonl-ioctl_block
+jsonl-ioctl_btrfs
 jsonl-ioctl_dm
 jsonl-ioctl_perf
 jsonl-ioctl_ptp
