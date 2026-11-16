@@ -3515,18 +3515,36 @@ void
 tprint_reserved_bytes_inline(const char *name, unsigned long long val,
 			     unsigned int first, unsigned int last)
 {
-	tprintf_comment("bytes %u..%u: %#llx", first, last, val);
+	if (structured_output) {
+		tprint_struct_next();
+		tprints_field_name(name);
+		tprints_object_type("reserved_bytes");
+		tprintf_object_field_string("raw", "%#llx", val);
+		tprintf_object_field_string("first_byte", "%u", first);
+		tprintf_object_field_string("last_byte", "%u", last);
+		tprints_object_field_bool("reserved_inline", true);
+	} else {
+		tprintf_comment("bytes %u..%u: %#llx", first, last, val);
+	}
 }
 
 void
 tprint_struct_split_entering_begin(void)
 {
+	if (structured_output) {
+		tprint_struct_begin();
+		tprint_struct_mark_split();
+	}
 }
 
 void
 tprints_field_xval_entering(const char *name, uint64_t val,
 			    const struct xlat *xlat, const char *dflt)
 {
+	if (structured_output) {
+		tprints_field_name(name);
+		printxval64(xlat, val, dflt);
+	}
 }
 
 void
@@ -3534,13 +3552,24 @@ tprint_xval_exiting(const struct xlat *xlat, const char *dflt,
 		    uint64_t entering_val, uint64_t exiting_val,
 		    int exiting_state)
 {
-	printxval64(xlat, entering_val, dflt);
-	if (exiting_state) {
-		tprint_value_changed();
+	if (structured_output) {
 		if (exiting_state > 0)
 			printxval64(xlat, exiting_val, dflt);
-		else
+		else if (exiting_state < 0)
 			tprint_unavailable();
+		else
+			printxval64(xlat, entering_val, dflt);
+		if (exiting_state)
+			tprint_arg_changed();
+	} else {
+		printxval64(xlat, entering_val, dflt);
+		if (exiting_state) {
+			tprint_value_changed();
+			if (exiting_state > 0)
+				printxval64(xlat, exiting_val, dflt);
+			else
+				tprint_unavailable();
+		}
 	}
 }
 
