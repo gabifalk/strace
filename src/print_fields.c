@@ -1653,6 +1653,43 @@ tprint_reserved_bits(unsigned long long val, unsigned int from,
 }
 
 void
+tprint_sigmask_begin(const uint32_t *mask, unsigned int nwords, bool inverted)
+{
+	if (inverted)
+		STRACE_PRINTS("~");
+	STRACE_PRINTS("[");
+}
+
+void
+tprint_sigmask_next(void)
+{
+	STRACE_PRINTS(" ");
+}
+
+void
+tprint_sigmask_end(void)
+{
+	STRACE_PRINTS("]");
+}
+
+void
+tprint_sigmask_member(unsigned int sig, const char *name)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		STRACE_PRINTF("%u", sig);
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		STRACE_PRINTS(" /* ");
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (name)
+			STRACE_PRINTS(name + 3);
+		else if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			STRACE_PRINTF("%u", sig);
+	}
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		STRACE_PRINTS(" */");
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {

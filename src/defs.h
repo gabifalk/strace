@@ -1402,6 +1402,7 @@ extern void
 print_sigset_addr(struct tcb *, kernel_ulong_t addr);
 
 extern const char *sprintsigmask_n(const char *, const void *, unsigned int);
+extern void print_sigmask_n(const void *, unsigned int);
 extern void printsignal(int);
 extern void print_wait_status(int);
 

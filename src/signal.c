@@ -138,6 +138,28 @@ sprintsigname(const int sig)
 	return buf;
 }
 
+static const uint32_t *
+prepare_sigmask(const void *const sig_mask, const unsigned int bytes,
+		uint32_t *const inverted_mask, unsigned int *const size,
+		bool *const inverted)
+{
+	const uint32_t *mask = sig_mask;
+
+	/* length of signal mask in 4-byte words */
+	*size = ROUNDUP_DIV(MIN(bytes, NSIG_BYTES), 4);
+
+	/* check whether 2/3 or more bits are set */
+	*inverted = popcount32(mask, *size) >= *size * (4 * 8) * 2 / 3;
+	if (*inverted) {
+		/* show those signals that are NOT in the mask */
+		for (unsigned int j = 0; j < *size; ++j)
+			inverted_mask[j] = ~mask[j];
+		mask = inverted_mask;
+	}
+
+	return mask;
+}
+
 const char *
 sprintsigmask_n(const char *prefix, const void *sig_mask, unsigned int bytes)
 {
@@ -154,22 +176,15 @@ sprintsigmask_n(const char *prefix, const void *sig_mask, unsigned int bytes)
 	const uint32_t *mask;
 	uint32_t inverted_mask[NSIG_BYTES / 4];
 	unsigned int size;
+	bool inverted;
 	char sep;
 
 	s = stpcpy(outstr, prefix);
 
-	mask = sig_mask;
-	/* length of signal mask in 4-byte words */
-	size = ROUNDUP_DIV(MIN(bytes, NSIG_BYTES), 4);
-
-	/* check whether 2/3 or more bits are set */
-	if (popcount32(mask, size) >= size * (4 * 8) * 2 / 3) {
-		/* show those signals that are NOT in the mask */
-		for (unsigned int j = 0; j < size; ++j)
-			inverted_mask[j] = ~mask[j];
-		mask = inverted_mask;
+	mask = prepare_sigmask(sig_mask, bytes, inverted_mask, &size,
+			       &inverted);
+	if (inverted)
 		*s++ = '~';
-	}
 
 	sep = '[';
 	for (int i = 0; (i = next_set_bit(mask, i, size * (4 * 8))) >= 0; ) {
@@ -205,11 +220,32 @@ sprintsigmask_n(const char *prefix, const void *sig_mask, unsigned int bytes)
 	return outstr;
 }
 
+void
+print_sigmask_n(const void *const sig_mask, const unsigned int bytes)
+{
+	uint32_t inverted_mask[NSIG_BYTES / 4];
+	unsigned int size;
+	bool inverted;
+	const uint32_t *mask = prepare_sigmask(sig_mask, bytes, inverted_mask,
+					       &size, &inverted);
+	bool first = true;
+
+	tprint_sigmask_begin(sig_mask, size, inverted);
+	for (int i = 0; (i = next_set_bit(mask, i, size * (4 * 8))) >= 0; ) {
+		++i;
+		if (!first)
+			tprint_sigmask_next();
+		tprint_sigmask_member(i, signame(i));
+		first = false;
+	}
+	tprint_sigmask_end();
+}
+
 #define sprintsigmask_val(prefix, mask) \
 	sprintsigmask_n((prefix), &(mask), sizeof(mask))
 
 #define tprintsigmask_val(mask) \
-	tprints_string(sprintsigmask_n("", &(mask), sizeof(mask)))
+	print_sigmask_n(&(mask), sizeof(mask))
 
 static const char *
 sprint_old_sigmask_val(const char *const prefix, const unsigned long mask)
@@ -229,7 +265,16 @@ sprint_old_sigmask_val(const char *const prefix, const unsigned long mask)
 static void
 tprint_old_sigmask_val(const unsigned long mask)
 {
-	tprints_string(sprint_old_sigmask_val("", mask));
+#if defined(current_wordsize) || !defined(WORDS_BIGENDIAN)
+	print_sigmask_n(&mask, current_wordsize);
+#else /* !current_wordsize && WORDS_BIGENDIAN */
+	if (current_wordsize == sizeof(mask)) {
+		tprintsigmask_val(mask);
+	} else {
+		uint32_t mask32 = mask;
+		tprintsigmask_val(mask32);
+	}
+#endif
 }
 
 void
@@ -253,7 +298,7 @@ print_sigset_addr_len_limit(struct tcb *const tcp, const kernel_ulong_t addr,
 	int mask[NSIG_BYTES / sizeof(int)] = {};
 	if (umoven_or_printaddr(tcp, addr, len, mask))
 		return;
-	tprints_string(sprintsigmask_n("", mask, len));
+	print_sigmask_n(mask, len);
 }
 
 void

@@ -21,7 +21,7 @@ print_sigmask_addr_size(const void *const addr, const unsigned int size)
 {
 	tprint_struct_begin();
 	tprints_field_name("mask");
-	tprints_string(sprintsigmask_n("", addr, size));
+	print_sigmask_n(addr, size);
 	tprint_struct_end();
 }
 

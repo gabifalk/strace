@@ -32,6 +32,8 @@ extern void tprint_wait_status(int status, const struct xlat *events);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
 			  unsigned int class, unsigned int level);
+extern void tprint_sigmask_begin(const uint32_t *mask, unsigned int nwords,
+				 bool inverted);
 
 # else /* !IN_STRACE */
 
@@ -245,6 +247,9 @@ extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);
 extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);
+extern void tprint_sigmask_next(void);
+extern void tprint_sigmask_end(void);
+extern void tprint_sigmask_member(unsigned int sig, const char *name);
 extern void tprint_numeric_mode(unsigned long long mode);
 extern void tprint_symbolic_mode(unsigned int mode, const char *ifmt);
 extern void tprint_dev_t(unsigned long long dev, unsigned int dev_major,
