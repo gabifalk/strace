@@ -657,9 +657,7 @@ getfdinode(struct tcb *tcp, int fd)
 static void
 print_fd_info_type_string(const char *type, const char *str)
 {
-	tprint_associated_info_begin();
-	tprints_string(str);
-	tprint_associated_info_end();
+	tprints_fd_info_string(type, str);
 }
 
 static bool
@@ -1107,13 +1105,7 @@ print_assoc_type_string(const char *type, const char *str, const size_t len,
 	if (!len)
 		return;
 
-	tprint_associated_info_begin();
-	print_quoted_string_ex(str, len,
-			       QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
-	tprint_associated_info_end();
-
-	if (deleted)
-		tprints_string("(deleted)");
+	tprints_assoc_type_string(type, str, len, deleted);
 }
 
 void

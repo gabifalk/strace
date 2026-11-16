@@ -207,6 +207,9 @@ extern void tprint_attribute_begin(void);
 extern void tprint_attribute_end(void);
 extern void tprint_associated_info_begin(void);
 extern void tprint_associated_info_end(void);
+extern void tprints_fd_info_string(const char *type, const char *str);
+extern void tprints_assoc_type_string(const char *type, const char *str,
+				      size_t len, bool deleted);
 extern void tprint_more_data_follows(void);
 extern void tprint_value_changed(void);
 extern void tprint_alternative_value(void);

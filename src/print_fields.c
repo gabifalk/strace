@@ -319,6 +319,27 @@ tprint_associated_info_end(void)
 }
 
 void
+tprints_fd_info_string(const char *type, const char *str)
+{
+	tprint_associated_info_begin();
+	STRACE_PRINTS(str);
+	tprint_associated_info_end();
+}
+
+void
+tprints_assoc_type_string(const char *type, const char *str, size_t len,
+			  bool deleted)
+{
+	tprint_associated_info_begin();
+	print_quoted_string_ex(str, len,
+			       QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
+	tprint_associated_info_end();
+
+	if (deleted)
+		STRACE_PRINTS("(deleted)");
+}
+
+void
 tprint_more_data_follows(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
