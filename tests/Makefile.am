@@ -321,6 +321,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nfnetlink_ipset \
 	jsonl-nfnetlink_nft_compat \
 	jsonl-nfnetlink_nftables \
+	jsonl-nfnetlink_osf \
 	jsonl-nlattr \
 	jsonl-nlattr_ndmsg \
 	jsonl-pause \
@@ -1034,6 +1035,7 @@ EXTRA_DIST = \
 	jsonl-nfnetlink_ipset.c \
 	jsonl-nfnetlink_nft_compat.c \
 	jsonl-nfnetlink_nftables.c \
+	jsonl-nfnetlink_osf.c \
 	jsonl-nlattr.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-pause.c \
