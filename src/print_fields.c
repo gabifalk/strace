@@ -353,7 +353,10 @@ tprint_unavailable(void)
 void
 tprint_struct_addr(unsigned long long addr)
 {
-	tprintf_comment("%#llx", addr);
+	if (structured_output)
+		tprintf_object_field_string("addr", "%#llx", addr);
+	else
+		tprintf_comment("%#llx", addr);
 }
 
 void
