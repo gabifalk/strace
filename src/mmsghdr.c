@@ -44,6 +44,8 @@ print_struct_mmsghdr(struct tcb *tcp, void *elem_buf,
 	--c->count;
 
 	tprint_struct_begin();
+	if (c->p_user_msg_namelen)
+		tprint_struct_mark_split();
 	PRINT_FIELD_OBJ_TCB_PTR(*mmsg, msg_hdr, tcp, print_struct_msghdr,
 			c->p_user_msg_namelen,
 			c->use_msg_len ? mmsg->msg_len : (kernel_ulong_t) -1);
@@ -103,6 +105,10 @@ save_mmsgvec_namelen(struct tcb *const tcp, kernel_ulong_t addr,
 	data->count = i;
 
 	set_tcb_priv_data(tcp, data, free_mmsgvec_data);
+
+	/* msgvec */
+	tprints_arg_mmsgvec_namelen_entering(1, "msgvec", data->namelen,
+					     data->count);
 }
 
 static void

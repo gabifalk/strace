@@ -350,6 +350,11 @@ extern void tprints_arg_split_failed_d(const char *name, const char *field,
 				       int val);
 extern void tprint_val_exiting_d(int entering_val, int exiting_val);
 
+extern void tprints_arg_mmsgvec_namelen_entering(unsigned int index,
+						 const char *name,
+						 const int *namelen,
+						 unsigned int count);
+
 static inline void
 tprints_ioctl_cmd_begin(const char *name)
 {

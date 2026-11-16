@@ -1334,6 +1334,12 @@ tprints_arg_split_failed_d(const char *name, const char *field, int val)
 }
 
 void
+tprints_arg_mmsgvec_namelen_entering(unsigned int index, const char *name,
+				     const int *namelen, unsigned int count)
+{
+}
+
+void
 tprint_val_exiting_d(int entering_val, int exiting_val)
 {
 	if (structured_output) {
