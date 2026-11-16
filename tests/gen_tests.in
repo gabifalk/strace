@@ -605,6 +605,7 @@ jsonl-merged-ioctl_dm	+jsonl-ioctl.sh -v -e trace=ioctl
 jsonl-merged-ioctl_perf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_ptp	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-merged-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_seccomp	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
@@ -773,6 +774,7 @@ jsonl-split-ioctl_dm	+jsonl-ioctl.sh -v -e trace=ioctl
 jsonl-split-ioctl_perf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_ptp	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=0
 jsonl-split-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_seccomp	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl

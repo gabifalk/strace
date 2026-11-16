@@ -329,6 +329,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_perf \
 	jsonl-ioctl_ptp \
 	jsonl-ioctl_scsi \
+	jsonl-ioctl_seccomp \
 	jsonl-ioprio_get \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
@@ -1149,6 +1150,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_perf.c \
 	jsonl-ioctl_ptp.c \
 	jsonl-ioctl_scsi.c \
+	jsonl-ioctl_seccomp.c \
 	jsonl-ioprio_get.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
