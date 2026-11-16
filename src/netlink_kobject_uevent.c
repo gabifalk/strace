@@ -66,7 +66,9 @@ decode_netlink_kobject_uevent(struct tcb *tcp, kernel_ulong_t addr,
 
 	if (len > offset) {
 		tprint_array_next();
+		tprint_object_begin();
 		printstrn(tcp, addr + offset, len - offset);
+		tprint_object_end();
 		tprint_array_end();
 	}
 }

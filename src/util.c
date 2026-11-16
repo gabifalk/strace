@@ -1390,6 +1390,13 @@ string_quote(const char *instr, char *outstr, const unsigned int size,
 #endif
 #define use_alloca(n) ((n) <= ALLOCA_CUTOFF)
 
+static unsigned int
+omitted_trailing_0(const char *str, unsigned int size, unsigned int style)
+{
+	return (style & QUOTE_OMIT_TRAILING_0) && size
+	       && str[size - 1] == '\0';
+}
+
 /*
  * Quote string `str' of length `size' and print the result.
  *
@@ -1439,7 +1446,9 @@ print_quoted_string_ex(const char *str, unsigned int size,
 	}
 
 	rc = string_quote(str, outstr, size, style, escape_chars);
-	tprints_quoted_string(outstr, str, size, style & QUOTE_0_TERMINATED);
+	tprints_quoted_string(outstr, str,
+			      size - omitted_trailing_0(str, size, style),
+			      style & QUOTE_0_TERMINATED);
 
 	if (((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
 	     == (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0)) && rc) {
@@ -1596,7 +1605,11 @@ printstr_ex(struct tcb *const tcp, const kernel_ulong_t addr,
 		   && ((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
 		       || len > max_strlen);
 
-	tprints_string(outstr);
+	tprints_object_type("string");
+	tprints_quoted_string(outstr, str,
+			      size - omitted_trailing_0(str, size, style),
+			      style & QUOTE_0_TERMINATED);
+
 	if (ellipsis)
 		tprint_more_data_follows();
 
