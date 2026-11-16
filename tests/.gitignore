@@ -595,6 +595,7 @@ jsonl-nlattr_netconfmsg
 jsonl-nlattr_netlink_diag_msg
 jsonl-nlattr_nlmsgerr
 jsonl-nlattr_rtgenmsg
+jsonl-nlattr_tca_stab
 jsonl-nlattr_unix_diag_msg
 jsonl-pause
 jsonl-pidfd_getfd-yy
