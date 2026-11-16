@@ -217,17 +217,25 @@ decode_dirfd_pathname_flags_name(struct tcb *tcp)
 }
 
 static int
-umove_xattr_args_or_printaddr(struct tcb *tcp, struct xattr_args *args,
-			      kernel_ulong_t addr, kernel_ulong_t size)
+umove_xattr_args(struct tcb *tcp, struct xattr_args *args,
+		 kernel_ulong_t addr, kernel_ulong_t size)
 {
 	enum { XATTR_ARGS_SIZE_VER0 = 16 };
 
-	if (size < XATTR_ARGS_SIZE_VER0) {
+	if (size < XATTR_ARGS_SIZE_VER0 || !addr || !verbose(tcp))
+		return -1;
+
+	return umoven(tcp, addr, MIN(size, sizeof(*args)), args);
+}
+
+static int
+umove_xattr_args_or_printaddr(struct tcb *tcp, struct xattr_args *args,
+			      kernel_ulong_t addr, kernel_ulong_t size)
+{
+	if (umove_xattr_args(tcp, args, addr, size)) {
 		printaddr(addr);
 		return -1;
 	}
-	if (umoven_or_printaddr(tcp, addr, MIN(size, sizeof(*args)), args))
-		return -1;
 
 	return 0;
 }
@@ -297,18 +305,22 @@ SYS_FUNC(getxattrat)
 		decode_dirfd_pathname_flags_name(tcp);
 
 		/* args */
-		tprints_arg_next_name("args");
-		if (!umove_xattr_args_or_printaddr(tcp, &args, addr, size)) {
-			if (args.size) {
-				set_tcb_priv_data(tcp, xobjdup(&args), free);
-				return 0;
-			}
-			print_xattr_args(tcp, &args, addr, size, false);
+		tprint_arg_next();
+		const bool fetched = !umove_xattr_args(tcp, &args, addr, size);
+		if (fetched && args.size) {
+			set_tcb_priv_data(tcp, xobjdup(&args), free);
+			return 0;
 		}
+		tprints_arg_name("args");
+		if (fetched)
+			print_xattr_args(tcp, &args, addr, size, false);
+		else
+			printaddr(addr);
 	} else {
 		struct xattr_args *args = get_tcb_priv_data(tcp);
 
 		/* args */
+		tprints_arg_name("args");
 		if (args)
 			print_xattr_args(tcp, args, addr, size, true);
 		else
