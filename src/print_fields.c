@@ -877,6 +877,20 @@ tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
 }
 
 void
+tprint_signal(int nr, const char *name)
+{
+	if (!name || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		PRINT_VAL_D(nr);
+
+	if (name && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprints_comment(name);
+		else
+			tprints_string(name);
+	}
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {

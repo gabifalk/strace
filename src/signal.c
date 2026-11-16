@@ -235,14 +235,7 @@ tprint_old_sigmask_val(const unsigned long mask)
 void
 printsignal(int nr)
 {
-	const char *str = signame(nr);
-
-	if (!str || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_D(nr);
-	if (!str || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-		? tprints_comment : tprints_string)(str);
+	tprint_signal(nr, signame(nr));
 }
 
 static void
