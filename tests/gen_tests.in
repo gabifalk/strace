@@ -580,6 +580,7 @@ jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-memfd_secret	-e trace=memfd_secret
 jsonl-merged-mlockall	-e trace=mlockall
+jsonl-merged-move_pages	-s3 -e trace=move_pages
 jsonl-merged-mseal	-e trace=mseal
 jsonl-merged-net-packet_mreq	-e trace=setsockopt
 jsonl-merged-netlink_kobject_uevent	-e trace=sendto
@@ -632,6 +633,7 @@ jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-memfd_secret	-e trace=memfd_secret
 jsonl-split-mlockall	-e trace=mlockall
+jsonl-split-move_pages	-s3 -e trace=move_pages
 jsonl-split-mseal	-e trace=mseal
 jsonl-split-net-packet_mreq	-e trace=setsockopt
 jsonl-split-netlink_kobject_uevent	-e trace=sendto

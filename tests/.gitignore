@@ -561,6 +561,7 @@ jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-memfd_secret
 jsonl-mlockall
+jsonl-move_pages
 jsonl-mseal
 jsonl-net-packet_mreq
 jsonl-netlink_kobject_uevent

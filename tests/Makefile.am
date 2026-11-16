@@ -304,6 +304,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-landlock_create_ruleset \
 	jsonl-memfd_secret \
 	jsonl-mlockall \
+	jsonl-move_pages \
 	jsonl-mseal \
 	jsonl-net-packet_mreq \
 	jsonl-netlink_kobject_uevent \
@@ -1004,6 +1005,7 @@ EXTRA_DIST = \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-memfd_secret.c \
 	jsonl-mlockall.c \
+	jsonl-move_pages.c \
 	jsonl-mseal.c \
 	jsonl-net-packet_mreq.c \
 	jsonl-netlink_kobject_uevent.c \
