@@ -304,6 +304,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-memfd_secret \
 	jsonl-mlockall \
 	jsonl-mseal \
+	jsonl-netlink_protocol \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
 	jsonl-prctl-dumpable \
@@ -996,6 +997,7 @@ EXTRA_DIST = \
 	jsonl-memfd_secret.c \
 	jsonl-mlockall.c \
 	jsonl-mseal.c \
+	jsonl-netlink_protocol.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-prctl-dumpable.c \
@@ -1020,6 +1022,7 @@ EXTRA_DIST = \
 	jsonl.h \
 	jsonl-ioctl.sh \
 	jsonl.sh \
+	jsonl_netlink.h \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \
 	kill-on-exit.sh \

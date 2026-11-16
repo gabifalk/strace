@@ -268,6 +268,13 @@ jsonl_decimal(int64_t val)
 	printf("\"type\": \"decimal\", \"raw\": \"%" PRId64 "\"", val);
 }
 
+/* The fields of a pid value of the given type: tid, tgid, pgid, or sid. */
+static inline void
+jsonl_pid(const char *type, int pid)
+{
+	printf("\"type\": \"%s\", \"raw\": \"%d\"", type, pid);
+}
+
 /* The fields of a hex value. */
 static inline void
 jsonl_hex(uint64_t val)

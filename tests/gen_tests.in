@@ -580,6 +580,7 @@ jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-memfd_secret	-e trace=memfd_secret
 jsonl-merged-mlockall	-e trace=mlockall
 jsonl-merged-mseal	-e trace=mseal
+jsonl-merged-netlink_protocol	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-prctl-dumpable	-e trace=prctl
@@ -624,6 +625,7 @@ jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-memfd_secret	-e trace=memfd_secret
 jsonl-split-mlockall	-e trace=mlockall
 jsonl-split-mseal	-e trace=mseal
+jsonl-split-netlink_protocol	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-prctl-dumpable	-e trace=prctl
