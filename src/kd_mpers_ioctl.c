@@ -57,30 +57,42 @@ kd_unimap(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 	struct unipair elem;
 	uint16_t cnt;
 
-	if (entering(tcp))
+	if (entering(tcp)) {
 		tprints_arg_next_name("argp");
 
-	if (umove_or_printaddr_ignore_syserror(tcp, arg, &val)) {
-		if (exiting(tcp))
-			tprint_struct_end();
+		if (umove_or_printaddr(tcp, arg, &val))
+			return RVAL_IOCTL_DECODED;
 
-		return RVAL_IOCTL_DECODED;
-	}
-
-	if (entering(tcp)) {
 		set_tcb_priv_ulong(tcp, val.entry_ct);
 		tprint_struct_begin();
 		PRINT_FIELD_U(val, entry_ct);
 
-		if (get)
+		if (get) {
+			tprint_struct_mark_split();
+			tprint_struct_entering_end();
 			return 0;
-	} else if (val.entry_ct != (uint16_t) get_tcb_priv_ulong(tcp)) {
-		tprint_value_changed();
-		PRINT_VAL_U(val.entry_ct);
+		}
+
+		tprint_struct_next();
+	} else {
+		if (umove(tcp, arg, &val)) {
+			tprints_arg_exiting_name(2, "argp");
+			printaddr(arg);
+			tprint_struct_exiting_abandon();
+			return RVAL_IOCTL_DECODED;
+		}
+
+		tprint_struct_exiting_begin(2, "argp");
+		if (val.entry_ct != (uint16_t) get_tcb_priv_ulong(tcp)) {
+			tprints_field_exiting_name("entry_ct");
+			PRINT_VAL_U(val.entry_ct);
+			tprint_struct_next();
+		} else {
+			tprint_struct_exiting_next();
+		}
 	}
 
 	if (exiting(tcp) && syserror(tcp) && tcp->u_error != ENOMEM) {
-		tprint_struct_next();
 		PRINT_FIELD_PTR(val, entries);
 		tprint_struct_end();
 		return RVAL_IOCTL_DECODED;
@@ -88,7 +100,6 @@ kd_unimap(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 
 	cnt = entering(tcp) ? val.entry_ct : get_tcb_priv_ulong(tcp);
 
-	tprint_struct_next();
 	tprints_field_name("entries");
 	print_array(tcp, (mpers_ptr_t) val.entries, cnt, &elem, sizeof(elem),
 		    tfetch_mem, print_unipair_array_member, 0);
@@ -132,7 +143,7 @@ kd_fontx(struct tcb *const tcp, const kernel_ulong_t arg, const bool get)
 		if (syserror(tcp) || umove(tcp, arg, &val))
 			return RVAL_IOCTL_DECODED;
 
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 	}
 
 	print_consolefontdesc(tcp, &val, get && entering(tcp));
@@ -236,7 +247,7 @@ kd_font_op(struct tcb *const tcp, const kernel_ulong_t arg)
 		if (syserror(tcp) || umove(tcp, arg, &val))
 			return RVAL_IOCTL_DECODED;
 
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "argp");
 	}
 
 	print_console_font_op(tcp, &val);
