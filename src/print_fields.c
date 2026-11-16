@@ -800,6 +800,34 @@ tprint_flags_or(void)
 }
 
 void
+tprint_flags_groups_begin(unsigned long long raw)
+{
+	tprint_flags_begin();
+}
+
+void
+tprint_flags_groups_next(void)
+{
+	tprint_flags_or();
+}
+
+void
+tprint_flags_groups_end(void)
+{
+	tprint_flags_end();
+}
+
+void
+tprint_flags_group_begin(unsigned long long raw)
+{
+}
+
+void
+tprint_flags_group_end(void)
+{
+}
+
+void
 tprint_flags_value_begin(unsigned long long raw)
 {
 	if (structured_output) {

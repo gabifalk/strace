@@ -23,13 +23,17 @@ SYS_FUNC(swapon)
 
 	/* swapflags */
 	tprints_arg_next_name("swapflags");
-	tprint_flags_begin();
+	tprint_flags_groups_begin(tcp->u_arg[1]);
 	if (flags) {
+		tprint_flags_group_begin(flags);
 		printflags_in(swap_flags, flags, "SWAP_FLAG_???");
-		tprint_flags_or();
+		tprint_flags_group_end();
+		tprint_flags_groups_next();
 	}
+	tprint_flags_group_begin(prio);
 	PRINT_VAL_U(prio);
-	tprint_flags_end();
+	tprint_flags_group_end();
+	tprint_flags_groups_end();
 
 	return RVAL_DECODED;
 }

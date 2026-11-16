@@ -38,15 +38,19 @@ SYS_FUNC(statx)
 		/* flags */
 		tprints_arg_next_name("flags");
 		unsigned int flags = tcp->u_arg[2];
-		tprint_flags_begin();
+		tprint_flags_groups_begin(flags);
+		tprint_flags_group_begin(flags & AT_STATX_SYNC_TYPE);
 		printflags_in(at_statx_sync_types, flags & AT_STATX_SYNC_TYPE,
 			      NULL);
+		tprint_flags_group_end();
 		flags &= ~AT_STATX_SYNC_TYPE;
 		if (flags) {
-			tprint_flags_or();
+			tprint_flags_groups_next();
+			tprint_flags_group_begin(flags);
 			printflags_in(at_flags, flags, NULL);
+			tprint_flags_group_end();
 		}
-		tprint_flags_end();
+		tprint_flags_groups_end();
 
 		/* mask */
 		tprints_arg_next_name("mask");

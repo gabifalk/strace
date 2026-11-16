@@ -54,15 +54,21 @@ SYS_FUNC(mount)
 
 	/* mountflags */
 	tprints_arg_next_name("mountflags");
-	tprint_flags_begin();
 	if (old_magic) {
+		tprint_flags_groups_begin(tcp->u_arg[3]);
+		tprint_flags_group_begin(MS_MGC_VAL);
 		print_xlat(MS_MGC_VAL);
-		if (flags)
-			tprint_flags_or();
-	}
-	if (flags || !old_magic)
+		tprint_flags_group_end();
+		if (flags) {
+			tprint_flags_groups_next();
+			tprint_flags_group_begin(flags);
+			printflags64_in(mount_flags, flags, "MS_???");
+			tprint_flags_group_end();
+		}
+		tprint_flags_groups_end();
+	} else {
 		printflags64_in(mount_flags, flags, "MS_???");
-	tprint_flags_end();
+	}
 
 	/* data */
 	tprints_arg_next_name("data");
