@@ -800,16 +800,29 @@ tprints_field_inout_u(const char *name, unsigned long long entering_val,
 		      unsigned long long exiting_val)
 {
 	tprints_field_name(name);
-	PRINT_VAL_U(entering_val);
-	if (entering_val != exiting_val) {
-		tprint_value_changed();
+	if (structured_output) {
+		if (entering_val != exiting_val)
+			tprint_arg_changed();
 		PRINT_VAL_U(exiting_val);
+	} else {
+		PRINT_VAL_U(entering_val);
+		if (entering_val != exiting_val) {
+			tprint_value_changed();
+			PRINT_VAL_U(exiting_val);
+		}
 	}
 }
 
 void
 tprint_split_struct_entering_u(const char *name, unsigned long long val)
 {
+	if (structured_output) {
+		tprint_struct_begin();
+		tprint_struct_mark_split();
+		tprints_field_name(name);
+		PRINT_VAL_U(val);
+		tprint_struct_end();
+	}
 }
 
 void
@@ -1372,7 +1385,12 @@ tprints_flags_value_const(unsigned long long val, const char *sym)
 void
 tprints_arg_next_name_deferred(const char *name)
 {
-	tprints_arg_next_name(name);
+	if (structured_output) {
+		tprint_arg_next();
+		tprint_arg_skip();
+	} else {
+		tprints_arg_next_name(name);
+	}
 }
 
 void

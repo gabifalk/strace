@@ -139,6 +139,11 @@ tprint_object_begin(void)
 }
 
 static inline void
+tprint_arg_skip(void)
+{
+}
+
+static inline void
 tprint_object_end(void)
 {
 }
