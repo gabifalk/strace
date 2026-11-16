@@ -773,7 +773,12 @@ print_injected_note(struct tcb *tcp)
 	else if (syscall_tampered_poked(tcp))
 		tprints_sysret_string("inject", "INJECTED: args");
 	else if (syscall_tampered(tcp))
-		tprints_sysret_string("inject", "INJECTED");
+		tprint_sysret_injected();
+}
+
+static void
+print_delay_sanitize_notes(struct tcb *tcp)
+{
 	if (syscall_tampered_delayed(tcp))
 		tprints_sysret_string("delay", "DELAYED");
 	if (syscall_tampered_sanitized(tcp))
@@ -1070,8 +1075,9 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 				(kernel_ulong_t) tcp->u_rval, '\0',
 				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE));
 	}
-	tprint_sysret_end();
 	print_injected_note(tcp);
+	tprint_sysret_end();
+	print_delay_sanitize_notes(tcp);
 	if (Tflag)
 		print_syscall_duration(tcp, ts);
 	tprint_syscall_exit_line_end();

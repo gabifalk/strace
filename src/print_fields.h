@@ -418,6 +418,7 @@ extern void tprint_reserved_bits(unsigned long long val, unsigned int from,
 extern void tprint_unused_bits(unsigned long long val, unsigned int first,
 			       unsigned int last);
 extern void tprint_syscall_duration(long long sec, long nsec);
+extern void tprint_sysret_injected(void);
 extern void tprint_sysret_end(void);
 extern void tprint_sysret_errno(unsigned long u_error, const char *sym,
 				const char *str);
