@@ -467,7 +467,7 @@ DECL_NLA(be64)
 #endif
 }
 
-#define DECODE_NLA_INTEGER(name, type, fmt)		\
+#define DECODE_NLA_INTEGER(name, type, print_val)	\
 DECL_NLA(name)						\
 {							\
 	type num;					\
@@ -475,22 +475,22 @@ DECL_NLA(name)						\
 	if (len < sizeof(num))				\
 		return false;				\
 	if (!umove_or_printaddr(tcp, addr, &num))	\
-		tprintf_string(fmt, num);		\
+		print_val(num);				\
 	return true;					\
 }
 
-DECODE_NLA_INTEGER(x8, uint8_t, "%#" PRIx8)
-DECODE_NLA_INTEGER(x16, uint16_t, "%#" PRIx16)
-DECODE_NLA_INTEGER(x32, uint32_t, "%#" PRIx32)
-DECODE_NLA_INTEGER(x64, uint64_t, "%#" PRIx64)
-DECODE_NLA_INTEGER(u8, uint8_t, "%" PRIu8)
-DECODE_NLA_INTEGER(u16, uint16_t, "%" PRIu16)
-DECODE_NLA_INTEGER(u32, uint32_t, "%" PRIu32)
-DECODE_NLA_INTEGER(u64, uint64_t, "%" PRIu64)
-DECODE_NLA_INTEGER(s8, int8_t, "%" PRId8)
-DECODE_NLA_INTEGER(s16, int16_t, "%" PRId16)
-DECODE_NLA_INTEGER(s32, int32_t, "%" PRId32)
-DECODE_NLA_INTEGER(s64, int64_t, "%" PRId64)
+DECODE_NLA_INTEGER(x8, uint8_t, PRINT_VAL_X)
+DECODE_NLA_INTEGER(x16, uint16_t, PRINT_VAL_X)
+DECODE_NLA_INTEGER(x32, uint32_t, PRINT_VAL_X)
+DECODE_NLA_INTEGER(x64, uint64_t, PRINT_VAL_X)
+DECODE_NLA_INTEGER(u8, uint8_t, PRINT_VAL_U)
+DECODE_NLA_INTEGER(u16, uint16_t, PRINT_VAL_U)
+DECODE_NLA_INTEGER(u32, uint32_t, PRINT_VAL_U)
+DECODE_NLA_INTEGER(u64, uint64_t, PRINT_VAL_U)
+DECODE_NLA_INTEGER(s8, int8_t, PRINT_VAL_D)
+DECODE_NLA_INTEGER(s16, int16_t, PRINT_VAL_D)
+DECODE_NLA_INTEGER(s32, int32_t, PRINT_VAL_D)
+DECODE_NLA_INTEGER(s64, int64_t, PRINT_VAL_D)
 
 DECL_NLA(xint)
 {
