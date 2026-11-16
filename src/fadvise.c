@@ -39,6 +39,17 @@ SYS_FUNC(fadvise64)
 	return RVAL_DECODED;
 }
 
+/* On these architectures advice is the second parameter, printed last. */
+#if defined __ARM_EABI__ || defined AARCH64 || defined POWERPC || defined XTENSA
+# define ARG_ADVICE	1
+# define ARG_OFFSET	2
+# define ARG_LEN	3
+#else
+# define ARG_OFFSET	1
+# define ARG_LEN	2
+# define ARG_ADVICE	3
+#endif
+
 SYS_FUNC(fadvise64_64)
 {
 	/* fd */
@@ -46,15 +57,15 @@ SYS_FUNC(fadvise64_64)
 	printfd(tcp, tcp->u_arg[0]);
 
 	/* offset */
-	tprints_arg_next_name("offset");
+	tprints_arg_next_name_at(ARG_OFFSET, "offset");
 	unsigned int argn = print_arg_lld(tcp, 1);
 
 	/* len */
-	tprints_arg_next_name("len");
+	tprints_arg_next_name_at(ARG_LEN, "len");
 	argn = print_arg_lld(tcp, argn);
 
 	/* advice */
-	tprints_arg_next_name("advice");
+	tprints_arg_next_name_at(ARG_ADVICE, "advice");
 #if defined __ARM_EABI__ || defined AARCH64 || defined POWERPC || defined XTENSA
 	printxval(advise, tcp->u_arg[1], "POSIX_FADV_???");
 #else
