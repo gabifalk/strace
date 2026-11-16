@@ -465,6 +465,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-signal \
 	jsonl-sockopt-icmp_filter \
 	jsonl-sockopt-port_range \
+	jsonl-stack \
 	jsonl-status-none \
 	jsonl-statx \
 	jsonl-stopped \
@@ -759,6 +760,9 @@ truncate_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 truncate64_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 uio_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 
+jsonl_stack_SOURCES = jsonl-stack.c \
+	stack-fcall-0.c stack-fcall-1.c stack-fcall-2.c stack-fcall-3.c
+
 stack_fcall_SOURCES = stack-fcall.c \
 	stack-fcall-0.c stack-fcall-1.c stack-fcall-2.c stack-fcall-3.c
 if USE_LIBDW
@@ -800,7 +804,8 @@ if USE_DEMANGLE
 STACKTRACE_TESTS += strace-k-demangle.test
 endif
 if USE_LIBUNWIND
-STACKTRACE_XFAIL_TESTS = $(STACKTRACE_TESTS)
+STACKTRACE_XFAIL_TESTS = $(STACKTRACE_TESTS) \
+	jsonl-merged-stack.gen.test jsonl-split-stack.gen.test
 else
 STACKTRACE_XFAIL_TESTS =
 endif
@@ -1323,6 +1328,7 @@ EXTRA_DIST = \
 	jsonl-signal.c \
 	jsonl-sockopt-icmp_filter.c \
 	jsonl-sockopt-port_range.c \
+	jsonl-stack.c \
 	jsonl-status-none.c \
 	jsonl-statx.c \
 	jsonl-stopped.c \
@@ -1348,6 +1354,7 @@ EXTRA_DIST = \
 	jsonl-clone_untraced.sh \
 	jsonl-ioctl.sh \
 	jsonl-ip.sh \
+	jsonl-stack.sh \
 	jsonl-summary.sh \
 	jsonl-timestamps.sh \
 	jsonl.sh \

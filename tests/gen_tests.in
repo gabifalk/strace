@@ -734,6 +734,7 @@ jsonl-merged-sigchld	-e trace=none
 jsonl-merged-signal	-e trace=none
 jsonl-merged-sockopt-icmp_filter	-e trace=setsockopt
 jsonl-merged-sockopt-port_range	-e trace=setsockopt
+jsonl-merged-stack	+jsonl-stack.sh -k -e trace=chdir -e signal=SIGURG
 jsonl-merged-status-none	-e trace=all --status=none
 jsonl-merged-statx	-e trace=statx --trace-fds=9
 jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
@@ -939,6 +940,7 @@ jsonl-split-sigchld	-e trace=none
 jsonl-split-signal	-e trace=none
 jsonl-split-sockopt-icmp_filter	-e trace=setsockopt
 jsonl-split-sockopt-port_range	-e trace=setsockopt
+jsonl-split-stack	+jsonl-stack.sh -k -e trace=chdir -e signal=SIGURG
 jsonl-split-status-none	-e trace=all --status=none
 jsonl-split-statx	-e trace=statx --trace-fds=9
 jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none

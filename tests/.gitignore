@@ -722,6 +722,7 @@ jsonl-sigchld
 jsonl-signal
 jsonl-sockopt-icmp_filter
 jsonl-sockopt-port_range
+jsonl-stack
 jsonl-status-none
 jsonl-statx
 jsonl-stopped
