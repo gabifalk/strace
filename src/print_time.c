@@ -23,8 +23,7 @@ SYS_FUNC(time)
 		tprints_arg_name("tloc");
 		if (!umove_or_printaddr(tcp, tcp->u_arg[0], &t)) {
 			tprint_indirect_begin();
-			PRINT_VAL_D(t);
-			tprints_comment(sprinttime(t));
+			print_time_t(t);
 			tprint_indirect_end();
 		}
 

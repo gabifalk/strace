@@ -110,27 +110,27 @@ print_struct_stat(struct tcb *tcp, const struct strace_stat *const st)
 
 	if (!abbrev(tcp)) {
 		tprint_struct_next();
-		PRINT_FIELD_D(*st, st_atime);
-		tprints_comment(sprinttime_nsec(st->st_atime,
-						st->st_atime_nsec));
+		tprints_field_name("st_atime");
+		tprint_time_t(st->st_atime, sprinttime_nsec(st->st_atime,
+							   st->st_atime_nsec));
 		if (st->has_nsec) {
 			tprint_struct_next();
 			PRINT_FIELD_U(*st, st_atime_nsec);
 		}
 
 		tprint_struct_next();
-		PRINT_FIELD_D(*st, st_mtime);
-		tprints_comment(sprinttime_nsec(st->st_mtime,
-						st->st_mtime_nsec));
+		tprints_field_name("st_mtime");
+		tprint_time_t(st->st_mtime, sprinttime_nsec(st->st_mtime,
+							   st->st_mtime_nsec));
 		if (st->has_nsec) {
 			tprint_struct_next();
 			PRINT_FIELD_U(*st, st_mtime_nsec);
 		}
 
 		tprint_struct_next();
-		PRINT_FIELD_D(*st, st_ctime);
-		tprints_comment(sprinttime_nsec(st->st_ctime,
-						st->st_ctime_nsec));
+		tprints_field_name("st_ctime");
+		tprint_time_t(st->st_ctime, sprinttime_nsec(st->st_ctime,
+							   st->st_ctime_nsec));
 		if (st->has_nsec) {
 			tprint_struct_next();
 			PRINT_FIELD_U(*st, st_ctime_nsec);
