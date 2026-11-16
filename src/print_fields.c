@@ -2771,9 +2771,12 @@ tprint_syscall_exit_event_end(void)
 
 static struct {
 	bool iov;
+	bool mmsg;
+	bool mmsg_buffers;
 	bool fetch_failed;
 	unsigned long long size;
 	unsigned long long addr;
+	unsigned long long iovlen;
 } io_dump;
 
 void
@@ -2854,8 +2857,12 @@ void
 tprint_io_dump_iov_begin(void)
 {
 	if (structured_output) {
-		tprints_object_field_begin("io_dump");
-		tprint_object_begin();
+		if (io_dump.mmsg) {
+			io_dump.mmsg_buffers = true;
+		} else {
+			tprints_object_field_begin("io_dump");
+			tprint_object_begin();
+		}
 		tprint_array_begin();
 		io_dump.iov = true;
 	}
@@ -2879,28 +2886,59 @@ tprint_io_dump_iov_end(void)
 	if (structured_output) {
 		io_dump.iov = false;
 		tprint_array_end();
-		tprint_object_end();
-		tprint_object_field_end();
+		if (!io_dump.mmsg) {
+			tprint_object_end();
+			tprint_object_field_end();
+		}
 	}
 }
 
 void
 tprint_io_dump_mmsg_begin(void)
 {
+	if (structured_output) {
+		tprints_object_field_begin("io_dump");
+		tprint_object_begin();
+		tprint_array_begin();
+		io_dump.mmsg = true;
+	}
 }
 
 void
 tprint_io_dump_mmsg_vector_begin(unsigned long long iovlen, unsigned int index)
 {
-	tprintf_string(" = %llu buffers in vector %u\n", iovlen, index);
+	if (structured_output) {
+		tprint_list_element_begin();
+		tprint_object_begin();
+		io_dump.iovlen = iovlen;
+		io_dump.mmsg_buffers = false;
+	} else {
+		tprintf_string(" = %llu buffers in vector %u\n",
+			       iovlen, index);
+	}
 }
 
 void
 tprint_io_dump_mmsg_vector_end(void)
 {
+	if (structured_output) {
+		if (!io_dump.mmsg_buffers) {
+			tprint_array_begin();
+			tprint_array_end();
+		}
+		tprintf_object_field_string("iovlen", "%llu", io_dump.iovlen);
+		tprint_object_end();
+		tprint_list_element_end();
+	}
 }
 
 void
 tprint_io_dump_mmsg_end(void)
 {
+	if (structured_output) {
+		io_dump.mmsg = false;
+		tprint_array_end();
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
