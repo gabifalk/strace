@@ -810,6 +810,24 @@ print_syscall_duration(struct tcb *tcp, struct timespec *ts)
 	tprint_syscall_duration(ts->tv_sec, ts->tv_nsec);
 }
 
+/*
+ * Print what follows the exiting syscall line in traditional output:
+ * the stack trace and the kvm_run structure dump.
+ */
+static void
+print_syscall_exiting_trailers(struct tcb *tcp)
+{
+#ifdef ENABLE_STACKTRACE
+	if (stack_trace_mode)
+		unwind_tcb_print(tcp);
+#endif
+#ifdef HAVE_LINUX_KVM_H
+	if (tcp->flags & TCP_AFTER_KVM_RUN
+	    && decode_kvm_run_structure == DECODE_KVM_RUN_STRUCTURE_MORE)
+		kvm_run_structure_decode(tcp);
+#endif
+}
+
 int
 syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 {
@@ -1082,17 +1100,12 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		print_syscall_duration(tcp, ts);
 	tprint_syscall_exit_line_end();
 	dumpio(tcp);
+	tprint_event_trailers(print_syscall_exiting_trailers, tcp);
 	tprint_syscall_exit_event_end();
 	line_ended();
+	tprint_line_trailers(print_syscall_exiting_trailers, tcp);
 
-#ifdef ENABLE_STACKTRACE
-	if (stack_trace_mode)
-		unwind_tcb_print(tcp);
-#endif
 #ifdef HAVE_LINUX_KVM_H
-	if (tcp->flags & TCP_AFTER_KVM_RUN
-	    && decode_kvm_run_structure == DECODE_KVM_RUN_STRUCTURE_MORE)
-		kvm_run_structure_decode(tcp);
 	tcp->flags &= ~TCP_AFTER_KVM_RUN;
 #endif
 	return 0;

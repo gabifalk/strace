@@ -60,6 +60,10 @@ extern void tprint_ioctl_cmd_xval(const struct xlat *xlat,
 extern void tprints_field_xval_entering(const char *name, uint64_t val,
 					const struct xlat *xlat,
 					const char *dflt);
+extern void tprint_event_trailers(void (*print_fn)(struct tcb *),
+				  struct tcb *tcp);
+extern void tprint_line_trailers(void (*print_fn)(struct tcb *),
+				 struct tcb *tcp);
 extern void tprint_xval_exiting(const struct xlat *xlat, const char *dflt,
 				uint64_t entering_val, uint64_t exiting_val,
 				int exiting_state);
