@@ -145,6 +145,38 @@ tprints_field_exiting_name(const char *name)
 		tprint_value_changed();
 }
 
+bool
+tprints_field_exiting_value(const char *name, bool on_entering, bool changed)
+{
+	if (on_entering && changed)
+		tprint_value_changed();
+
+	return !on_entering || changed;
+}
+
+void
+tprint_addr_exiting(unsigned long long entering_addr,
+		    unsigned long long exiting_addr)
+{
+	printaddr64(entering_addr);
+	if (entering_addr != exiting_addr) {
+		tprint_value_changed();
+		printaddr64(exiting_addr);
+	}
+}
+
+void
+tprint_ifc_len(int len, unsigned int ifreq_count)
+{
+	PRINT_VAL_D(len);
+	if (ifreq_count) {
+		tprint_comment_begin();
+		PRINT_VAL_U(ifreq_count);
+		tprints_string(" * sizeof(struct ifreq)");
+		tprint_comment_end();
+	}
+}
+
 void
 tprints_field_exiting_d(const char *name, long long entering_val,
 			long long exiting_val)

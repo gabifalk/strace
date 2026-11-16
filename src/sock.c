@@ -121,20 +121,14 @@ print_ifreq(struct tcb *const tcp, const unsigned int code,
 	}
 }
 
-static unsigned int
+static void
 print_ifc_len(int len)
 {
-	PRINT_VAL_D(len);
-
 	const unsigned int n = (unsigned int) len / sizeof(struct_ifreq);
-	if (len > 0 && n * sizeof(struct_ifreq) == (unsigned int) len) {
-		tprint_comment_begin();
-		PRINT_VAL_U(n);
-		tprints_string(" * sizeof(struct ifreq)");
-		tprint_comment_end();
-	}
+	const bool whole =
+		len > 0 && n * sizeof(struct_ifreq) == (unsigned int) len;
 
-	return n;
+	tprint_ifc_len(len, whole ? n : 0);
 }
 
 static bool
@@ -150,6 +144,23 @@ print_ifconf_ifreq(struct tcb *tcp, void *elem_buf, size_t elem_size,
 	tprint_struct_end();
 
 	return true;
+}
+
+static void
+print_ifconf_exiting_begin(const struct_ifconf *const entering_ifc,
+			   const int ifc_len)
+{
+	if (entering_ifc->ifc_buf) {
+		tprint_struct_exiting_begin(2, "argp");
+		if (tprints_field_exiting_value("ifc_len", true,
+						entering_ifc->ifc_len != ifc_len))
+			print_ifc_len(ifc_len);
+	} else {
+		tprints_arg_name("argp");
+		tprint_struct_begin();
+		tprints_field_name("ifc_len");
+		print_ifc_len(ifc_len);
+	}
 }
 
 /*
@@ -192,9 +203,8 @@ decode_ifconf(struct tcb *const tcp, const kernel_ulong_t addr)
 			 * We failed to fetch the structure on exiting syscall,
 			 * print whatever was fetched on entering syscall.
 			 */
-			if (!entering_ifc->ifc_buf)
-				print_ifc_len(entering_ifc->ifc_len);
-
+			print_ifconf_exiting_begin(entering_ifc,
+						   entering_ifc->ifc_len);
 			tprint_struct_next();
 			PRINT_FIELD_PTR(*entering_ifc, ifc_buf);
 
@@ -205,11 +215,16 @@ decode_ifconf(struct tcb *const tcp, const kernel_ulong_t addr)
 	}
 
 	if (entering(tcp)) {
-		tprints_arg_next_name("argp");
-		tprint_struct_begin();
-		tprints_field_name("ifc_len");
-		if (ifc->ifc_buf)
+		if (ifc->ifc_buf) {
+			tprints_arg_next_name("argp");
+			tprint_struct_begin();
+			tprint_struct_mark_split();
+			tprints_field_name("ifc_len");
 			print_ifc_len(ifc->ifc_len);
+			tprint_struct_entering_end();
+		} else {
+			tprint_arg_next();
+		}
 
 		set_tcb_priv_data(tcp, ifc, free);
 
@@ -218,18 +233,13 @@ decode_ifconf(struct tcb *const tcp, const kernel_ulong_t addr)
 
 	/* exiting */
 
-	if (entering_ifc->ifc_buf && (entering_ifc->ifc_len != ifc->ifc_len))
-		tprint_value_changed();
-	if (!entering_ifc->ifc_buf || (entering_ifc->ifc_len != ifc->ifc_len))
-		print_ifc_len(ifc->ifc_len);
+	print_ifconf_exiting_begin(entering_ifc, ifc->ifc_len);
 
 	if (!entering_ifc->ifc_buf || syserror(tcp)) {
 		tprint_struct_next();
-		PRINT_FIELD_PTR(*entering_ifc, ifc_buf);
-		if (entering_ifc->ifc_buf != ifc->ifc_buf) {
-			tprint_value_changed();
-			printaddr(ptr_to_kulong(ifc->ifc_buf));
-		}
+		tprints_field_name("ifc_buf");
+		tprint_addr_exiting(ptr_to_kulong(entering_ifc->ifc_buf),
+				    ptr_to_kulong(ifc->ifc_buf));
 	} else {
 		struct_ifreq ifr;
 

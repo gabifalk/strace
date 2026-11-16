@@ -270,6 +270,11 @@ extern void tprints_arg_exiting_name(unsigned int index, const char *name);
 extern void tprint_struct_exiting_abandon(void);
 extern void tprint_struct_exiting_abandon_more_data(void);
 extern void tprints_field_exiting_name(const char *name);
+extern bool tprints_field_exiting_value(const char *name, bool on_entering,
+					bool changed);
+extern void tprint_addr_exiting(unsigned long long entering_addr,
+				unsigned long long exiting_addr);
+extern void tprint_ifc_len(int len, unsigned int ifreq_count);
 extern void tprints_field_exiting_d(const char *name, long long entering_val,
 				    long long exiting_val);
 extern void tprints_field_exiting_u(const char *name,
