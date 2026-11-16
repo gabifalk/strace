@@ -174,9 +174,11 @@ tprints_field_exiting_u(const char *name, unsigned long long entering_val,
 void
 tprints_field_repeated_u(const char *name, unsigned long long val)
 {
-	tprint_struct_next();
-	tprints_field_name(name);
-	PRINT_VAL_U(val);
+	if (!structured_output) {
+		tprint_struct_next();
+		tprints_field_name(name);
+		PRINT_VAL_U(val);
+	}
 }
 
 void
