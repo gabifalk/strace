@@ -879,14 +879,23 @@ tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
 void
 tprint_signal(int nr, const char *name)
 {
-	if (!name || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_D(nr);
+	if (structured_output) {
+		tprints_object_type("signal");
+		tprintf_object_field_string("raw", "%d", nr);
+		if (name)
+			tprints_object_field_string("sym", name);
+	} else {
+		if (!name
+		    || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			PRINT_VAL_D(nr);
 
-	if (name && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			tprints_comment(name);
-		else
-			tprints_string(name);
+		if (name && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (xlat_verbose(xlat_verbosity)
+			    == XLAT_STYLE_VERBOSE)
+				tprints_comment(name);
+			else
+				tprints_string(name);
+		}
 	}
 }
 
