@@ -802,19 +802,52 @@ tprint_flags_or(void)
 void
 tprint_flags_value_begin(unsigned long long raw)
 {
-	tprint_flags_begin();
+	if (structured_output) {
+		tprints_object_type("flags");
+		tprintf_object_field_string("raw", "%#llx", raw);
+		tprints_object_field_begin("groups");
+		tprint_list_begin();
+		tprint_list_element_begin();
+		tprint_object_begin();
+		tprintf_object_field_string("raw", "%#llx", raw);
+		tprints_object_field_string("group_type", "flags");
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+		tprint_list_element_begin();
+		tprint_object_begin();
+	} else {
+		tprint_flags_begin();
+	}
 }
 
 void
 tprint_flags_value_or(void)
 {
-	tprint_flags_or();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_list_element_end();
+		tprint_list_element_begin();
+		tprint_object_begin();
+	} else {
+		tprint_flags_or();
+	}
 }
 
 void
 tprint_flags_value_end(void)
 {
-	tprint_flags_end();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_list_element_end();
+		tprint_list_end();
+		tprint_object_field_end();
+		tprint_object_end();
+		tprint_list_element_end();
+		tprint_list_end();
+		tprint_object_field_end();
+	} else {
+		tprint_flags_end();
+	}
 }
 
 void
