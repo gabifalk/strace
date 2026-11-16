@@ -568,6 +568,7 @@ jsonl-printsignal
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
 jsonl-setxattr
+jsonl-signal
 jsonl-status-none
 jsonl-sysinfo
 jsonl-vfork-f
