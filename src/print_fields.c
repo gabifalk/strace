@@ -858,6 +858,29 @@ tprint_negated_end(void)
 }
 
 void
+tprint_dev_t(unsigned long long dev, unsigned int dev_major,
+	     unsigned int dev_minor)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		PRINT_VAL_X(dev);
+
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+
+		tprints_fn_begin("makedev");
+		PRINT_VAL_X(dev_major);
+
+		tprint_fn_next();
+		PRINT_VAL_X(dev_minor);
+		tprint_fn_end();
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	}
+}
+
+void
 tprint_var_count(unsigned long long addr, unsigned int count,
 		 bool unterminated)
 {
