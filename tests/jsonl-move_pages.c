@@ -95,9 +95,7 @@ jsonl_status_array(const int *const status, const unsigned long count)
 		if (status[i] >= 0)
 			jsonl_decimal(status[i]);
 		else
-			printf("\"type\": \"errno\", \"raw\": \"%d\","
-			       " \"sym\": \"%s\"",
-			       status[i], errno2name(-status[i]));
+			jsonl_errno(status[i]);
 		printf("}");
 	}
 	jsonl_array_close();

@@ -60,9 +60,7 @@ test_selnl_msg_setenforce(const int fd)
 	JSONL_NETLINK_OBJECT(fd, nlh0,
 			     SELNL_MSG_SETENFORCE, NLM_F_REQUEST, msg,
 			     jsonl_struct_open();
-			     jsonl_field_open("val", true);
-			     jsonl_decimal(msg.val);
-			     jsonl_field_close();
+			     jsonl_field_decimal("val", true, msg.val);
 			     jsonl_struct_close());
 }
 
@@ -77,9 +75,7 @@ test_selnl_msg_policyload(const int fd)
 	JSONL_NETLINK_OBJECT(fd, nlh0,
 			     SELNL_MSG_POLICYLOAD, NLM_F_REQUEST, msg,
 			     jsonl_struct_open();
-			     jsonl_field_open("seqno", true);
-			     jsonl_unsigned(msg.seqno);
-			     jsonl_field_close();
+			     jsonl_field_unsigned("seqno", true, msg.seqno);
 			     jsonl_struct_close());
 }
 

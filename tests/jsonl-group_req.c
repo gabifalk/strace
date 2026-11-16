@@ -37,9 +37,7 @@ static void
 jsonl_gr_interface(const struct group_req *greq)
 {
 	jsonl_struct_open();
-	jsonl_field_open("gr_interface", true);
-	jsonl_ifindex(greq->gr_interface, "lo");
-	jsonl_field_close();
+	jsonl_field_ifindex("gr_interface", true, greq->gr_interface, "lo");
 }
 
 static void

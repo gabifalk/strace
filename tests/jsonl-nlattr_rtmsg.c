@@ -48,28 +48,8 @@ init_rtmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 }
 
 static void
-print_const_field(const char *name, unsigned int val, const char *sym,
-		  bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_const(val, true, sym, NULL);
-	jsonl_field_close();
-}
-
-static void
-print_u_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
 print_rtmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
 	static const struct strval32 rtm_tos[] = {
 		{ ARG_STR(IPTOS_LOWDELAY) }
 	};
@@ -77,24 +57,19 @@ print_rtmsg(const unsigned int msg_len)
 		{ ARG_STR(RTM_F_NOTIFY) }
 	};
 
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETROUTE), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETROUTE));
 	jsonl_struct_open();
-	print_const_field("rtm_family", rtm_family, rtm_family_str, true);
-	print_u_field("rtm_dst_len", 0, false);
-	print_u_field("rtm_src_len", 0, false);
-	jsonl_field_open("rtm_tos", false);
-	jsonl_flags(IPTOS_LOWDELAY, rtm_tos, ARRAY_SIZE(rtm_tos), NULL);
-	jsonl_field_close();
-	print_const_field("rtm_table", ARG_STR(RT_TABLE_DEFAULT), false);
-	print_const_field("rtm_protocol", ARG_STR(RTPROT_KERNEL), false);
-	print_const_field("rtm_scope", ARG_STR(RT_SCOPE_UNIVERSE), false);
-	print_const_field("rtm_type", ARG_STR(RTN_LOCAL), false);
-	jsonl_field_open("rtm_flags", false);
-	jsonl_flags(RTM_F_NOTIFY, rtm_flags, ARRAY_SIZE(rtm_flags), NULL);
-	jsonl_field_close();
+	jsonl_field_const("rtm_family", true, rtm_family, rtm_family_str, NULL);
+	jsonl_field_unsigned("rtm_dst_len", false, 0);
+	jsonl_field_unsigned("rtm_src_len", false, 0);
+	jsonl_field_flags("rtm_tos", false, IPTOS_LOWDELAY, rtm_tos,
+			  ARRAY_SIZE(rtm_tos), NULL);
+	jsonl_field_const("rtm_table", false, ARG_STR(RT_TABLE_DEFAULT), NULL);
+	jsonl_field_const("rtm_protocol", false, ARG_STR(RTPROT_KERNEL), NULL);
+	jsonl_field_const("rtm_scope", false, ARG_STR(RT_SCOPE_UNIVERSE), NULL);
+	jsonl_field_const("rtm_type", false, ARG_STR(RTN_LOCAL), NULL);
+	jsonl_field_flags("rtm_flags", false, RTM_F_NOTIFY, rtm_flags,
+			  ARRAY_SIZE(rtm_flags), NULL);
 	jsonl_struct_close();
 	printf("}");
 }
@@ -120,15 +95,11 @@ print_rtnexthop(const struct rtnexthop *const nh)
 	};
 
 	jsonl_struct_open();
-	print_u_field("rtnh_len", nh->rtnh_len, true);
-	jsonl_field_open("rtnh_flags", false);
-	jsonl_flags(nh->rtnh_flags, rtnh_flags, ARRAY_SIZE(rtnh_flags),
-		    "RTNH_F_???");
-	jsonl_field_close();
-	print_u_field("rtnh_hops", nh->rtnh_hops, false);
-	jsonl_field_open("rtnh_ifindex", false);
-	jsonl_ifindex(nh->rtnh_ifindex, "lo");
-	jsonl_field_close();
+	jsonl_field_unsigned("rtnh_len", true, nh->rtnh_len);
+	jsonl_field_flags("rtnh_flags", false, nh->rtnh_flags, rtnh_flags,
+			  ARRAY_SIZE(rtnh_flags), "RTNH_F_???");
+	jsonl_field_unsigned("rtnh_hops", false, nh->rtnh_hops);
+	jsonl_field_ifindex("rtnh_ifindex", false, nh->rtnh_ifindex, "lo");
 	jsonl_struct_close();
 }
 
@@ -136,7 +107,7 @@ static void
 print_rtvia(unsigned int af, const char *af_str, const char *addr)
 {
 	jsonl_struct_open();
-	print_const_field("rtvia_family", af, af_str, true);
+	jsonl_field_const("rtvia_family", true, af, af_str, NULL);
 	if (addr) {
 		jsonl_field_open("rtvia_addr", false);
 		jsonl_ip_addr(af, af_str, addr);
@@ -358,17 +329,20 @@ main(int argc, char *argv[])
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen, init_rtmsg, print_rtmsg,
 			    RTA_CACHEINFO, pattern, ci,
 			    jsonl_struct_open();
-			    print_u_field("rta_clntref", ci.rta_clntref, true);
-			    print_u_field("rta_lastuse", ci.rta_lastuse, false);
-			    print_u_field("rta_expires",
-					  (uint32_t) ci.rta_expires, false);
-			    print_u_field("rta_error", ci.rta_error, false);
-			    print_u_field("rta_used", ci.rta_used, false);
-			    jsonl_field_open("rta_id", false);
-			    jsonl_hex(ci.rta_id);
-			    jsonl_field_close();
-			    print_u_field("rta_ts", ci.rta_ts, false);
-			    print_u_field("rta_tsage", ci.rta_tsage, false);
+			    jsonl_field_unsigned("rta_clntref", true,
+						 ci.rta_clntref);
+			    jsonl_field_unsigned("rta_lastuse", false,
+						 ci.rta_lastuse);
+			    jsonl_field_unsigned("rta_expires", false,
+						 (uint32_t) ci.rta_expires);
+			    jsonl_field_unsigned("rta_error", false,
+						 ci.rta_error);
+			    jsonl_field_unsigned("rta_used", false,
+						 ci.rta_used);
+			    jsonl_field_hex("rta_id", false, ci.rta_id);
+			    jsonl_field_unsigned("rta_ts", false, ci.rta_ts);
+			    jsonl_field_unsigned("rta_tsage", false,
+						 ci.rta_tsage);
 			    jsonl_struct_close());
 
 	static const struct rta_mfc_stats mfcs = {
@@ -379,11 +353,12 @@ main(int argc, char *argv[])
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen, init_rtmsg, print_rtmsg,
 			    RTA_MFC_STATS, pattern, mfcs,
 			    jsonl_struct_open();
-			    print_u_field("mfcs_packets", mfcs.mfcs_packets,
-					  true);
-			    print_u_field("mfcs_bytes", mfcs.mfcs_bytes, false);
-			    print_u_field("mfcs_wrong_if", mfcs.mfcs_wrong_if,
-					  false);
+			    jsonl_field_unsigned("mfcs_packets", true,
+						 mfcs.mfcs_packets);
+			    jsonl_field_unsigned("mfcs_bytes", false,
+						 mfcs.mfcs_bytes);
+			    jsonl_field_unsigned("mfcs_wrong_if", false,
+						 mfcs.mfcs_wrong_if);
 			    jsonl_struct_close());
 
 	/* A struct rtvia without an address and with an address */

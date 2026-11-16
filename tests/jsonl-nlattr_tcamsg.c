@@ -55,18 +55,9 @@ init_tcamsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_tcamsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETACTION), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETACTION));
 	jsonl_struct_open();
-	jsonl_field_open("tca_family", true);
-	jsonl_const(AF_INET, true, "AF_INET", NULL);
-	jsonl_field_close();
+	jsonl_field_const("tca_family", true, AF_INET, "AF_INET", NULL);
 	jsonl_struct_close();
 	printf("}");
 }
@@ -112,14 +103,6 @@ print_tcamsg_tab_item(const unsigned int msg_len)
 	print_tcamsg_tab(msg_len);
 	jsonl_nlattr_nest_open(msg_len - NLMSG_SPACE(hdrlen) - NLA_HDRLEN,
 			       tab_idx, NULL, NULL);
-}
-
-/* The fields of a ticks value that is a number of milliseconds. */
-static void
-print_msecs(const uint64_t val)
-{
-	printf("\"type\": \"ticks\", \"raw\": \"%" PRIu64 "\", "
-	       "\"hz\": \"1000\", \"precision\": \"3\"", val);
 }
 
 int
@@ -285,7 +268,7 @@ main(int argc, char *argv[])
 	for (size_t i = 0; i < ARRAY_SIZE(time_deltas); i++) {
 		JSONL_NLATTR(fd, nlh0, hdrlen, init_tcamsg, print_tcamsg,
 			     TCA_ROOT_TIME_DELTA, 4, &time_deltas[i], 4,
-			     print_msecs(time_deltas[i]));
+			     jsonl_ticks_hz(time_deltas[i], 1000, 3));
 	}
 
 	static const uint64_t time_deltas64[] = {
@@ -296,7 +279,7 @@ main(int argc, char *argv[])
 	for (size_t i = 0; i < ARRAY_SIZE(time_deltas64); i++) {
 		JSONL_NLATTR(fd, nlh0, hdrlen, init_tcamsg, print_tcamsg,
 			     TCA_ROOT_TIME_DELTA, 8, &time_deltas64[i], 8,
-			     print_msecs(time_deltas64[i]));
+			     jsonl_ticks_hz(time_deltas64[i], 1000, 3));
 	}
 
 	/* TCA_ROOT_EXT_WARN_MSG */

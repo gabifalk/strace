@@ -19,14 +19,6 @@
 # include <linux/unix_diag.h>
 
 static void
-print_u_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
 init_unix_diag_msg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 {
 	SET_STRUCT(struct nlmsghdr, nlh,
@@ -46,25 +38,14 @@ init_unix_diag_msg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_unix_diag_msg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(SOCK_DIAG_BY_FAMILY), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(SOCK_DIAG_BY_FAMILY));
 	jsonl_struct_open();
-	jsonl_field_open("udiag_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("udiag_type", false);
-	jsonl_const(SOCK_STREAM, true, "SOCK_STREAM", NULL);
-	jsonl_field_close();
-	jsonl_field_open("udiag_state", false);
-	jsonl_const(TCP_ESTABLISHED, true, "TCP_ESTABLISHED", NULL);
-	jsonl_field_close();
-	print_u_field("udiag_ino", 0, false);
+	jsonl_field_const("udiag_family", true, AF_UNIX, "AF_UNIX", NULL);
+	jsonl_field_const("udiag_type", false, SOCK_STREAM, "SOCK_STREAM",
+			  NULL);
+	jsonl_field_const("udiag_state", false, TCP_ESTABLISHED,
+			  "TCP_ESTABLISHED", NULL);
+	jsonl_field_unsigned("udiag_ino", false, 0);
 	jsonl_field_open("udiag_cookie", false);
 	jsonl_array_open();
 	printf("{");
@@ -116,18 +97,18 @@ main(int argc, char *argv[])
 			    jsonl_field_open("udiag_vfs_dev", true);
 			    jsonl_dev_t(uv.udiag_vfs_dev);
 			    jsonl_field_close();
-			    print_u_field("udiag_vfs_ino", uv.udiag_vfs_ino,
-					  false);
+			    jsonl_field_unsigned("udiag_vfs_ino", false,
+						 uv.udiag_vfs_ino);
 			    jsonl_struct_close());
 
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen,
 			    init_unix_diag_msg, print_unix_diag_msg,
 			    UNIX_DIAG_RQLEN, pattern, rql,
 			    jsonl_struct_open();
-			    print_u_field("udiag_rqueue", rql.udiag_rqueue,
-					  true);
-			    print_u_field("udiag_wqueue", rql.udiag_wqueue,
-					  false);
+			    jsonl_field_unsigned("udiag_rqueue", true,
+						 rql.udiag_rqueue);
+			    jsonl_field_unsigned("udiag_wqueue", false,
+						 rql.udiag_wqueue);
 			    jsonl_struct_close());
 
 	JSONL_NLATTR_ARRAY(fd, nlh0, hdrlen,

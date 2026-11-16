@@ -47,32 +47,21 @@ init_nhmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_nhmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
 	static const struct strval32 nh_flags[] = {
 		{ ARG_STR(RTNH_F_PERVASIVE) },
 		{ ARG_STR(RTNH_F_UNRESOLVED) },
 	};
 
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETNEXTHOP), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETNEXTHOP));
 	jsonl_struct_open();
-	jsonl_field_open("nh_family", true);
-	jsonl_const(nh_family, true, nh_family_str, NULL);
-	jsonl_field_close();
-	jsonl_field_open("nh_scope", false);
-	jsonl_const(RT_SCOPE_NOWHERE, true, "RT_SCOPE_NOWHERE", NULL);
-	jsonl_field_close();
-	jsonl_field_open("nh_protocol", false);
-	jsonl_const(RTPROT_UNSPEC, true, "RTPROT_UNSPEC", NULL);
-	jsonl_field_close();
-	jsonl_field_open("nh_flags", false);
-	jsonl_flags(RTNH_F_PERVASIVE | RTNH_F_UNRESOLVED,
-		    nh_flags, ARRAY_SIZE(nh_flags), NULL);
-	jsonl_field_close();
+	jsonl_field_const("nh_family", true, nh_family, nh_family_str, NULL);
+	jsonl_field_const("nh_scope", false, RT_SCOPE_NOWHERE,
+			  "RT_SCOPE_NOWHERE", NULL);
+	jsonl_field_const("nh_protocol", false, RTPROT_UNSPEC, "RTPROT_UNSPEC",
+			  NULL);
+	jsonl_field_flags("nh_flags", false,
+			  RTNH_F_PERVASIVE | RTNH_F_UNRESOLVED, nh_flags,
+			  ARRAY_SIZE(nh_flags), NULL);
 	jsonl_struct_close();
 	printf("}");
 }
@@ -132,62 +121,13 @@ static void
 print_nh_grp(const struct nexthop_grp *const elem, size_t idx)
 {
 	jsonl_struct_open();
-	jsonl_field_open("id", true);
-	jsonl_unsigned(elem->id);
-	jsonl_field_close();
-	jsonl_field_open("weight", false);
-	jsonl_unsigned(elem->weight);
-	jsonl_field_close();
-	jsonl_field_open("weight_high", false);
-	jsonl_unsigned(elem->weight_high);
-	jsonl_field_close();
+	jsonl_field_unsigned("id", true, elem->id);
+	jsonl_field_unsigned("weight", false, elem->weight);
+	jsonl_field_unsigned("weight_high", false, elem->weight_high);
 	if (elem->resvd2) {
-		jsonl_field_open("resvd2", false);
-		jsonl_hex(elem->resvd2);
-		jsonl_field_close();
+		jsonl_field_hex("resvd2", false, elem->resvd2);
 	}
 	jsonl_struct_close();
-}
-
-/*
- * The JSONL counterpart of check_clock_t_nlattr: a clock_t attribute that
- * is too long, of the exact size, and shorter than the exact size.
- */
-static void
-jsonl_check_clock_t_nlattr(int fd, void *nlh0, unsigned int hdrlen,
-			   void (*init_msg)(struct nlmsghdr *, unsigned int),
-			   void (*print_msg)(unsigned int),
-			   unsigned int nla_type, const char *sym,
-			   const char *sym_pattern, unsigned int depth)
-{
-	static const uint64_t vecs[] = { 0, 1, 9, 10, 99, 100, 249, 250, 999,
-					 1000, 1023, 1024, 0xdefacebeeffedULL };
-	static char buf[sizeof(uint64_t) + 1];
-
-	fill_memory(buf, sizeof(buf));
-	JSONL_NESTED_NLATTR_(fd, nlh0, hdrlen, init_msg, print_msg,
-			     nla_type, sym, sym_pattern,
-			     sizeof(buf), buf, sizeof(buf), depth,
-			     jsonl_nl_bytes(buf, sizeof(buf)));
-
-	for (size_t i = 0; i < ARRAY_SIZE(vecs); i++) {
-		memcpy(buf, vecs + i, sizeof(vecs[i]));
-		JSONL_NESTED_NLATTR_(fd, nlh0, hdrlen, init_msg, print_msg,
-				     nla_type, sym, sym_pattern,
-				     sizeof(vecs[i]), buf, sizeof(vecs[i]),
-				     depth,
-				     jsonl_ticks(vecs[i]));
-	}
-	for (size_t i = 1; i < sizeof(vecs[0]); i++) {
-		const uint64_t val =
-			vecs[ARRAY_SIZE(vecs) - 1] & MASK64(i * 8);
-
-		JSONL_NESTED_NLATTR_(fd, nlh0, hdrlen, init_msg, print_msg,
-				     nla_type, sym, sym_pattern,
-				     i, buf + BE_LE(sizeof(vecs[0]) - i, 0), i,
-				     depth,
-				     jsonl_ticks(val));
-	}
 }
 
 /*

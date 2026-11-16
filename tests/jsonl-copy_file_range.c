@@ -22,8 +22,8 @@ static void
 jsonl_off(unsigned int index, const char *name, int64_t val)
 {
 	jsonl_arg_open(index, name, side);
-	printf("\"type\": \"decimal\", \"raw\": \"%" PRId64 "\", "
-	       "\"indirect\": true", val);
+	jsonl_decimal(val);
+	jsonl_indirect();
 	jsonl_arg_close(side);
 }
 

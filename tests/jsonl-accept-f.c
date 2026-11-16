@@ -35,13 +35,13 @@
 static bool merged;
 
 static void
-jsonl_uid(unsigned int index, const char *name, unsigned val)
+jsonl_uid_arg(unsigned int index, const char *name, unsigned val)
 {
 	const char *side = merged ? "exit" : NULL;
 
 	jsonl_arg_open(index, name, side);
-	printf("\"type\": \"uid\", \"raw\": \"%u\", \"indirect\": true",
-	       val);
+	jsonl_uid(val);
+	jsonl_indirect();
 	jsonl_arg_close(side);
 }
 
@@ -55,19 +55,12 @@ jsonl_getresuid(pid_t pid, unsigned r, unsigned e, unsigned s)
 		printf("]}\n");
 		jsonl_syscall_open_pid(pid, "getresuid", __NR_getresuid, false);
 	}
-	jsonl_uid(0, "ruid", r);
+	jsonl_uid_arg(0, "ruid", r);
 	printf(", ");
-	jsonl_uid(1, "euid", e);
+	jsonl_uid_arg(1, "euid", e);
 	printf(", ");
-	jsonl_uid(2, "suid", s);
+	jsonl_uid_arg(2, "suid", s);
 	printf("], \"return\": {\"type\": \"unsigned\", \"raw\": \"0\"}}\n");
-}
-
-static void
-jsonl_addrlen(socklen_t len, const char *extra)
-{
-	printf("\"type\": \"decimal\", \"raw\": \"%u\", \"indirect\": true%s",
-	       (unsigned int) len, extra);
 }
 
 static void

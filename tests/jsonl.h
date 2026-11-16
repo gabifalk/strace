@@ -19,6 +19,7 @@
 # include <unistd.h>
 # include <sys/stat.h>
 # include <sys/sysmacros.h>
+# include "xlat.h"
 
 # if defined MPERS_IS_m32
 #  define JSONL_PERSONALITY 1
@@ -170,6 +171,25 @@ jsonl_return(const char *type, long rc)
 	}
 }
 
+/* The ", \"indirect\": true" marker of a value fetched through a pointer. */
+static inline void
+jsonl_indirect(void)
+{
+	printf(", \"indirect\": true");
+}
+
+/*
+ * The fields of the value of a socket address length argument, followed
+ * by extra, the meta-fields that describe how the value is updated.
+ */
+static inline void
+jsonl_addrlen(unsigned int len, const char *extra)
+{
+	printf("\"type\": \"decimal\", \"raw\": \"%u\"", len);
+	jsonl_indirect();
+	printf("%s", extra);
+}
+
 /* The "exit" event of the current process. */
 static inline void
 jsonl_exit_event(int status)
@@ -206,6 +226,73 @@ jsonl_const(uint64_t val, bool hex, const char *sym, const char *sym_pattern)
 		printf(", \"sym_pattern\": \"%s\"", sym_pattern);
 }
 
+/* Likewise, with the raw value formatted as a signed decimal. */
+static inline void
+jsonl_const_decimal(int64_t val, const char *sym, const char *sym_pattern)
+{
+	printf("\"type\": \"const\", \"raw\": \"%" PRId64 "\"", val);
+	if (sym)
+		printf(", \"sym\": \"%s\"", sym);
+	else if (sym_pattern)
+		printf(", \"sym_pattern\": \"%s\"", sym_pattern);
+}
+
+/* The name of val in xlat, or NULL if it has no name. */
+static inline const char *
+jsonl_xlat_sym(const struct xlat *xlat, uint64_t val)
+{
+	for (size_t i = 0; i < xlat->size; ++i)
+		if (xlat->data[i].str && xlat->data[i].val == val)
+			return xlat->data[i].str;
+	return NULL;
+}
+
+/*
+ * The "index" meta-field of an explicitly indexed array element, a decimal
+ * const named by syms[idx], followed by the separator of the element value.
+ */
+static inline void
+jsonl_index_const(uint64_t idx, const char *const *syms, size_t nsyms,
+		  const char *sym_pattern)
+{
+	printf("\"index\": {");
+	jsonl_const(idx, false, idx < nsyms ? syms[idx] : NULL,
+		    idx < nsyms ? NULL : sym_pattern);
+	printf("}, ");
+}
+
+/* The fields of an errno value: the number as given and its name. */
+static inline void
+jsonl_errno(int raw)
+{
+	printf("\"type\": \"errno\", \"raw\": \"%d\", \"sym\": \"%s\"",
+	       raw, errno2name(raw < 0 ? -raw : raw));
+}
+
+/* The fields of a uid or gid value of the given type; -1 is printed signed. */
+static inline void
+jsonl_id(const char *type, uint32_t id)
+{
+	if (id == -1U)
+		printf("\"type\": \"%s\", \"raw\": \"-1\"", type);
+	else
+		printf("\"type\": \"%s\", \"raw\": \"%u\"", type, id);
+}
+
+/* The fields of a uid value. */
+static inline void
+jsonl_uid(uint32_t uid)
+{
+	jsonl_id("uid", uid);
+}
+
+/* The fields of a gid value. */
+static inline void
+jsonl_gid(uint32_t gid)
+{
+	jsonl_id("gid", gid);
+}
+
 /*
  * The fields of a signal value: "type": "signal", "raw": "<nr>" (decimal),
  * and a "sym" when sym is non-NULL.
@@ -226,8 +313,18 @@ jsonl_time_t(long long sec)
 }
 
 /*
- * The fields of a ticks value: "type": "ticks", "raw": "<raw>", with the
- * clock frequency "hz" and decimal "precision" derived from _SC_CLK_TCK
+ * The fields of a ticks value: "type": "ticks", "raw": "<raw>", the clock
+ * frequency "hz", and the decimal "precision".
+ */
+static inline void
+jsonl_ticks_hz(uint64_t raw, long hz, unsigned int precision)
+{
+	printf("\"type\": \"ticks\", \"raw\": \"%" PRIu64 "\", "
+	       "\"hz\": \"%ld\", \"precision\": \"%u\"", raw, hz, precision);
+}
+
+/*
+ * Likewise, with "hz" and "precision" derived from _SC_CLK_TCK
  * the same way print_clock_t does.
  */
 static inline void
@@ -239,8 +336,7 @@ jsonl_ticks(uint64_t raw)
 	for (long t = hz - 1; t > 0 && precision < 9; t /= 10)
 		++precision;
 
-	printf("\"type\": \"ticks\", \"raw\": \"%" PRIu64 "\", "
-	       "\"hz\": \"%ld\", \"precision\": \"%u\"", raw, hz, precision);
+	jsonl_ticks_hz(raw, hz, precision);
 }
 
 /* The fields of an addr value: a hex "raw", or null for a NULL pointer. */
@@ -303,12 +399,21 @@ jsonl_string_value(const void *p, size_t len, bool truncated)
 		jsonl_truncated();
 }
 
+/* The fields of a path value of len bytes, optionally marked truncated. */
+static inline void
+jsonl_path_value_n(const void *p, size_t len, bool truncated)
+{
+	printf("\"type\": \"path\", \"value\": ");
+	jsonl_bytes_n(p, len);
+	if (truncated)
+		jsonl_truncated();
+}
+
 /* The fields of a path value of a NUL-terminated path. */
 static inline void
 jsonl_path_value(const char *path)
 {
-	printf("\"type\": \"path\", \"value\": ");
-	jsonl_bytes(path);
+	jsonl_path_value_n(path, strlen(path), false);
 }
 
 /* The fields of an ifindex value, with an "ifname" when ifname is non-NULL. */
@@ -482,6 +587,113 @@ jsonl_flags(uint64_t raw, const struct strval32 *known, size_t n,
 	if (rem)
 		jsonl_flags_remainder(rem, first ? dflt : NULL, first);
 	jsonl_flags_close();
+}
+
+/* Likewise, with the names taken from the entries of xlat. */
+static inline void
+jsonl_flags_xlat(const struct xlat *xlat, uint64_t raw, const char *dflt)
+{
+	uint64_t rem = raw;
+	bool first = true;
+
+	jsonl_flags_open(raw);
+	for (size_t i = 0; i < xlat->size; ++i) {
+		const uint64_t val = xlat->data[i].val;
+
+		if (!xlat->data[i].str ||
+		    (val ? (rem & val) != val : raw != 0))
+			continue;
+		jsonl_flags_const(val, xlat->data[i].str, first);
+		rem &= ~val;
+		first = false;
+	}
+	if (rem)
+		jsonl_flags_remainder(rem, first ? dflt : NULL, first);
+	jsonl_flags_close();
+}
+
+/* A struct field with an unsigned value. */
+static inline void
+jsonl_field_unsigned(const char *name, bool first, uint64_t val)
+{
+	jsonl_field_open(name, first);
+	jsonl_unsigned(val);
+	jsonl_field_close();
+}
+
+/* A struct field with a decimal value. */
+static inline void
+jsonl_field_decimal(const char *name, bool first, int64_t val)
+{
+	jsonl_field_open(name, first);
+	jsonl_decimal(val);
+	jsonl_field_close();
+}
+
+/* A struct field with a pid value of the given type. */
+static inline void
+jsonl_field_pid(const char *name, bool first, const char *type, int pid)
+{
+	jsonl_field_open(name, first);
+	jsonl_pid(type, pid);
+	jsonl_field_close();
+}
+
+/* A struct field with a hex value. */
+static inline void
+jsonl_field_hex(const char *name, bool first, uint64_t val)
+{
+	jsonl_field_open(name, first);
+	jsonl_hex(val);
+	jsonl_field_close();
+}
+
+/* A struct field with a const value whose raw value is an xlat value. */
+static inline void
+jsonl_field_const(const char *name, bool first, uint64_t val,
+		  const char *sym, const char *sym_pattern)
+{
+	jsonl_field_open(name, first);
+	jsonl_const(val, true, sym, sym_pattern);
+	jsonl_field_close();
+}
+
+/* A struct field with a table-driven flags value. */
+static inline void
+jsonl_field_flags(const char *name, bool first, uint64_t raw,
+		  const struct strval32 *known, size_t n, const char *dflt)
+{
+	jsonl_field_open(name, first);
+	jsonl_flags(raw, known, n, dflt);
+	jsonl_field_close();
+}
+
+/* A struct field with a flags value that consists of one known flag. */
+static inline void
+jsonl_field_flag(const char *name, bool first, uint32_t val, const char *sym)
+{
+	const struct strval32 flag = { val, sym };
+
+	jsonl_field_flags(name, first, val, &flag, 1, NULL);
+}
+
+/* A struct field with an ifindex value. */
+static inline void
+jsonl_field_ifindex(const char *name, bool first, unsigned int index,
+		    const char *ifname)
+{
+	jsonl_field_open(name, first);
+	jsonl_ifindex(index, ifname);
+	jsonl_field_close();
+}
+
+/* A struct field with a string value of a NUL-terminated string. */
+static inline void
+jsonl_field_string(const char *name, bool first, const char *str)
+{
+	jsonl_field_open(name, first);
+	jsonl_string_value(str, strlen(str), false);
+	jsonl_field_close();
 }
 
 #endif /* !STRACE_TESTS_JSONL_H */

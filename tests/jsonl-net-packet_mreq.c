@@ -32,15 +32,10 @@ jsonl_packet_mreq(const struct packet_mreq *pmreq, const char *type_str)
 		alen = ARRAY_SIZE(pmreq->mr_address);
 
 	jsonl_struct_open();
-	jsonl_field_open("mr_ifindex", true);
-	jsonl_ifindex(pmreq->mr_ifindex, NULL);
-	jsonl_field_close();
-	jsonl_field_open("mr_type", false);
-	jsonl_const(pmreq->mr_type, true, type_str, "PACKET_MR_???");
-	jsonl_field_close();
-	jsonl_field_open("mr_alen", false);
-	jsonl_unsigned(pmreq->mr_alen);
-	jsonl_field_close();
+	jsonl_field_ifindex("mr_ifindex", true, pmreq->mr_ifindex, NULL);
+	jsonl_field_const("mr_type", false, pmreq->mr_type, type_str,
+			  "PACKET_MR_???");
+	jsonl_field_unsigned("mr_alen", false, pmreq->mr_alen);
 	jsonl_field_open("mr_address", false);
 	jsonl_mac(pmreq->mr_address, alen);
 	jsonl_field_close();

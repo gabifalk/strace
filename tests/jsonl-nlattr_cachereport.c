@@ -43,9 +43,7 @@ static void
 print_rtgenmsg(const unsigned int family, const char *const sym)
 {
 	jsonl_struct_open();
-	jsonl_field_open("rtgen_family", true);
-	jsonl_const(family, true, sym, "RTNL_FAMILY_???");
-	jsonl_field_close();
+	jsonl_field_const("rtgen_family", true, family, sym, "RTNL_FAMILY_???");
 	jsonl_struct_close();
 }
 
@@ -66,17 +64,6 @@ print_rtgen(const unsigned int msg_len)
 	printf("}");
 }
 
-static const char *
-addrfam_name(const unsigned int family)
-{
-	for (size_t i = 0; i < addrfams->size; ++i) {
-		if (addrfams->data[i].str && addrfams->data[i].val == family)
-			return addrfams->data[i].str;
-	}
-
-	return NULL;
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -93,7 +80,6 @@ main(int argc, char *argv[])
 
 	static char pattern[4096];
 	fill_memory_ex(pattern, sizeof(pattern), 'a', 'z' - 'a' + 1);
-
 
 	/* Families without a cache report decoder */
 	static const uint8_t skip_afs[] = {
@@ -117,12 +103,11 @@ main(int argc, char *argv[])
 		buf.hdr.rtgen_family = i;
 		JSONL_NETLINK(fd, nlh0, RTM_NEWCACHEREPORT, NLM_F_REPLACE,
 			      sizeof(buf), &buf, sizeof(buf),
-			      print_rtgenmsg(i, addrfam_name(i));
+			      print_rtgenmsg(i, jsonl_xlat_sym(addrfams, i));
 			      jsonl_nlmsg_next();
 			      jsonl_bytes_value(unknown_msg,
 						sizeof(unknown_msg), false));
 	}
-
 
 	/* RTNL_FAMILY_IPMR */
 	af = RTNL_FAMILY_IPMR;
@@ -192,7 +177,6 @@ main(int argc, char *argv[])
 				     jsonl_ip_addr(ARG_STR(AF_INET),
 						   "222.173.250.206"));
 	}
-
 
 	/* RTNL_FAMILY_IP6MR */
 	af = RTNL_FAMILY_IP6MR;

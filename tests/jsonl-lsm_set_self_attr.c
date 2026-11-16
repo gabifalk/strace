@@ -33,21 +33,13 @@ jsonl_lsm_ctx(const struct lsm_ctx *ctx, enum ctx_kind kind)
 {
 	jsonl_struct_open();
 
-	jsonl_field_open("id", true);
-	jsonl_const(ctx->id, true, NULL, NULL);
-	jsonl_field_close();
+	jsonl_field_const("id", true, ctx->id, NULL, NULL);
 
-	jsonl_field_open("flags", false);
-	jsonl_hex(ctx->flags);
-	jsonl_field_close();
+	jsonl_field_hex("flags", false, ctx->flags);
 
-	jsonl_field_open("len", false);
-	jsonl_unsigned(ctx->len);
-	jsonl_field_close();
+	jsonl_field_unsigned("len", false, ctx->len);
 
-	jsonl_field_open("ctx_len", false);
-	jsonl_unsigned(ctx->ctx_len);
-	jsonl_field_close();
+	jsonl_field_unsigned("ctx_len", false, ctx->ctx_len);
 
 	if (kind != CTX_NO_DATA) {
 		jsonl_field_open("ctx", false);

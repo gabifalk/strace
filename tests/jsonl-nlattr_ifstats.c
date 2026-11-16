@@ -49,24 +49,11 @@ init_ifstats(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_ifstats(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETSTATS), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETSTATS));
 	jsonl_struct_open();
-	jsonl_field_open("family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifindex", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("filter_mask", false);
-	jsonl_flags(0, NULL, 0, NULL);
-	jsonl_field_close();
+	jsonl_field_const("family", true, AF_UNIX, "AF_UNIX", NULL);
+	jsonl_field_ifindex("ifindex", false, ifindex_lo(), "lo");
+	jsonl_field_flags("filter_mask", false, 0, NULL, 0, NULL);
 	jsonl_struct_close();
 	printf("}");
 }
@@ -127,14 +114,6 @@ static const print_fn print_fns[] = {
 	print_ifstats, print_ifstats_l1, print_ifstats_l2, print_ifstats_l3
 };
 
-static void
-print_u_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
 /* The separator between two elements of an array of values. */
 static void
 next_elem(void)
@@ -169,7 +148,7 @@ print_stats_64(const struct rtnl_link_stats64 *const st, const size_t size)
 	memcpy(vals, st, sizeof(vals));
 	jsonl_struct_open();
 	for (size_t i = 0; i < size / sizeof(vals[0]); ++i)
-		print_u_field(names[i], vals[i], i == 0);
+		jsonl_field_unsigned(names[i], i == 0, vals[i]);
 	jsonl_struct_close();
 }
 
@@ -240,19 +219,15 @@ print_vlan_xstats(const struct bridge_vlan_xstats *const st)
 	};
 
 	jsonl_struct_open();
-	print_u_field("rx_bytes", st->rx_bytes, true);
-	print_u_field("rx_packets", st->rx_packets, false);
-	print_u_field("tx_bytes", st->tx_bytes, false);
-	print_u_field("tx_packets", st->tx_packets, false);
-	print_u_field("vid", st->vid, false);
-	jsonl_field_open("flags", false);
-	jsonl_flags(st->flags, vlan_flags, ARRAY_SIZE(vlan_flags),
-		    "BRIDGE_VLAN_INFO_???");
-	jsonl_field_close();
+	jsonl_field_unsigned("rx_bytes", true, st->rx_bytes);
+	jsonl_field_unsigned("rx_packets", false, st->rx_packets);
+	jsonl_field_unsigned("tx_bytes", false, st->tx_bytes);
+	jsonl_field_unsigned("tx_packets", false, st->tx_packets);
+	jsonl_field_unsigned("vid", false, st->vid);
+	jsonl_field_flags("flags", false, st->flags, vlan_flags,
+			  ARRAY_SIZE(vlan_flags), "BRIDGE_VLAN_INFO_???");
 	if (st->pad2) {
-		jsonl_field_open("pad2", false);
-		jsonl_hex(st->pad2);
-		jsonl_field_close();
+		jsonl_field_hex("pad2", false, st->pad2);
 	}
 	jsonl_struct_close();
 }
@@ -297,13 +272,13 @@ print_mcast_stats(const struct br_mcast_stats *const st)
 	PR_DIR_FIELD_(igmp_v1reports, false);
 	PR_DIR_FIELD_(igmp_v2reports, false);
 	PR_DIR_FIELD_(igmp_v3reports, false);
-	print_u_field("igmp_parse_errors", st->igmp_parse_errors, false);
+	jsonl_field_unsigned("igmp_parse_errors", false, st->igmp_parse_errors);
 	PR_DIR_FIELD_(mld_v1queries, false);
 	PR_DIR_FIELD_(mld_v2queries, false);
 	PR_DIR_FIELD_(mld_leaves, false);
 	PR_DIR_FIELD_(mld_v1reports, false);
 	PR_DIR_FIELD_(mld_v2reports, false);
-	print_u_field("mld_parse_errors", st->mld_parse_errors, false);
+	jsonl_field_unsigned("mld_parse_errors", false, st->mld_parse_errors);
 	PR_DIR_FIELD_(mcast_bytes, false);
 	PR_DIR_FIELD_(mcast_packets, false);
 	jsonl_struct_close();
@@ -315,12 +290,12 @@ static void
 print_stp_xstats(const struct bridge_stp_xstats *const st)
 {
 	jsonl_struct_open();
-	print_u_field("transition_blk", st->transition_blk, true);
-	print_u_field("transition_fwd", st->transition_fwd, false);
-	print_u_field("rx_bpdu", st->rx_bpdu, false);
-	print_u_field("tx_bpdu", st->tx_bpdu, false);
-	print_u_field("rx_tcn", st->rx_tcn, false);
-	print_u_field("tx_tcn", st->tx_tcn, false);
+	jsonl_field_unsigned("transition_blk", true, st->transition_blk);
+	jsonl_field_unsigned("transition_fwd", false, st->transition_fwd);
+	jsonl_field_unsigned("rx_bpdu", false, st->rx_bpdu);
+	jsonl_field_unsigned("tx_bpdu", false, st->tx_bpdu);
+	jsonl_field_unsigned("rx_tcn", false, st->rx_tcn);
+	jsonl_field_unsigned("tx_tcn", false, st->tx_tcn);
 	jsonl_struct_close();
 }
 
@@ -532,15 +507,15 @@ static void
 print_mpls_link_stats(const struct mpls_link_stats *const mls)
 {
 	jsonl_struct_open();
-	print_u_field("rx_packets", mls->rx_packets, true);
-	print_u_field("tx_packets", mls->tx_packets, false);
-	print_u_field("rx_bytes", mls->rx_bytes, false);
-	print_u_field("tx_bytes", mls->tx_bytes, false);
-	print_u_field("rx_errors", mls->rx_errors, false);
-	print_u_field("tx_errors", mls->tx_errors, false);
-	print_u_field("rx_dropped", mls->rx_dropped, false);
-	print_u_field("tx_dropped", mls->tx_dropped, false);
-	print_u_field("rx_noroute", mls->rx_noroute, false);
+	jsonl_field_unsigned("rx_packets", true, mls->rx_packets);
+	jsonl_field_unsigned("tx_packets", false, mls->tx_packets);
+	jsonl_field_unsigned("rx_bytes", false, mls->rx_bytes);
+	jsonl_field_unsigned("tx_bytes", false, mls->tx_bytes);
+	jsonl_field_unsigned("rx_errors", false, mls->rx_errors);
+	jsonl_field_unsigned("tx_errors", false, mls->tx_errors);
+	jsonl_field_unsigned("rx_dropped", false, mls->rx_dropped);
+	jsonl_field_unsigned("tx_dropped", false, mls->tx_dropped);
+	jsonl_field_unsigned("rx_noroute", false, mls->rx_noroute);
 	jsonl_struct_close();
 }
 

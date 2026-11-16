@@ -61,8 +61,7 @@ print_nlmsgerr(const unsigned int msg_len)
 	printf("{");
 	jsonl_struct_open();
 	jsonl_field_open("error", true);
-	printf("\"type\": \"errno\", \"raw\": \"%d\", \"sym\": \"%s\"",
-	       err.error, errno2name(-err.error));
+	jsonl_errno(err.error);
 	jsonl_field_close();
 	jsonl_field_open("msg", false);
 	jsonl_nlmsghdr(&err.msg, "NLMSG_NOOP", NULL,

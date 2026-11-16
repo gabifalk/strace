@@ -21,60 +21,8 @@
 # include <linux/if_bridge.h>
 # include <linux/if_link.h>
 
-static const unsigned int hdrlen = sizeof(struct ifinfomsg);
+# include "jsonl_nlattr_ifla.h"
 static char pattern[4096];
-
-static void
-init_ifinfomsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
-{
-	SET_STRUCT(struct nlmsghdr, nlh,
-		.nlmsg_len = msg_len,
-		.nlmsg_type = RTM_GETLINK,
-		.nlmsg_flags = NLM_F_DUMP
-	);
-
-	struct ifinfomsg *const msg = NLMSG_DATA(nlh);
-	SET_STRUCT(struct ifinfomsg, msg,
-		.ifi_family = AF_UNIX,
-		.ifi_type = ARPHRD_LOOPBACK,
-		.ifi_index = ifindex_lo(),
-		.ifi_flags = IFF_UP,
-	);
-}
-
-static void
-print_ifinfomsg(const unsigned int msg_len)
-{
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-	static const struct strval32 ifi_flags[] = {
-		{ ARG_STR(IFF_UP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETLINK), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
-	jsonl_struct_open();
-	jsonl_field_open("ifi_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_type", false);
-	jsonl_const(ARPHRD_LOOPBACK, true, "ARPHRD_LOOPBACK", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_index", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("ifi_flags", false);
-	jsonl_flags(IFF_UP, ifi_flags, ARRAY_SIZE(ifi_flags), NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_change", false);
-	jsonl_hex(0);
-	jsonl_field_close();
-	jsonl_struct_close();
-	printf("}");
-}
 
 static void
 init_linkinfo_msg(struct nlmsghdr *const nlh, const unsigned int msg_len)
@@ -301,14 +249,7 @@ pr_ticks(const void *p, unsigned int sz)
 static void
 pr_uid(const void *p, unsigned int sz)
 {
-	const uint32_t uid = get_uint(p, sz, 4);
-
-	printf("\"type\": \"uid\", \"raw\": \"");
-	if (uid == -1U)
-		printf("-1");
-	else
-		printf("%u", uid);
-	printf("\"");
+	jsonl_uid(get_uint(p, sz, 4));
 }
 
 static void
@@ -383,12 +324,8 @@ static void
 pr_zero_boolopt(const void *p, unsigned int sz)
 {
 	jsonl_struct_open();
-	jsonl_field_open("optval", true);
-	jsonl_flags(0, NULL, 0, NULL);
-	jsonl_field_close();
-	jsonl_field_open("optmask", false);
-	jsonl_flags(0, NULL, 0, NULL);
-	jsonl_field_close();
+	jsonl_field_flags("optval", true, 0, NULL, 0, NULL);
+	jsonl_field_flags("optmask", false, 0, NULL, 0, NULL);
 	jsonl_struct_close();
 }
 
@@ -404,9 +341,7 @@ pr_can_stats(const void *p, unsigned int sz)
 	memcpy(vals, p, sizeof(vals));
 	jsonl_struct_open();
 	for (size_t i = 0; i < ARRAY_SIZE(names); ++i) {
-		jsonl_field_open(names[i], i == 0);
-		jsonl_unsigned(vals[i]);
-		jsonl_field_close();
+		jsonl_field_unsigned(names[i], i == 0, vals[i]);
 	}
 	jsonl_struct_close();
 }

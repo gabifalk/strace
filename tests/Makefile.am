@@ -1168,7 +1168,10 @@ EXTRA_DIST = \
 	jsonl.h \
 	jsonl-ioctl.sh \
 	jsonl.sh \
+	jsonl_ioctl.h \
 	jsonl_netlink.h \
+	jsonl_nlattr_ifla.h \
+	jsonl_nlattr_ifla_af_inet6.h \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \
 	kill-on-exit.sh \

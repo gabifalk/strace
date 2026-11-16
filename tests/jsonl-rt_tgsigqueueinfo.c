@@ -87,22 +87,16 @@ main(int argc, char *argv[])
 	jsonl_field_open("si_signo", true);
 	jsonl_signal(ARG_STR(SIGUSR1));
 	jsonl_field_close();
-	jsonl_field_open("si_code", false);
-	jsonl_const((unsigned int) SI_QUEUE, true, "SI_QUEUE", NULL);
-	jsonl_field_close();
+	jsonl_field_const("si_code", false, (unsigned int) SI_QUEUE, "SI_QUEUE",
+			  NULL);
 	jsonl_field_open("si_errno", false);
-	printf("\"type\": \"errno\", \"raw\": \"%d\", \"sym\": \"ENOENT\"",
-	       ENOENT);
+	jsonl_errno(ENOENT);
 	jsonl_field_close();
-	jsonl_field_open("si_pid", false);
-	jsonl_decimal(info->si_pid);
-	jsonl_field_close();
+	jsonl_field_pid("si_pid", false, "tgid", info->si_pid);
 	jsonl_field_open("si_uid", false);
 	printf("\"type\": \"uid\", \"raw\": \"%d\"", (int) info->si_uid);
 	jsonl_field_close();
-	jsonl_field_open("si_int", false);
-	jsonl_decimal(info->si_value.sival_int);
-	jsonl_field_close();
+	jsonl_field_decimal("si_int", false, info->si_value.sival_int);
 	jsonl_field_open("si_ptr", false);
 	jsonl_addr(info->si_value.sival_ptr);
 	jsonl_field_close();

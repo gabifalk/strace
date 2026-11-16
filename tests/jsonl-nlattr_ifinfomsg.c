@@ -19,59 +19,7 @@
 # include <linux/if_arp.h>
 # include <linux/if_link.h>
 
-static const unsigned int hdrlen = sizeof(struct ifinfomsg);
-
-static void
-init_ifinfomsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
-{
-	SET_STRUCT(struct nlmsghdr, nlh,
-		.nlmsg_len = msg_len,
-		.nlmsg_type = RTM_GETLINK,
-		.nlmsg_flags = NLM_F_DUMP
-	);
-
-	struct ifinfomsg *const msg = NLMSG_DATA(nlh);
-	SET_STRUCT(struct ifinfomsg, msg,
-		.ifi_family = AF_UNIX,
-		.ifi_type = ARPHRD_LOOPBACK,
-		.ifi_index = ifindex_lo(),
-		.ifi_flags = IFF_UP,
-	);
-}
-
-static void
-print_ifinfomsg(const unsigned int msg_len)
-{
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-	static const struct strval32 ifi_flags[] = {
-		{ ARG_STR(IFF_UP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETLINK), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
-	jsonl_struct_open();
-	jsonl_field_open("ifi_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_type", false);
-	jsonl_const(ARPHRD_LOOPBACK, true, "ARPHRD_LOOPBACK", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_index", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("ifi_flags", false);
-	jsonl_flags(IFF_UP, ifi_flags, ARRAY_SIZE(ifi_flags), NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_change", false);
-	jsonl_hex(0);
-	jsonl_field_close();
-	jsonl_struct_close();
-	printf("}");
-}
+# include "jsonl_nlattr_ifla.h"
 
 static void
 init_prop_list_msg(struct nlmsghdr *const nlh, const unsigned int msg_len)
@@ -91,22 +39,6 @@ print_prop_list_msg(const unsigned int msg_len)
 	print_ifinfomsg(msg_len);
 	jsonl_nlattr_nest_open(msg_len - NLMSG_SPACE(hdrlen),
 			       ARG_STR(IFLA_PROP_LIST), NULL);
-}
-
-static void
-print_u_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-print_x_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_hex(val);
-	jsonl_field_close();
 }
 
 static const char *const stats_names[] = {
@@ -129,7 +61,7 @@ print_stats(const struct rtnl_link_stats *const st, const size_t size)
 	memcpy(vals, st, sizeof(vals));
 	jsonl_struct_open();
 	for (size_t i = 0; i < size / sizeof(vals[0]); ++i)
-		print_u_field(stats_names[i], vals[i], i == 0);
+		jsonl_field_unsigned(stats_names[i], i == 0, vals[i]);
 	jsonl_struct_close();
 }
 
@@ -142,7 +74,7 @@ print_stats64(const struct rtnl_link_stats64 *const st, const size_t size)
 	memcpy(vals, st, sizeof(vals));
 	jsonl_struct_open();
 	for (size_t i = 0; i < size / sizeof(vals[0]); ++i)
-		print_u_field(stats_names[i], vals[i], i == 0);
+		jsonl_field_unsigned(stats_names[i], i == 0, vals[i]);
 	jsonl_struct_close();
 }
 
@@ -239,12 +171,12 @@ main(int argc, char *argv[])
 	JSONL_NLATTR(fd, nlh0, hdrlen, init_ifinfomsg, print_ifinfomsg,
 		     IFLA_MAP, sizeof_ifmap, &map, sizeof_ifmap,
 		     jsonl_struct_open();
-		     print_x_field("mem_start", map.mem_start, true);
-		     print_x_field("mem_end", map.mem_end, false);
-		     print_x_field("base_addr", map.base_addr, false);
-		     print_u_field("irq", map.irq, false);
-		     print_u_field("dma", map.dma, false);
-		     print_u_field("port", map.port, false);
+		     jsonl_field_hex("mem_start", true, map.mem_start);
+		     jsonl_field_hex("mem_end", false, map.mem_end);
+		     jsonl_field_hex("base_addr", false, map.base_addr);
+		     jsonl_field_unsigned("irq", false, map.irq);
+		     jsonl_field_unsigned("dma", false, map.dma);
+		     jsonl_field_unsigned("port", false, map.port);
 		     jsonl_struct_close());
 
 	/* struct rtnl_link_stats64 of three historical sizes */

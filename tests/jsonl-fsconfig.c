@@ -100,10 +100,7 @@ jsonl_val(const struct val *v)
 		jsonl_bytes_value(v->ptr, v->len, v->truncated);
 		break;
 	case VAL_PATH:
-		printf("\"type\": \"path\", \"value\": ");
-		jsonl_bytes_n(v->ptr, v->len);
-		if (v->truncated)
-			jsonl_truncated();
+		jsonl_path_value_n(v->ptr, v->len, v->truncated);
 		break;
 	}
 }

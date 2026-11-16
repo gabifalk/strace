@@ -38,14 +38,6 @@ static const struct msg c_msg = {
 	}
 };
 
-static void
-field_const(const char *name, uint64_t val, const char *sym, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_const(val, true, sym, NULL);
-	jsonl_field_close();
-}
-
 /* The event up to the fields of the element that follows the message. */
 static void
 msg_open(int fd)
@@ -62,13 +54,13 @@ msg_open(int fd)
 			    nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
 	printf("}, {");
 	jsonl_struct_open();
-	field_const("udiag_family", c_msg.udm.udiag_family, "AF_UNIX", true);
-	field_const("udiag_type", c_msg.udm.udiag_type, "SOCK_STREAM", false);
-	field_const("udiag_state", c_msg.udm.udiag_state, "TCP_FIN_WAIT1",
-		    false);
-	jsonl_field_open("udiag_ino", false);
-	jsonl_unsigned(c_msg.udm.udiag_ino);
-	jsonl_field_close();
+	jsonl_field_const("udiag_family", true, c_msg.udm.udiag_family,
+			  "AF_UNIX", NULL);
+	jsonl_field_const("udiag_type", false, c_msg.udm.udiag_type,
+			  "SOCK_STREAM", NULL);
+	jsonl_field_const("udiag_state", false, c_msg.udm.udiag_state,
+			  "TCP_FIN_WAIT1", NULL);
+	jsonl_field_unsigned("udiag_ino", false, c_msg.udm.udiag_ino);
 	jsonl_field_open("udiag_cookie", false);
 	jsonl_array_open();
 	printf("{");

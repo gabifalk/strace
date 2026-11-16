@@ -42,39 +42,6 @@ init_inet_diag_req(struct nlmsghdr *const nlh, const unsigned int msg_len)
 }
 
 static void
-print_u_field(const char *name, unsigned int val)
-{
-	jsonl_field_open(name, false);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-print_port_field(const char *name, unsigned int port, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(port);
-	jsonl_byteorder_big(sizeof(uint16_t));
-	jsonl_field_close();
-}
-
-static void
-print_addr_field(const char *name)
-{
-	jsonl_field_open(name, false);
-	jsonl_ip_addr(ARG_STR(AF_INET), address);
-	jsonl_field_close();
-}
-
-static void
-print_no_flags_field(const char *name)
-{
-	jsonl_field_open(name, false);
-	jsonl_flags(0, NULL, 0, NULL);
-	jsonl_field_close();
-}
-
-static void
 print_inet_diag_req(const unsigned int msg_len)
 {
 	static const struct strval32 nlmsg_flags[] = {
@@ -87,34 +54,13 @@ print_inet_diag_req(const unsigned int msg_len)
 			    ARRAY_SIZE(nlmsg_flags));
 	printf("}, {");
 	jsonl_struct_open();
-	jsonl_field_open("idiag_family", true);
-	jsonl_const(AF_INET, true, "AF_INET", NULL);
-	jsonl_field_close();
-	print_u_field("idiag_src_len", 0);
-	print_u_field("idiag_dst_len", 0);
-	print_no_flags_field("idiag_ext");
-	jsonl_field_open("id", false);
-	jsonl_struct_open();
-	print_port_field("idiag_sport", 0, true);
-	print_port_field("idiag_dport", 0, false);
-	print_addr_field("idiag_src");
-	print_addr_field("idiag_dst");
-	jsonl_field_open("idiag_if", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("idiag_cookie", false);
-	jsonl_array_open();
-	printf("{");
-	jsonl_unsigned(0);
-	printf("}, {");
-	jsonl_unsigned(0);
-	printf("}");
-	jsonl_array_close();
-	jsonl_field_close();
-	jsonl_struct_close();
-	jsonl_field_close();
-	print_no_flags_field("idiag_states");
-	print_u_field("idiag_dbs", 0);
+	jsonl_field_const("idiag_family", true, AF_INET, "AF_INET", NULL);
+	jsonl_field_unsigned("idiag_src_len", false, 0);
+	jsonl_field_unsigned("idiag_dst_len", false, 0);
+	jsonl_field_flags("idiag_ext", false, 0, NULL, 0, NULL);
+	jsonl_field_inet_diag_sockid("id", false, address);
+	jsonl_field_flags("idiag_states", false, 0, NULL, 0, NULL);
+	jsonl_field_unsigned("idiag_dbs", false, 0);
 	jsonl_struct_close();
 	printf("}");
 }

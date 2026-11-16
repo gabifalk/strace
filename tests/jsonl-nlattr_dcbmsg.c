@@ -35,21 +35,11 @@ init_dcbmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_dcbmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETDCB), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETDCB));
 	jsonl_struct_open();
-	jsonl_field_open("dcb_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("cmd", false);
-	jsonl_const(DCB_CMD_UNDEFINED, true, "DCB_CMD_UNDEFINED", NULL);
-	jsonl_field_close();
+	jsonl_field_const("dcb_family", true, AF_UNIX, "AF_UNIX", NULL);
+	jsonl_field_const("cmd", false, DCB_CMD_UNDEFINED, "DCB_CMD_UNDEFINED",
+			  NULL);
 	jsonl_struct_close();
 	printf("}");
 }

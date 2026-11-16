@@ -49,43 +49,6 @@ struct arg {
 	bool exit;
 };
 
-/* A decimal const value. */
-static void
-jsonl_const_d(int val, const char *sym, const char *sym_pattern)
-{
-	printf("\"type\": \"const\", \"raw\": \"%d\"", val);
-	if (sym)
-		printf(", \"sym\": \"%s\"", sym);
-	else if (sym_pattern)
-		printf(", \"sym_pattern\": \"%s\"", sym_pattern);
-}
-
-/*
- * A flags value decoded using an xlat table: an entry matches
- * when all its bits are still set after the preceding matches.
- */
-static void
-jsonl_flags_xlat(const struct xlat *xlat, uint64_t raw, const char *dflt)
-{
-	uint64_t rem = raw;
-	bool first = true;
-
-	jsonl_flags_open(raw);
-	for (size_t i = 0; i < xlat->size; ++i) {
-		const uint64_t val = xlat->data[i].val;
-
-		if (!xlat->data[i].str ||
-		    (val ? (rem & val) != val : raw != 0))
-			continue;
-		jsonl_flags_const(val, xlat->data[i].str, first);
-		rem &= ~val;
-		first = false;
-	}
-	if (rem)
-		jsonl_flags_remainder(rem, first ? dflt : NULL, first);
-	jsonl_flags_close();
-}
-
 /* The first len bytes of str, cut at the string length limit. */
 static void
 jsonl_string_limit(const char *str, size_t len)
@@ -116,7 +79,7 @@ p_hex(const struct arg *a, long rc)
 static void
 p_const_d(const struct arg *a, long rc)
 {
-	jsonl_const_d(a->val, a->sym, a->sym_pattern);
+	jsonl_const_decimal((int) a->val, a->sym, a->sym_pattern);
 }
 
 static void
@@ -141,11 +104,7 @@ p_u32(const struct arg *a, long rc)
 static void
 p_id(const struct arg *a, long rc)
 {
-	if ((uint32_t) a->val == -1U)
-		printf("\"type\": \"%s\", \"raw\": \"-1\"", a->sym);
-	else
-		printf("\"type\": \"%s\", \"raw\": \"%u\"",
-		       a->sym, (uint32_t) a->val);
+	jsonl_id(a->sym, a->val);
 }
 
 static void
@@ -226,9 +185,7 @@ p_iov(const struct arg *a, long rc)
 		else
 			jsonl_addr(iov[i].iov_base);
 		jsonl_field_close();
-		jsonl_field_open("iov_len", false);
-		jsonl_unsigned(iov[i].iov_len);
-		jsonl_field_close();
+		jsonl_field_unsigned("iov_len", false, iov[i].iov_len);
 		jsonl_struct_close();
 		printf("}");
 	}
@@ -246,13 +203,13 @@ p_dh_params(const struct arg *a, long rc)
 
 	jsonl_struct_open();
 	jsonl_field_open("private", true);
-	jsonl_const_d(p->private, a->sym, NULL);
+	jsonl_const_decimal(p->private, a->sym, NULL);
 	jsonl_field_close();
 	jsonl_field_open("prime", false);
-	jsonl_const_d(p->prime, NULL, NULL);
+	jsonl_const_decimal(p->prime, NULL, NULL);
 	jsonl_field_close();
 	jsonl_field_open("base", false);
-	jsonl_const_d(p->base, NULL, NULL);
+	jsonl_const_decimal(p->base, NULL, NULL);
 	jsonl_field_close();
 	jsonl_struct_close();
 }
@@ -287,9 +244,7 @@ p_kdf_params(const struct arg *a, long rc)
 		jsonl_addr(kdf->otherinfo);
 	jsonl_field_close();
 
-	jsonl_field_open("otherinfolen", false);
-	jsonl_unsigned(kdf->otherinfolen);
-	jsonl_field_close();
+	jsonl_field_unsigned("otherinfolen", false, kdf->otherinfolen);
 
 	if (a->size & KDF_PRINT_SPARE)
 		jsonl_spare(kdf->__spare, ARRAY_SIZE(kdf->__spare));
@@ -309,14 +264,11 @@ p_pkey_params(const struct arg *a, long rc)
 
 	jsonl_struct_open();
 	jsonl_field_open("key_id", true);
-	jsonl_const_d(p->key_id, a->sym, NULL);
+	jsonl_const_decimal(p->key_id, a->sym, NULL);
 	jsonl_field_close();
-	jsonl_field_open("in_len", false);
-	jsonl_unsigned(p->in_len);
-	jsonl_field_close();
-	jsonl_field_open(a->flag ? "out_len" : "in2_len", false);
-	jsonl_unsigned(p->out_len);
-	jsonl_field_close();
+	jsonl_field_unsigned("in_len", false, p->in_len);
+	jsonl_field_unsigned(a->flag ? "out_len" : "in2_len", false,
+			     p->out_len);
 	if (a->size)
 		jsonl_spare(p->__spare, ARRAY_SIZE(p->__spare));
 	jsonl_struct_close();

@@ -45,9 +45,6 @@ init_ndmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_ndmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
 	static const struct strval32 ndm_state[] = {
 		{ ARG_STR(NUD_PERMANENT) }
 	};
@@ -55,26 +52,15 @@ print_ndmsg(const unsigned int msg_len)
 		{ ARG_STR(NTF_PROXY) }
 	};
 
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETNEIGH), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETNEIGH));
 	jsonl_struct_open();
-	jsonl_field_open("ndm_family", true);
-	jsonl_const(ndm_family, true, ndm_family_str, NULL);
-	jsonl_field_close();
-	jsonl_field_open("ndm_ifindex", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("ndm_state", false);
-	jsonl_flags(NUD_PERMANENT, ndm_state, ARRAY_SIZE(ndm_state), NULL);
-	jsonl_field_close();
-	jsonl_field_open("ndm_flags", false);
-	jsonl_flags(NTF_PROXY, ndm_flags, ARRAY_SIZE(ndm_flags), NULL);
-	jsonl_field_close();
-	jsonl_field_open("ndm_type", false);
-	jsonl_const(RTN_UNSPEC, true, "RTN_UNSPEC", NULL);
-	jsonl_field_close();
+	jsonl_field_const("ndm_family", true, ndm_family, ndm_family_str, NULL);
+	jsonl_field_ifindex("ndm_ifindex", false, ifindex_lo(), "lo");
+	jsonl_field_flags("ndm_state", false, NUD_PERMANENT, ndm_state,
+			  ARRAY_SIZE(ndm_state), NULL);
+	jsonl_field_flags("ndm_flags", false, NTF_PROXY, ndm_flags,
+			  ARRAY_SIZE(ndm_flags), NULL);
+	jsonl_field_const("ndm_type", false, RTN_UNSPEC, "RTN_UNSPEC", NULL);
 	jsonl_struct_close();
 	printf("}");
 }
@@ -97,14 +83,6 @@ print_ndmsg_nfea(const unsigned int msg_len)
 	print_ndmsg(msg_len);
 	jsonl_nlattr_nest_open(msg_len - NLMSG_SPACE(hdrlen),
 			       ARG_STR(NDA_FDB_EXT_ATTRS), NULL);
-}
-
-static void
-print_u32_field(const char *name, uint32_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
 }
 
 int
@@ -143,12 +121,14 @@ main(int argc, char *argv[])
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen, init_ndmsg, print_ndmsg,
 			    NDA_CACHEINFO, pattern, ci,
 			    jsonl_struct_open();
-			    print_u32_field("ndm_confirmed", ci.ndm_confirmed,
-					    true);
-			    print_u32_field("ndm_used", ci.ndm_used, false);
-			    print_u32_field("ndm_updated", ci.ndm_updated,
-					    false);
-			    print_u32_field("ndm_refcnt", ci.ndm_refcnt, false);
+			    jsonl_field_unsigned("ndm_confirmed", true,
+						 ci.ndm_confirmed);
+			    jsonl_field_unsigned("ndm_used", false,
+						 ci.ndm_used);
+			    jsonl_field_unsigned("ndm_updated", false,
+						 ci.ndm_updated);
+			    jsonl_field_unsigned("ndm_refcnt", false,
+						 ci.ndm_refcnt);
 			    jsonl_struct_close());
 
 	const uint16_t port = 0xabcd;

@@ -105,9 +105,7 @@ jsonl_iov(const struct iovec *iov, const struct print_iov_arg *arg, long rc)
 			jsonl_addr(iov[i].iov_base);
 		}
 		jsonl_field_close();
-		jsonl_field_open("iov_len", false);
-		jsonl_unsigned(iov[i].iov_len);
-		jsonl_field_close();
+		jsonl_field_unsigned("iov_len", false, iov[i].iov_len);
 		jsonl_struct_close();
 		printf("}");
 	}

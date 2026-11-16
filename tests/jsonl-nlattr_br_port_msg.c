@@ -32,28 +32,6 @@ init_br_port_msg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 	);
 }
 
-static void
-print_br_port_msg(const unsigned int msg_len)
-{
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETMDB), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
-	jsonl_struct_open();
-	jsonl_field_open("family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifindex", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_struct_close();
-	printf("}");
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -69,7 +47,8 @@ main(int argc, char *argv[])
 	fill_memory_ex(pattern, sizeof(pattern), 'a', 'z' - 'a' + 1);
 
 	const unsigned int nla_type = 0xffff & NLA_TYPE_MASK;
-	JSONL_NLATTR_(fd, nlh0, hdrlen, init_br_port_msg, print_br_port_msg,
+	JSONL_NLATTR_(fd, nlh0, hdrlen,
+		      init_br_port_msg, jsonl_nl_print_br_port_msg,
 		      nla_type, NULL, "MDBA_???",
 		      4, pattern, 4,
 		      jsonl_bytes_value(pattern, 4, false));

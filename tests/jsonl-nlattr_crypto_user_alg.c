@@ -41,56 +41,19 @@ init_crypto_user_alg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 }
 
 static void
-print_str_field(const char *const name, const char *const str, const bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_string_value(str, strlen(str), false);
-	jsonl_field_close();
-}
-
-static void
-print_u32_field(const char *const name, const uint32_t val)
-{
-	jsonl_field_open(name, false);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-print_x32_field(const char *const name, const uint32_t val)
-{
-	jsonl_field_open(name, false);
-	jsonl_hex(val);
-	jsonl_field_close();
-}
-
-static void
 print_crypto_user_alg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(CRYPTO_MSG_GETALG), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(CRYPTO_MSG_GETALG));
 	jsonl_struct_open();
-	print_str_field("cru_name", alg.cru_name, true);
-	print_str_field("cru_driver_name", alg.cru_driver_name, false);
-	print_str_field("cru_module_name", alg.cru_module_name, false);
-	print_x32_field("cru_type", alg.cru_type);
-	print_x32_field("cru_mask", alg.cru_mask);
-	print_u32_field("cru_refcnt", alg.cru_refcnt);
-	print_x32_field("cru_flags", alg.cru_flags);
+	jsonl_field_string("cru_name", true, alg.cru_name);
+	jsonl_field_string("cru_driver_name", false, alg.cru_driver_name);
+	jsonl_field_string("cru_module_name", false, alg.cru_module_name);
+	jsonl_field_hex("cru_type", false, alg.cru_type);
+	jsonl_field_hex("cru_mask", false, alg.cru_mask);
+	jsonl_field_unsigned("cru_refcnt", false, alg.cru_refcnt);
+	jsonl_field_hex("cru_flags", false, alg.cru_flags);
 	jsonl_struct_close();
 	printf("}");
-}
-
-static void
-jsonl_nl_string(const void *const p, const size_t len)
-{
-	jsonl_string_value(p, len, false);
 }
 
 int
@@ -129,7 +92,7 @@ main(int argc, char *argv[])
 		     CRYPTOCFGA_REPORT_LARVAL,
 		     DEFAULT_STRLEN, str, DEFAULT_STRLEN,
 		     jsonl_struct_open();
-		     print_str_field("type", str, true);
+		     jsonl_field_string("type", true, str);
 		     jsonl_struct_close());
 
 	static const struct crypto_report_hash rhash = {
@@ -143,9 +106,11 @@ main(int argc, char *argv[])
 			       pattern, rhash, sizeof(rhash),
 			       jsonl_nl_string,
 			       jsonl_struct_open();
-			       print_str_field("type", rhash.type, true);
-			       print_u32_field("blocksize", rhash.blocksize);
-			       print_u32_field("digestsize", rhash.digestsize);
+			       jsonl_field_string("type", true, rhash.type);
+			       jsonl_field_unsigned("blocksize", false,
+						    rhash.blocksize);
+			       jsonl_field_unsigned("digestsize", false,
+						    rhash.digestsize);
 			       jsonl_struct_close());
 
 	static const struct crypto_report_blkcipher rblkcipher = {
@@ -162,16 +127,18 @@ main(int argc, char *argv[])
 			       pattern, rblkcipher, sizeof(rblkcipher),
 			       jsonl_nl_string,
 			       jsonl_struct_open();
-			       print_str_field("type", rblkcipher.type, true);
-			       print_str_field("geniv", rblkcipher.geniv,
-					       false);
-			       print_u32_field("blocksize",
-					       rblkcipher.blocksize);
-			       print_u32_field("min_keysize",
-					       rblkcipher.min_keysize);
-			       print_u32_field("max_keysize",
-					       rblkcipher.max_keysize);
-			       print_u32_field("ivsize", rblkcipher.ivsize);
+			       jsonl_field_string("type", true,
+						  rblkcipher.type);
+			       jsonl_field_string("geniv", false,
+						  rblkcipher.geniv);
+			       jsonl_field_unsigned("blocksize", false,
+						    rblkcipher.blocksize);
+			       jsonl_field_unsigned("min_keysize", false,
+						    rblkcipher.min_keysize);
+			       jsonl_field_unsigned("max_keysize", false,
+						    rblkcipher.max_keysize);
+			       jsonl_field_unsigned("ivsize", false,
+						    rblkcipher.ivsize);
 			       jsonl_struct_close());
 
 	static const struct crypto_report_aead raead = {
@@ -187,12 +154,14 @@ main(int argc, char *argv[])
 			       pattern, raead, sizeof(raead),
 			       jsonl_nl_string,
 			       jsonl_struct_open();
-			       print_str_field("type", raead.type, true);
-			       print_str_field("geniv", raead.geniv, false);
-			       print_u32_field("blocksize", raead.blocksize);
-			       print_u32_field("maxauthsize",
-					       raead.maxauthsize);
-			       print_u32_field("ivsize", raead.ivsize);
+			       jsonl_field_string("type", true, raead.type);
+			       jsonl_field_string("geniv", false, raead.geniv);
+			       jsonl_field_unsigned("blocksize", false,
+						    raead.blocksize);
+			       jsonl_field_unsigned("maxauthsize", false,
+						    raead.maxauthsize);
+			       jsonl_field_unsigned("ivsize", false,
+						    raead.ivsize);
 			       jsonl_struct_close());
 
 	static const struct crypto_report_rng rrng = {
@@ -204,8 +173,9 @@ main(int argc, char *argv[])
 			       CRYPTOCFGA_REPORT_RNG,
 			       pattern, rrng, sizeof(rrng), jsonl_nl_string,
 			       jsonl_struct_open();
-			       print_str_field("type", rrng.type, true);
-			       print_u32_field("seedsize", rrng.seedsize);
+			       jsonl_field_string("type", true, rrng.type);
+			       jsonl_field_unsigned("seedsize", false,
+						    rrng.seedsize);
 			       jsonl_struct_close());
 
 	static const struct crypto_report_cipher rcipher = {
@@ -220,12 +190,13 @@ main(int argc, char *argv[])
 			       pattern, rcipher, sizeof(rcipher),
 			       jsonl_nl_string,
 			       jsonl_struct_open();
-			       print_str_field("type", rcipher.type, true);
-			       print_u32_field("blocksize", rcipher.blocksize);
-			       print_u32_field("min_keysize",
-					       rcipher.min_keysize);
-			       print_u32_field("max_keysize",
-					       rcipher.max_keysize);
+			       jsonl_field_string("type", true, rcipher.type);
+			       jsonl_field_unsigned("blocksize", false,
+						    rcipher.blocksize);
+			       jsonl_field_unsigned("min_keysize", false,
+						    rcipher.min_keysize);
+			       jsonl_field_unsigned("max_keysize", false,
+						    rcipher.max_keysize);
 			       jsonl_struct_close());
 
 	jsonl_exit_event(0);

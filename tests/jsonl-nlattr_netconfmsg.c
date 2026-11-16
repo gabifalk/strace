@@ -34,18 +34,9 @@ init_netconfmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_netconfmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETNETCONF), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETNETCONF));
 	jsonl_struct_open();
-	jsonl_field_open("ncm_family", true);
-	jsonl_const(AF_INET, true, "AF_INET", NULL);
-	jsonl_field_close();
+	jsonl_field_const("ncm_family", true, AF_INET, "AF_INET", NULL);
 	jsonl_struct_close();
 	printf("}");
 }

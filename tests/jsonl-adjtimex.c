@@ -27,15 +27,6 @@
 
 static bool merged;
 
-static const char *
-xlat_lookup(const struct xlat *xlat, uint64_t val)
-{
-	for (size_t i = 0; i < xlat->size; ++i)
-		if (xlat->data[i].str && xlat->data[i].val == val)
-			return xlat->data[i].str;
-	return NULL;
-}
-
 static void
 emit_decimal(intmax_t val)
 {
@@ -143,7 +134,8 @@ emit_call(const kernel_old_timex_t *tx, long state)
 	} else {
 		printf("\"return\": {");
 		jsonl_const((uint64_t) state, false,
-			    xlat_lookup(adjtimex_state, (uint64_t) state), NULL);
+			    jsonl_xlat_sym(adjtimex_state, (uint64_t) state),
+			    NULL);
 		printf("}");
 	}
 	printf("}\n");

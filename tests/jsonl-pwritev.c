@@ -48,9 +48,7 @@ jsonl_iov(const struct iovec *iov, bool readable)
 		jsonl_addr(iov->iov_base);
 	jsonl_field_close();
 
-	jsonl_field_open("iov_len", false);
-	jsonl_unsigned(iov->iov_len);
-	jsonl_field_close();
+	jsonl_field_unsigned("iov_len", false, iov->iov_len);
 
 	jsonl_struct_close();
 	printf("}");

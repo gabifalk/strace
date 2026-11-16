@@ -17,52 +17,6 @@
 # include <linux/netfilter/nfnetlink.h>
 # include <linux/netfilter/nf_tables.h>
 
-# define NFNL_SHIFT 8
-
-/* The fields of the nlmsg_type value of a netfilter subsystem message. */
-static void
-jsonl_nfnl_msg_type(unsigned int type, const char *subsys_sym,
-		    const char *msg_sym, const char *msg_pattern)
-{
-	const unsigned int subsys = type >> NFNL_SHIFT;
-	const unsigned int msg = type & ((1U << NFNL_SHIFT) - 1);
-
-	jsonl_flags_open(type);
-	printf("{\"type\": \"shift\", \"raw\": ");
-	jsonl_xlat_raw(subsys << NFNL_SHIFT);
-	printf(", \"value\": {");
-	jsonl_const(subsys, true, subsys_sym, "NFNL_SUBSYS_???");
-	printf("}, \"shift\": \"%u\"}, {", NFNL_SHIFT);
-	jsonl_const(msg, true, msg_sym, msg_pattern);
-	printf("}");
-	jsonl_flags_close();
-}
-
-/*
- * Send a netfilter subsystem message that consists of a header alone
- * and print its event; the names of flags are taken from known.
- */
-static void
-jsonl_nfnl_test_hdr(int fd, unsigned int subsys, const char *subsys_sym,
-		    unsigned int msg, const char *msg_sym,
-		    const char *msg_pattern, unsigned int flags,
-		    const struct strval32 *known, size_t n)
-{
-	const unsigned int type = subsys << NFNL_SHIFT | msg;
-	const struct nlmsghdr nlh = {
-		.nlmsg_len = sizeof(nlh),
-		.nlmsg_type = type,
-		.nlmsg_flags = flags
-	};
-
-	jsonl_nl_sendto(fd, &nlh, nlh.nlmsg_len);
-	jsonl_nl_sendto_open(fd);
-	jsonl_nlmsghdr_type_open(nlh.nlmsg_len);
-	jsonl_nfnl_msg_type(type, subsys_sym, msg_sym, msg_pattern);
-	jsonl_nlmsghdr_type_close(flags, known, n, 0, 0);
-	jsonl_nl_sendto_close();
-}
-
 /* A message with NLM_F_REQUEST and, when flag is not zero, that flag. */
 static void
 test_msg(int fd, unsigned int msg, const char *msg_sym,

@@ -34,32 +34,15 @@ init_ndtmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_ndtmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETNEIGHTBL), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETNEIGHTBL));
 	jsonl_struct_open();
-	jsonl_field_open("ndtm_family", true);
-	jsonl_const(AF_NETLINK, true, "AF_NETLINK", NULL);
-	jsonl_field_close();
+	jsonl_field_const("ndtm_family", true, AF_NETLINK, "AF_NETLINK", NULL);
 	jsonl_struct_close();
 	printf("}");
 }
 
-static void
-print_u_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
 # define PRINT_U_FIELD(obj_, field_, first_)	\
-	print_u_field(#field_, (obj_).field_, (first_))
+	jsonl_field_unsigned(#field_, (first_), (obj_).field_)
 
 int
 main(int argc, char *argv[])

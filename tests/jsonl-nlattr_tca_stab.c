@@ -20,37 +20,11 @@
 static const unsigned int hdrlen = sizeof(struct tcmsg);
 
 static void
-print_u_field(const char *name, uint64_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-print_d_field(const char *name, int64_t val)
-{
-	jsonl_field_open(name, false);
-	jsonl_decimal(val);
-	jsonl_field_close();
-}
-
-static void
 init_tcmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 {
-	SET_STRUCT(struct nlmsghdr, nlh,
-		.nlmsg_len = msg_len,
-		.nlmsg_type = RTM_GETQDISC,
-		.nlmsg_flags = NLM_F_DUMP
-	);
+	jsonl_nl_init_tcmsg(nlh, msg_len);
 
-	struct tcmsg *const msg = NLMSG_DATA(nlh);
-	SET_STRUCT(struct tcmsg, msg,
-		.tcm_family = AF_UNIX,
-		.tcm_ifindex = ifindex_lo()
-	);
-
-	struct nlattr *const nla = NLMSG_ATTR(nlh, sizeof(*msg));
+	struct nlattr *const nla = NLMSG_ATTR(nlh, hdrlen);
 	SET_STRUCT(struct nlattr, nla,
 		.nla_len = msg_len - NLMSG_SPACE(hdrlen),
 		.nla_type = TCA_STAB
@@ -60,26 +34,7 @@ init_tcmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_tcmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETQDISC), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
-	jsonl_struct_open();
-	jsonl_field_open("tcm_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("tcm_ifindex", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	print_u_field("tcm_handle", 0, false);
-	print_u_field("tcm_parent", 0, false);
-	print_u_field("tcm_info", 0, false);
-	jsonl_struct_close();
-	printf("}");
+	jsonl_nl_print_tcmsg(msg_len);
 	jsonl_nlattr_nest_open(msg_len - NLMSG_SPACE(hdrlen),
 			       TCA_STAB, "TCA_STAB", NULL);
 }
@@ -118,15 +73,20 @@ main(int argc, char *argv[])
 				   init_tcmsg, print_tcmsg,
 				   TCA_STAB_BASE, pattern, s,
 				   jsonl_struct_open();
-				   print_u_field("cell_log", s.cell_log, true);
-				   print_u_field("size_log", s.size_log, false);
-				   print_d_field("cell_align", s.cell_align);
-				   print_d_field("overhead", s.overhead);
-				   print_u_field("linklayer", s.linklayer,
-						 false);
-				   print_u_field("mpu", s.mpu, false);
-				   print_u_field("mtu", s.mtu, false);
-				   print_u_field("tsize", s.tsize, false);
+				   jsonl_field_unsigned("cell_log", true,
+							s.cell_log);
+				   jsonl_field_unsigned("size_log", false,
+							s.size_log);
+				   jsonl_field_decimal("cell_align", false,
+						       s.cell_align);
+				   jsonl_field_decimal("overhead", false,
+						       s.overhead);
+				   jsonl_field_unsigned("linklayer", false,
+							s.linklayer);
+				   jsonl_field_unsigned("mpu", false, s.mpu);
+				   jsonl_field_unsigned("mtu", false, s.mtu);
+				   jsonl_field_unsigned("tsize", false,
+							s.tsize);
 				   jsonl_struct_close());
 
 	uint16_t data[2] = { 0xacbd, 0xefba };

@@ -37,21 +37,14 @@ jsonl_siginfo(const siginfo_t *si, const char *signo_sym,
 	jsonl_field_open("si_signo", true);
 	jsonl_signal(si->si_signo, signo_sym);
 	jsonl_field_close();
-	jsonl_field_open("si_code", false);
-	jsonl_const((unsigned int) si->si_code, true, code_sym, NULL);
-	jsonl_field_close();
-	jsonl_field_open("si_errno", false);
-	jsonl_unsigned((unsigned int) si->si_errno);
-	jsonl_field_close();
-	jsonl_field_open("si_pid", false);
-	jsonl_decimal(si->si_pid);
-	jsonl_field_close();
+	jsonl_field_const("si_code", false, (unsigned int) si->si_code,
+			  code_sym, NULL);
+	jsonl_field_unsigned("si_errno", false, (unsigned int) si->si_errno);
+	jsonl_field_pid("si_pid", false, "tgid", si->si_pid);
 	jsonl_field_open("si_uid", false);
 	printf("\"type\": \"uid\", \"raw\": \"%d\"", (int) si->si_uid);
 	jsonl_field_close();
-	jsonl_field_open("si_int", false);
-	jsonl_decimal(si->si_int);
-	jsonl_field_close();
+	jsonl_field_decimal("si_int", false, si->si_int);
 	jsonl_field_open("si_ptr", false);
 	jsonl_addr(si->si_ptr);
 	jsonl_field_close();

@@ -20,8 +20,8 @@ static void
 jsonl_cpu(unsigned int index, const char *name, unsigned val)
 {
 	jsonl_arg_open(index, name, side);
-	printf("\"type\": \"unsigned\", \"raw\": \"%u\", \"indirect\": true",
-	       val);
+	jsonl_unsigned(val);
+	jsonl_indirect();
 	jsonl_arg_close(side);
 }
 

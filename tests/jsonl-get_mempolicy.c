@@ -42,16 +42,6 @@ arg_addr(unsigned int index, const char *name, unsigned long addr)
 	arg_close();
 }
 
-static const char *
-mode_name(unsigned int mode)
-{
-	for (size_t i = 0; i < mpol_modes->size; ++i) {
-		if (mpol_modes->data[i].str && mpol_modes->data[i].val == mode)
-			return mpol_modes->data[i].str;
-	}
-	return NULL;
-}
-
 /* The mode is printed as a pointer unless mode_readable is set. */
 static long
 test_get_mempolicy(const int *mode, bool mode_readable,
@@ -79,8 +69,8 @@ test_get_mempolicy(const int *mode, bool mode_readable,
 	if (mode_readable && rc == 0) {
 		arg_open(0, "mode");
 		jsonl_const((unsigned int) *mode, true,
-			    mode_name(*mode), "MPOL_???");
-		printf(", \"indirect\": true");
+			    jsonl_xlat_sym(mpol_modes, *mode), "MPOL_???");
+		jsonl_indirect();
 		arg_close();
 	} else {
 		arg_addr(0, "mode", (unsigned long) mode);

@@ -72,8 +72,8 @@ main(int argc, char *argv[])
 	}
 
 	jsonl_arg_open(4, "cookie", xside);
-	printf("\"type\": \"hex\", \"raw\": \"%#" PRIx64 "\", \"indirect\": true",
-	       *cookie);
+	jsonl_hex(*cookie);
+	jsonl_indirect();
 	jsonl_arg_close(xside);
 
 	printf("], ");

@@ -34,18 +34,9 @@ init_rtgenmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_rtgenmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETNSID), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETNSID));
 	jsonl_struct_open();
-	jsonl_field_open("rtgen_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
+	jsonl_field_const("rtgen_family", true, AF_UNIX, "AF_UNIX", NULL);
 	jsonl_struct_close();
 	printf("}");
 }

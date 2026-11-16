@@ -46,48 +46,6 @@ init_inet_diag_req_v2(struct nlmsghdr *const nlh, const unsigned int msg_len)
 }
 
 static void
-print_u_field(const char *name, unsigned int val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-print_const_field(const char *name, unsigned int val, const char *sym,
-		  bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_const(val, true, sym, NULL);
-	jsonl_field_close();
-}
-
-static void
-print_port_field(const char *name, unsigned int port, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(port);
-	jsonl_byteorder_big(sizeof(uint16_t));
-	jsonl_field_close();
-}
-
-static void
-print_addr_field(const char *name)
-{
-	jsonl_field_open(name, false);
-	jsonl_ip_addr(ARG_STR(AF_INET), address);
-	jsonl_field_close();
-}
-
-static void
-print_no_flags_field(const char *name)
-{
-	jsonl_field_open(name, false);
-	jsonl_flags(0, NULL, 0, NULL);
-	jsonl_field_close();
-}
-
-static void
 print_inet_diag_req_v2(const unsigned int msg_len)
 {
 	static const struct strval32 nlmsg_flags[] = {
@@ -100,30 +58,11 @@ print_inet_diag_req_v2(const unsigned int msg_len)
 			    ARRAY_SIZE(nlmsg_flags));
 	printf("}, {");
 	jsonl_struct_open();
-	print_const_field("sdiag_family", ARG_STR(AF_INET), true);
-	print_const_field("sdiag_protocol", ARG_STR(IPPROTO_TCP), false);
-	print_no_flags_field("idiag_ext");
-	print_no_flags_field("idiag_states");
-	jsonl_field_open("id", false);
-	jsonl_struct_open();
-	print_port_field("idiag_sport", 0, true);
-	print_port_field("idiag_dport", 0, false);
-	print_addr_field("idiag_src");
-	print_addr_field("idiag_dst");
-	jsonl_field_open("idiag_if", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("idiag_cookie", false);
-	jsonl_array_open();
-	printf("{");
-	jsonl_unsigned(0);
-	printf("}, {");
-	jsonl_unsigned(0);
-	printf("}");
-	jsonl_array_close();
-	jsonl_field_close();
-	jsonl_struct_close();
-	jsonl_field_close();
+	jsonl_field_const("sdiag_family", true, ARG_STR(AF_INET), NULL);
+	jsonl_field_const("sdiag_protocol", false, ARG_STR(IPPROTO_TCP), NULL);
+	jsonl_field_flags("idiag_ext", false, 0, NULL, 0, NULL);
+	jsonl_field_flags("idiag_states", false, 0, NULL, 0, NULL);
+	jsonl_field_inet_diag_sockid("id", false, address);
 	jsonl_struct_close();
 	printf("}");
 }
@@ -160,9 +99,9 @@ print_inet_diag_bc_op(const struct inet_diag_bc_op *const op,
 		      const char *const code)
 {
 	jsonl_struct_open();
-	print_const_field("code", op->code, code, true);
-	print_u_field("yes", op->yes, false);
-	print_u_field("no", op->no, false);
+	jsonl_field_const("code", true, op->code, code, NULL);
+	jsonl_field_unsigned("yes", false, op->yes);
+	jsonl_field_unsigned("no", false, op->no);
 	jsonl_struct_close();
 }
 
@@ -218,9 +157,11 @@ test_inet_diag_bc_s_cond(const int fd)
 	TEST_BYTECODE(fd, sizeof(buf), buf, sizeof(buf),
 		      print_inet_diag_bc_op_next(&op, "INET_DIAG_BC_S_COND");
 		      jsonl_struct_open();
-		      print_const_field("family", ARG_STR(AF_UNSPEC), true);
-		      print_u_field("prefix_len", cond.prefix_len, false);
-		      print_u_field("port", cond.port, false);
+		      jsonl_field_const("family", true, ARG_STR(AF_UNSPEC),
+					NULL);
+		      jsonl_field_unsigned("prefix_len", false,
+					   cond.prefix_len);
+		      jsonl_field_unsigned("port", false, cond.port);
 		      jsonl_struct_close());
 }
 
@@ -229,9 +170,9 @@ static void
 print_inet_diag_hostcond_open(const unsigned int family, const char *const sym)
 {
 	jsonl_struct_open();
-	print_const_field("family", family, sym, true);
-	print_u_field("prefix_len", 0, false);
-	print_u_field("port", 0, false);
+	jsonl_field_const("family", true, family, sym, NULL);
+	jsonl_field_unsigned("prefix_len", false, 0);
+	jsonl_field_unsigned("port", false, 0);
 	jsonl_field_open("addr", false);
 }
 
@@ -412,8 +353,8 @@ test_inet_diag_bc_mark_cond(const int fd)
 	TEST_BYTECODE(fd, sizeof(buf), buf, sizeof(buf),
 		      print_inet_diag_bc_op_next(&op, "INET_DIAG_BC_MARK_COND");
 		      jsonl_struct_open();
-		      print_u_field("mark", markcond.mark, true);
-		      print_u_field("mask", markcond.mask, false);
+		      jsonl_field_unsigned("mark", true, markcond.mark);
+		      jsonl_field_unsigned("mask", false, markcond.mask);
 		      jsonl_struct_close());
 }
 

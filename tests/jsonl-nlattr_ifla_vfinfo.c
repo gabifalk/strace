@@ -23,83 +23,7 @@
 
 # define IFLA_ATTR IFLA_VFINFO_LIST
 
-/* The JSONL counterpart of nlattr_ifla.h. */
-# ifndef IFLA_AF
-#  define IFLA_AF AF_UNIX
-# endif
-# ifndef IFLA_AF_STR
-#  define IFLA_AF_STR "AF_UNIX"
-# endif
-
-static const unsigned int hdrlen = sizeof(struct ifinfomsg);
-
-static void
-init_ifinfomsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
-{
-	SET_STRUCT(struct nlmsghdr, nlh,
-		.nlmsg_len = msg_len,
-		.nlmsg_type = RTM_GETLINK,
-		.nlmsg_flags = NLM_F_DUMP
-	);
-
-	struct ifinfomsg *const msg = NLMSG_DATA(nlh);
-	SET_STRUCT(struct ifinfomsg, msg,
-		.ifi_family = IFLA_AF,
-		.ifi_type = ARPHRD_LOOPBACK,
-		.ifi_index = ifindex_lo(),
-		.ifi_flags = IFF_UP,
-	);
-
-	struct nlattr *const nla = NLMSG_ATTR(nlh, sizeof(*msg));
-	SET_STRUCT(struct nlattr, nla,
-		.nla_len = msg_len - NLMSG_SPACE(hdrlen),
-		.nla_type = IFLA_ATTR
-	);
-}
-
-/* The netlink header and the struct ifinfomsg. */
-static void
-print_ifinfomsg_hdr(const unsigned int msg_len)
-{
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-	static const struct strval32 ifi_flags[] = {
-		{ ARG_STR(IFF_UP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETLINK), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
-	jsonl_struct_open();
-	jsonl_field_open("ifi_family", true);
-	jsonl_const(IFLA_AF, true, IFLA_AF_STR, "AF_???");
-	jsonl_field_close();
-	jsonl_field_open("ifi_type", false);
-	jsonl_const(ARPHRD_LOOPBACK, true, "ARPHRD_LOOPBACK", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_index", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_field_open("ifi_flags", false);
-	jsonl_flags(IFF_UP, ifi_flags, ARRAY_SIZE(ifi_flags), NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifi_change", false);
-	jsonl_hex(0);
-	jsonl_field_close();
-	jsonl_struct_close();
-	printf("}");
-}
-
-/* Likewise, followed by the enclosing IFLA_ATTR attribute. */
-static void
-print_ifinfomsg(const unsigned int msg_len)
-{
-	print_ifinfomsg_hdr(msg_len);
-	jsonl_nlattr_nest_open(msg_len - NLMSG_SPACE(hdrlen),
-			       IFLA_ATTR, STRINGIFY_VAL(IFLA_ATTR), NULL);
-}
+# include "jsonl_nlattr_ifla.h"
 
 # define VF_NEST_FUNCS(name_, parent_, nla_type_, depth_)		\
 	static void							\
@@ -131,21 +55,13 @@ VF_NEST_FUNCS(vf_info, ifinfomsg, IFLA_VF_INFO, 1)
 VF_NEST_FUNCS(vf_stats, vf_info_msg, IFLA_VF_STATS, 2)
 VF_NEST_FUNCS(vlan_list, vf_info_msg, IFLA_VF_VLAN_LIST, 2)
 
-static void
-print_u32_field(const char *name, uint32_t val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
 /* A struct that consists of the given number of unsigned 32-bit fields. */
 static void
 print_u32_struct(const uint32_t *vals, const char *const *names, size_t n)
 {
 	jsonl_struct_open();
 	for (size_t i = 0; i < n; i++)
-		print_u32_field(names[i], vals[i], i == 0);
+		jsonl_field_unsigned(names[i], i == 0, vals[i]);
 	jsonl_struct_close();
 }
 
@@ -214,7 +130,8 @@ main(int argc, char *argv[])
 				      init_vf_info_msg, print_vf_info_msg,
 				      IFLA_VF_MAC, pattern, ifla_vm, 2,
 				      jsonl_struct_open();
-				      print_u32_field("vf", ifla_vm.vf, true);
+				      jsonl_field_unsigned("vf", true,
+							   ifla_vm.vf);
 				      jsonl_field_open("mac", false);
 				      jsonl_mac(ifla_vm.mac,
 						sizeof(ifla_vm.mac));
@@ -269,12 +186,11 @@ main(int argc, char *argv[])
 				init_vf_info_msg, print_vf_info_msg,
 				IFLA_VF_LINK_STATE, pattern, ifla_vls, 2,
 				jsonl_struct_open();
-				print_u32_field("vf", ifla_vls.vf, true);
-				jsonl_field_open("link_state", false);
-				jsonl_const(ifla_vls.link_state, true,
-					    states[i].str,
-					    "IFLA_VF_LINK_STATE_???");
-				jsonl_field_close();
+				jsonl_field_unsigned("vf", true, ifla_vls.vf);
+				jsonl_field_const("link_state", false,
+						  ifla_vls.link_state,
+						  states[i].str,
+						  "IFLA_VF_LINK_STATE_???");
 				jsonl_struct_close());
 	}
 
@@ -367,10 +283,8 @@ main(int argc, char *argv[])
 				guid_attrs[i].val, guid_attrs[i].str, NULL,
 				pattern, ifla_vg, jsonl_nl_bytes, 2,
 				jsonl_struct_open();
-				print_u32_field("vf", ifla_vg.vf, true);
-				jsonl_field_open("guid", false);
-				jsonl_hex(ifla_vg.guid);
-				jsonl_field_close();
+				jsonl_field_unsigned("vf", true, ifla_vg.vf);
+				jsonl_field_hex("guid", false, ifla_vg.guid);
 				jsonl_struct_close());
 	}
 
@@ -414,9 +328,11 @@ main(int argc, char *argv[])
 				init_vlan_list_msg, print_vlan_list_msg,
 				IFLA_VF_VLAN_INFO, pattern, ifla_vvi, 3,
 				jsonl_struct_open();
-				print_u32_field("vf", ifla_vvi.vf, true);
-				print_u32_field("vlan", ifla_vvi.vlan, false);
-				print_u32_field("qos", ifla_vvi.qos, false);
+				jsonl_field_unsigned("vf", true, ifla_vvi.vf);
+				jsonl_field_unsigned("vlan", false,
+						     ifla_vvi.vlan);
+				jsonl_field_unsigned("qos", false,
+						     ifla_vvi.qos);
 				jsonl_field_open("vlan_proto", false);
 				jsonl_const(eth_protos[i].val, true,
 					    eth_protos[i].str, "ETH_P_???");

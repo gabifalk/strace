@@ -28,15 +28,6 @@
 
 static bool merged;
 
-static void
-jsonl_gid(GID_TYPE id)
-{
-	if (id == (GID_TYPE) -1U)
-		printf("{\"type\": \"gid\", \"raw\": \"-1\"}");
-	else
-		printf("{\"type\": \"gid\", \"raw\": \"%u\"}", id);
-}
-
 /*
  * The list is printed as an array of size elements when print_array is set,
  * and as a pointer otherwise; only the first readable elements of the list
@@ -70,7 +61,9 @@ test_setgroups(kernel_ulong_t size, const GID_TYPE *list, bool print_array,
 				break;
 			if (i)
 				printf(", ");
-			jsonl_gid(list[i]);
+			printf("{");
+			jsonl_gid(list[i] == (GID_TYPE) -1U ? -1U : list[i]);
+			printf("}");
 		}
 		if (i < (unsigned int) size && i >= readable) {
 			jsonl_array_fetch_failed(list + i);

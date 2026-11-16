@@ -43,23 +43,7 @@ init_br_port_msg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_br_port_msg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETMDB), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
-	jsonl_struct_open();
-	jsonl_field_open("family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifindex", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-	jsonl_struct_close();
-	printf("}");
+	jsonl_nl_print_br_port_msg(msg_len);
 	jsonl_nlattr_nest_open(msg_len - NLMSG_SPACE(hdrlen),
 			       ARG_STR(MDBA_ROUTER), NULL);
 }

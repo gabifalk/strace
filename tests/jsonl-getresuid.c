@@ -27,11 +27,11 @@
 static const char *side;
 
 static void
-jsonl_uid(unsigned int index, const char *name, unsigned val)
+jsonl_uid_arg(unsigned int index, const char *name, unsigned val)
 {
 	jsonl_arg_open(index, name, side);
-	printf("\"type\": \"uid\", \"raw\": \"%u\", \"indirect\": true",
-	       val);
+	jsonl_uid(val);
+	jsonl_indirect();
 	jsonl_arg_close(side);
 }
 
@@ -53,11 +53,11 @@ main(int argc, char *argv[])
 		printf("]}\n");
 		jsonl_syscall_open("getresuid", __NR_getresuid, false);
 	}
-	jsonl_uid(0, "ruid", (unsigned) *r);
+	jsonl_uid_arg(0, "ruid", (unsigned) *r);
 	printf(", ");
-	jsonl_uid(1, "euid", (unsigned) *e);
+	jsonl_uid_arg(1, "euid", (unsigned) *e);
 	printf(", ");
-	jsonl_uid(2, "suid", (unsigned) *s);
+	jsonl_uid_arg(2, "suid", (unsigned) *s);
 	printf("], \"return\": {\"type\": \"unsigned\", \"raw\": \"0\"}}\n");
 	jsonl_exit_event(0);
 	return 0;

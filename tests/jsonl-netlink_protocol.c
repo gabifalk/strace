@@ -72,9 +72,11 @@ msg_begin(const void *nlh)
 static void
 err_begin(int error)
 {
-	printf("\"type\": \"struct\", \"fields\": {\"error\": "
-	       "{\"type\": \"errno\", \"raw\": \"%d\", \"sym\": \"%s\"}, "
-	       "\"msg\": {", error, errno2name(-error));
+	jsonl_struct_open();
+	jsonl_field_open("error", true);
+	jsonl_errno(error);
+	jsonl_field_close();
+	jsonl_field_open("msg", false);
 }
 
 static void
@@ -471,9 +473,7 @@ test_nlmsgerr(const int fd)
 	err_begin(err->error);
 	msg_begin(&err->msg);
 	jsonl_struct_open();
-	jsonl_field_open("family", true);
-	jsonl_const(AF_UNSPEC, true, "AF_UNSPEC", NULL);
-	jsonl_field_close();
+	jsonl_field_const("family", true, AF_UNSPEC, "AF_UNSPEC", NULL);
 	jsonl_struct_close();
 	jsonl_nlmsg_close();
 	err_end();

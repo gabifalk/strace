@@ -19,8 +19,6 @@
 # include <linux/netfilter/nfnetlink.h>
 # include <linux/netfilter/nf_tables.h>
 
-# define NFNL_SHIFT 8
-
 struct msg_type {
 	unsigned int val;
 	/* A reserved control message type. */
@@ -48,21 +46,8 @@ jsonl_type(const struct msg_type *type)
 		return;
 	}
 
-	const unsigned int subsys = type->val >> NFNL_SHIFT;
-	const unsigned int msg = type->val & ((1U << NFNL_SHIFT) - 1);
-
-	jsonl_flags_open(type->val);
-	printf("{\"type\": \"shift\", \"raw\": ");
-	jsonl_xlat_raw(subsys << NFNL_SHIFT);
-	printf(", \"value\": {");
-	jsonl_const(subsys, true, type->subsys, "NFNL_SUBSYS_???");
-	printf("}, \"shift\": \"%u\"}, {", NFNL_SHIFT);
-	if (type->subsys)
-		jsonl_const(msg, true, type->msg, type->msg_pattern);
-	else
-		jsonl_hex(msg);
-	printf("}");
-	jsonl_flags_close();
+	jsonl_nfnl_msg_type(type->val, type->subsys,
+			    type->msg, type->msg_pattern);
 }
 
 static void
@@ -107,12 +92,8 @@ static void
 nfgenmsg(const struct nfgenmsg *msg)
 {
 	jsonl_struct_open();
-	jsonl_field_open("nfgen_family", true);
-	jsonl_const(AF_UNIX, true, "AF_UNIX", NULL);
-	jsonl_field_close();
-	jsonl_field_open("version", false);
-	jsonl_const(NFNETLINK_V0, true, "NFNETLINK_V0", NULL);
-	jsonl_field_close();
+	jsonl_field_const("nfgen_family", true, AF_UNIX, "AF_UNIX", NULL);
+	jsonl_field_const("version", false, NFNETLINK_V0, "NFNETLINK_V0", NULL);
 	jsonl_field_open("res_id", false);
 	jsonl_unsigned(ntohs(msg->res_id));
 	jsonl_byteorder_big(sizeof(msg->res_id));
@@ -128,7 +109,8 @@ test_nlmsg_type(const int fd)
 			.val = NFNL_MSG_BATCH_BEGIN,
 			.sym = "NFNL_MSG_BATCH_BEGIN"
 		}, {
-			.val = NFNL_SUBSYS_CTNETLINK << NFNL_SHIFT | 0xff,
+			.val = NFNL_SUBSYS_CTNETLINK << JSONL_NFNL_SUBSYS_SHIFT
+			       | 0xff,
 			.subsys = "NFNL_SUBSYS_CTNETLINK",
 			.msg_pattern = "IPCTNL_MSG_CT_???"
 		}, {
@@ -164,7 +146,8 @@ static void
 test_nfgenmsg(const int fd)
 {
 	static const struct msg_type newtable = {
-		.val = NFNL_SUBSYS_NFTABLES << NFNL_SHIFT | NFT_MSG_NEWTABLE,
+		.val = NFNL_SUBSYS_NFTABLES << JSONL_NFNL_SUBSYS_SHIFT
+		       | NFT_MSG_NEWTABLE,
 		.subsys = "NFNL_SUBSYS_NFTABLES",
 		.msg = "NFT_MSG_NEWTABLE"
 	};

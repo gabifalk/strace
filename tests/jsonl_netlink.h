@@ -283,6 +283,13 @@ jsonl_nl_bytes(const void *p, size_t len)
 	jsonl_bytes_value(p, len, false);
 }
 
+/* A fallback of the JSONL_*_OBJECT macros: a string value. */
+static inline void
+jsonl_nl_string(const void *p, size_t len)
+{
+	jsonl_string_value(p, len, false);
+}
+
 /*
  * Send a message with a payload of data_len bytes whose first slen bytes,
  * copied from src, end at nlh0, the end of the readable memory.
@@ -758,5 +765,202 @@ DEF_JSONL_NLATTR_INTEGER_CHECK_(x32, uint32_t, jsonl_hex)
 				     (init_msg_), (print_msg_),		\
 				     (nla_type_), #nla_type_, NULL,	\
 				     (pattern_buf_), (depth_))
+
+/*
+ * The JSONL counterpart of check_clock_t_nlattr: a clock_t attribute that
+ * is too long, of the exact size, and shorter than the exact size.
+ */
+static inline void
+jsonl_check_clock_t_nlattr(int fd, void *nlh0, unsigned int hdrlen,
+			   void (*init_msg)(struct nlmsghdr *, unsigned int),
+			   void (*print_msg)(unsigned int),
+			   unsigned int nla_type, const char *sym,
+			   const char *sym_pattern, unsigned int depth)
+{
+	static const uint64_t vecs[] = { 0, 1, 9, 10, 99, 100, 249, 250, 999,
+					 1000, 1023, 1024, 0xdefacebeeffedULL };
+	static char buf[sizeof(uint64_t) + 1];
+
+	fill_memory(buf, sizeof(buf));
+	JSONL_NESTED_NLATTR_(fd, nlh0, hdrlen, init_msg, print_msg,
+			     nla_type, sym, sym_pattern,
+			     sizeof(buf), buf, sizeof(buf), depth,
+			     jsonl_nl_bytes(buf, sizeof(buf)));
+
+	for (size_t i = 0; i < ARRAY_SIZE(vecs); i++) {
+		memcpy(buf, vecs + i, sizeof(vecs[i]));
+		JSONL_NESTED_NLATTR_(fd, nlh0, hdrlen, init_msg, print_msg,
+				     nla_type, sym, sym_pattern,
+				     sizeof(vecs[i]), buf, sizeof(vecs[i]),
+				     depth,
+				     jsonl_ticks(vecs[i]));
+	}
+	for (size_t i = 1; i < sizeof(vecs[0]); i++) {
+		const uint64_t val =
+			vecs[ARRAY_SIZE(vecs) - 1] & MASK64(i * 8);
+
+		JSONL_NESTED_NLATTR_(fd, nlh0, hdrlen, init_msg, print_msg,
+				     nla_type, sym, sym_pattern,
+				     i, buf + BE_LE(sizeof(vecs[0]) - i, 0), i,
+				     depth,
+				     jsonl_ticks(val));
+	}
+}
+
+/* The bit offset of the subsystem in a netfilter message type. */
+# define JSONL_NFNL_SUBSYS_SHIFT 8
+
+/*
+ * The fields of the nlmsg_type value of a netfilter subsystem message;
+ * the message of an unknown subsystem, whose subsys_sym is NULL, is
+ * a hex value.
+ */
+static inline void
+jsonl_nfnl_msg_type(unsigned int type, const char *subsys_sym,
+		    const char *msg_sym, const char *msg_pattern)
+{
+	const unsigned int subsys = type >> JSONL_NFNL_SUBSYS_SHIFT;
+	const unsigned int msg = type & ((1U << JSONL_NFNL_SUBSYS_SHIFT) - 1);
+
+	jsonl_flags_open(type);
+	printf("{\"type\": \"shift\", \"raw\": ");
+	jsonl_xlat_raw(subsys << JSONL_NFNL_SUBSYS_SHIFT);
+	printf(", \"value\": {");
+	jsonl_const(subsys, true, subsys_sym, "NFNL_SUBSYS_???");
+	printf("}, \"shift\": \"%u\"}, {", JSONL_NFNL_SUBSYS_SHIFT);
+	if (subsys_sym)
+		jsonl_const(msg, true, msg_sym, msg_pattern);
+	else
+		jsonl_hex(msg);
+	printf("}");
+	jsonl_flags_close();
+}
+
+/*
+ * Send a netfilter subsystem message that consists of a header alone
+ * and print its event; the names of flags are taken from known.
+ */
+static inline void
+jsonl_nfnl_test_hdr(int fd, unsigned int subsys, const char *subsys_sym,
+		    unsigned int msg, const char *msg_sym,
+		    const char *msg_pattern, unsigned int flags,
+		    const struct strval32 *known, size_t n)
+{
+	const unsigned int type = subsys << JSONL_NFNL_SUBSYS_SHIFT | msg;
+	const struct nlmsghdr nlh = {
+		.nlmsg_len = sizeof(nlh),
+		.nlmsg_type = type,
+		.nlmsg_flags = flags
+	};
+
+	jsonl_nl_sendto(fd, &nlh, nlh.nlmsg_len);
+	jsonl_nl_sendto_open(fd);
+	jsonl_nlmsghdr_type_open(nlh.nlmsg_len);
+	jsonl_nfnl_msg_type(type, subsys_sym, msg_sym, msg_pattern);
+	jsonl_nlmsghdr_type_close(flags, known, n, 0, 0);
+	jsonl_nl_sendto_close();
+}
+
+/*
+ * The message element with the header of a message of the given type
+ * that has the only flag NLM_F_DUMP, up to the fields of the next element.
+ */
+static inline void
+jsonl_nlmsghdr_dump_open(unsigned int msg_len, unsigned int type,
+			 const char *type_sym)
+{
+	static const struct strval32 nlmsg_flags[] = {
+		{ ARG_STR(NLM_F_DUMP) }
+	};
+
+	printf("{");
+	jsonl_nlmsghdr_vals(msg_len, type, type_sym, NULL,
+			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
+	printf("}, {");
+}
+
+/* Initialize an RTM_GETQDISC message with a struct tcmsg of interface lo. */
+static inline void
+jsonl_nl_init_tcmsg(struct nlmsghdr *nlh, unsigned int msg_len)
+{
+	SET_STRUCT(struct nlmsghdr, nlh,
+		.nlmsg_len = msg_len,
+		.nlmsg_type = RTM_GETQDISC,
+		.nlmsg_flags = NLM_F_DUMP
+	);
+
+	struct tcmsg *const msg = NLMSG_DATA(nlh);
+	SET_STRUCT(struct tcmsg, msg,
+		.tcm_family = AF_UNIX,
+		.tcm_ifindex = ifindex_lo()
+	);
+}
+
+/* The message elements of what jsonl_nl_init_tcmsg has initialized. */
+static inline void
+jsonl_nl_print_tcmsg(unsigned int msg_len)
+{
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETQDISC));
+	jsonl_struct_open();
+	jsonl_field_const("tcm_family", true, ARG_STR(AF_UNIX), NULL);
+	jsonl_field_ifindex("tcm_ifindex", false, ifindex_lo(), "lo");
+	jsonl_field_unsigned("tcm_handle", false, 0);
+	jsonl_field_unsigned("tcm_parent", false, 0);
+	jsonl_field_unsigned("tcm_info", false, 0);
+	jsonl_struct_close();
+	printf("}");
+}
+
+/*
+ * The message elements of an RTM_GETMDB message with a struct br_port_msg
+ * of family AF_UNIX and interface lo.
+ */
+static inline void
+jsonl_nl_print_br_port_msg(unsigned int msg_len)
+{
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETMDB));
+	jsonl_struct_open();
+	jsonl_field_const("family", true, ARG_STR(AF_UNIX), NULL);
+	jsonl_field_ifindex("ifindex", false, ifindex_lo(), "lo");
+	jsonl_struct_close();
+	printf("}");
+}
+
+/*
+ * A struct inet_diag_sockid field of interface lo with zero ports, zero
+ * cookie, and the IPv4 address addr as both source and destination.
+ */
+static inline void
+jsonl_field_inet_diag_sockid(const char *name, bool first, const char *addr)
+{
+	jsonl_field_open(name, first);
+	jsonl_struct_open();
+	jsonl_field_open("idiag_sport", true);
+	jsonl_unsigned(0);
+	jsonl_byteorder_big(sizeof(uint16_t));
+	jsonl_field_close();
+	jsonl_field_open("idiag_dport", false);
+	jsonl_unsigned(0);
+	jsonl_byteorder_big(sizeof(uint16_t));
+	jsonl_field_close();
+	jsonl_field_open("idiag_src", false);
+	jsonl_ip_addr(ARG_STR(AF_INET), addr);
+	jsonl_field_close();
+	jsonl_field_open("idiag_dst", false);
+	jsonl_ip_addr(ARG_STR(AF_INET), addr);
+	jsonl_field_close();
+	jsonl_field_ifindex("idiag_if", false, ifindex_lo(), "lo");
+	jsonl_field_open("idiag_cookie", false);
+	jsonl_array_open();
+	printf("{");
+	jsonl_unsigned(0);
+	printf("}, {");
+	jsonl_unsigned(0);
+	printf("}");
+	jsonl_array_close();
+	jsonl_field_close();
+	jsonl_struct_close();
+	jsonl_field_close();
+}
 
 #endif /* !STRACE_TESTS_JSONL_NETLINK_H */

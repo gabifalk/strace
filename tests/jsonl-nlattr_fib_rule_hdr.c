@@ -39,51 +39,17 @@ init_rtmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 }
 
 static void
-print_u_field(const char *name, unsigned int val, bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-print_const_field(const char *name, unsigned int val, const char *sym,
-		  bool first)
-{
-	jsonl_field_open(name, first);
-	jsonl_const(val, true, sym, NULL);
-	jsonl_field_close();
-}
-
-static void
-print_flag_field(const char *name, unsigned int val, const char *sym)
-{
-	const struct strval32 flag = { val, sym };
-
-	jsonl_field_open(name, false);
-	jsonl_flags(val, &flag, 1, NULL);
-	jsonl_field_close();
-}
-
-static void
 print_rtmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETRULE), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETRULE));
 	jsonl_struct_open();
-	print_const_field("family", ARG_STR(AF_UNIX), true);
-	print_u_field("dst_len", 0, false);
-	print_u_field("src_len", 0, false);
-	print_flag_field("tos", ARG_STR(IPTOS_LOWDELAY));
-	print_const_field("table", ARG_STR(RT_TABLE_UNSPEC), false);
-	print_const_field("action", ARG_STR(FR_ACT_TO_TBL), false);
-	print_flag_field("flags", ARG_STR(FIB_RULE_INVERT));
+	jsonl_field_const("family", true, ARG_STR(AF_UNIX), NULL);
+	jsonl_field_unsigned("dst_len", false, 0);
+	jsonl_field_unsigned("src_len", false, 0);
+	jsonl_field_flag("tos", false, ARG_STR(IPTOS_LOWDELAY));
+	jsonl_field_const("table", false, ARG_STR(RT_TABLE_UNSPEC), NULL);
+	jsonl_field_const("action", false, ARG_STR(FR_ACT_TO_TBL), NULL);
+	jsonl_field_flag("flags", false, ARG_STR(FIB_RULE_INVERT));
 	jsonl_struct_close();
 	printf("}");
 }
@@ -126,8 +92,8 @@ main(int argc, char *argv[])
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen, init_rtmsg, print_rtmsg,
 			    FRA_UID_RANGE, pattern, range,
 			    jsonl_struct_open();
-			    print_u_field("start", range.start, true);
-			    print_u_field("end", range.end, false);
+			    jsonl_field_unsigned("start", true, range.start);
+			    jsonl_field_unsigned("end", false, range.end);
 			    jsonl_struct_close());
 
 	const unsigned int flow_label = 0xedabedaf;
@@ -189,14 +155,14 @@ main(int argc, char *argv[])
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen, init_rtmsg, print_rtmsg,
 			    FRA_SPORT_RANGE, pattern, prange,
 			    jsonl_struct_open();
-			    print_u_field("start", prange.start, true);
-			    print_u_field("end", prange.end, false);
+			    jsonl_field_unsigned("start", true, prange.start);
+			    jsonl_field_unsigned("end", false, prange.end);
 			    jsonl_struct_close());
 	JSONL_NLATTR_OBJECT(fd, nlh0, hdrlen, init_rtmsg, print_rtmsg,
 			    FRA_DPORT_RANGE, pattern, prange,
 			    jsonl_struct_open();
-			    print_u_field("start", prange.start, true);
-			    print_u_field("end", prange.end, false);
+			    jsonl_field_unsigned("start", true, prange.start);
+			    jsonl_field_unsigned("end", false, prange.end);
 			    jsonl_struct_close());
 
 	jsonl_exit_event(0);

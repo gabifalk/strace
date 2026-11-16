@@ -46,16 +46,10 @@ print_genlmsghdr_fields(const struct genlmsghdr *const hdr,
 			const char *const cmd)
 {
 	jsonl_struct_open();
-	jsonl_field_open("cmd", true);
-	jsonl_const(hdr->cmd, true, cmd, NULL);
-	jsonl_field_close();
-	jsonl_field_open("version", false);
-	jsonl_unsigned(hdr->version);
-	jsonl_field_close();
+	jsonl_field_const("cmd", true, hdr->cmd, cmd, NULL);
+	jsonl_field_unsigned("version", false, hdr->version);
 	if (hdr->reserved) {
-		jsonl_field_open("reserved", false);
-		jsonl_hex(hdr->reserved);
-		jsonl_field_close();
+		jsonl_field_hex("reserved", false, hdr->reserved);
 	}
 	jsonl_struct_close();
 }

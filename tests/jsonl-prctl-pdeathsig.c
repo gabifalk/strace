@@ -88,7 +88,7 @@ emit_get(int sig, const char *sym, long rc)
 	}
 	jsonl_arg_open(1, "sig", merged ? "exit" : NULL);
 	jsonl_signal(sig, sym);
-	printf(", \"indirect\": true");
+	jsonl_indirect();
 	jsonl_arg_close(merged ? "exit" : NULL);
 	printf("], ");
 	jsonl_return("unsigned", rc);

@@ -45,13 +45,6 @@ jsonl_open(int fd)
 	jsonl_arg_close(side);
 }
 
-static void
-jsonl_addrlen(socklen_t len, const char *extra)
-{
-	printf("\"type\": \"decimal\", \"raw\": \"%u\", \"indirect\": true%s",
-	       (unsigned int) len, extra);
-}
-
 /* Both addr and addrlen are printed as pointers on entering. */
 static void
 jsonl_undecoded(int fd, const void *addr, const void *plen, long rc)

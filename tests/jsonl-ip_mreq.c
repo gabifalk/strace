@@ -54,9 +54,7 @@ jsonl_ipv6_mreq(void)
 	jsonl_field_open("ipv6mr_multiaddr", true);
 	jsonl_ip_addr(ARG_STR(AF_INET6), multi6addr);
 	jsonl_field_close();
-	jsonl_field_open("ipv6mr_interface", false);
-	jsonl_ifindex(lo_ifindex, "lo");
-	jsonl_field_close();
+	jsonl_field_ifindex("ipv6mr_interface", false, lo_ifindex, "lo");
 	jsonl_struct_close();
 }
 

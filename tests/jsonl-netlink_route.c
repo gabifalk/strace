@@ -23,41 +23,6 @@ static const struct strval32 nlm_f_request[] = {
 	{ ARG_STR(NLM_F_REQUEST) }
 };
 
-/* A struct field that follows another field and holds a single flag. */
-static void
-flag_field(const char *name, uint32_t val, const char *sym)
-{
-	const struct strval32 flag = { val, sym };
-
-	jsonl_field_open(name, false);
-	jsonl_flags(val, &flag, 1, NULL);
-	jsonl_field_close();
-}
-
-static void
-const_field(const char *name, uint32_t val, const char *sym)
-{
-	jsonl_field_open(name, false);
-	jsonl_const(val, true, sym, NULL);
-	jsonl_field_close();
-}
-
-static void
-u_field(const char *name, unsigned int val)
-{
-	jsonl_field_open(name, false);
-	jsonl_unsigned(val);
-	jsonl_field_close();
-}
-
-static void
-ifindex_lo_field(const char *name)
-{
-	jsonl_field_open(name, false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
-}
-
 /*
  * A struct value up to the end of its first field, the address family;
  * sym is NULL when the address family is unknown.
@@ -66,9 +31,7 @@ static void
 family_open(const char *name, unsigned int family, const char *sym)
 {
 	jsonl_struct_open();
-	jsonl_field_open(name, true);
-	jsonl_const(family, true, sym, "AF_???");
-	jsonl_field_close();
+	jsonl_field_const(name, true, family, sym, "AF_???");
 }
 
 /* The variable arguments print the fields of the payload value. */
@@ -269,13 +232,15 @@ test_rtnl_link(const int fd, void *const nlh0)
 	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
 		TEST_NL_ROUTE_(fd, nlh0, types[i].val, types[i].str, ifinfo,
 			       "ifi_family",
-			       const_field("ifi_type",
-					   ARG_STR(ARPHRD_LOOPBACK));
-			       ifindex_lo_field("ifi_index");
-			       flag_field("ifi_flags", ARG_STR(IFF_UP));
-			       jsonl_field_open("ifi_change", false);
-			       jsonl_hex(ifinfo.ifi_change);
-			       jsonl_field_close());
+			       jsonl_field_const("ifi_type", false,
+						 ARG_STR(ARPHRD_LOOPBACK),
+						 NULL);
+			       jsonl_field_ifindex("ifi_index", false,
+						   ifindex_lo(), "lo");
+			       jsonl_field_flag("ifi_flags", false,
+						ARG_STR(IFF_UP));
+			       jsonl_field_hex("ifi_change", false,
+					       ifinfo.ifi_change));
 	}
 }
 
@@ -304,12 +269,15 @@ test_rtnl_addr(const int fd, void *const nlh0)
 	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
 		TEST_NL_ROUTE_(fd, nlh0, types[i].val, types[i].str, msg,
 			       "ifa_family",
-			       u_field("ifa_prefixlen", msg.ifa_prefixlen);
-			       flag_field("ifa_flags",
-					  ARG_STR(IFA_F_SECONDARY));
-			       const_field("ifa_scope",
-					   ARG_STR(RT_SCOPE_UNIVERSE));
-			       ifindex_lo_field("ifa_index"));
+			       jsonl_field_unsigned("ifa_prefixlen", false,
+						    msg.ifa_prefixlen);
+			       jsonl_field_flag("ifa_flags", false,
+						ARG_STR(IFA_F_SECONDARY));
+			       jsonl_field_const("ifa_scope", false,
+						 ARG_STR(RT_SCOPE_UNIVERSE),
+						 NULL);
+			       jsonl_field_ifindex("ifa_index", false,
+						   ifindex_lo(), "lo"));
 	}
 
 	test_rtnl_unknown_msg(fd, nlh0, RTM_NEWADDR + 3);
@@ -340,17 +308,24 @@ test_rtnl_route(const int fd, void *const nlh0)
 	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
 		TEST_NL_ROUTE_(fd, nlh0, types[i].val, types[i].str, msg,
 			       "rtm_family",
-			       u_field("rtm_dst_len", msg.rtm_dst_len);
-			       u_field("rtm_src_len", msg.rtm_src_len);
-			       flag_field("rtm_tos", ARG_STR(IPTOS_LOWDELAY));
-			       const_field("rtm_table",
-					   ARG_STR(RT_TABLE_DEFAULT));
-			       const_field("rtm_protocol",
-					   ARG_STR(RTPROT_KERNEL));
-			       const_field("rtm_scope",
-					   ARG_STR(RT_SCOPE_UNIVERSE));
-			       const_field("rtm_type", ARG_STR(RTN_LOCAL));
-			       flag_field("rtm_flags", ARG_STR(RTM_F_NOTIFY)));
+			       jsonl_field_unsigned("rtm_dst_len", false,
+						    msg.rtm_dst_len);
+			       jsonl_field_unsigned("rtm_src_len", false,
+						    msg.rtm_src_len);
+			       jsonl_field_flag("rtm_tos", false,
+						ARG_STR(IPTOS_LOWDELAY));
+			       jsonl_field_const("rtm_table", false,
+						 ARG_STR(RT_TABLE_DEFAULT),
+						 NULL);
+			       jsonl_field_const("rtm_protocol", false,
+						 ARG_STR(RTPROT_KERNEL), NULL);
+			       jsonl_field_const("rtm_scope", false,
+						 ARG_STR(RT_SCOPE_UNIVERSE),
+						 NULL);
+			       jsonl_field_const("rtm_type", false,
+						 ARG_STR(RTN_LOCAL), NULL);
+			       jsonl_field_flag("rtm_flags", false,
+						ARG_STR(RTM_F_NOTIFY)));
 	}
 
 	test_rtnl_unknown_msg(fd, nlh0, RTM_NEWROUTE + 3);

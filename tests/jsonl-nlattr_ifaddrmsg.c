@@ -78,32 +78,15 @@ init_ifaddrmsg(struct nlmsghdr *const nlh, const unsigned int msg_len)
 static void
 print_ifaddrmsg(const unsigned int msg_len)
 {
-	static const struct strval32 nlmsg_flags[] = {
-		{ ARG_STR(NLM_F_DUMP) }
-	};
-
-	printf("{");
-	jsonl_nlmsghdr_vals(msg_len, ARG_STR(RTM_GETADDR), NULL,
-			    NLM_F_DUMP, nlmsg_flags, ARRAY_SIZE(nlmsg_flags));
-	printf("}, {");
+	jsonl_nlmsghdr_dump_open(msg_len, ARG_STR(RTM_GETADDR));
 	jsonl_struct_open();
-	jsonl_field_open("ifa_family", true);
-	jsonl_const(ifa_family, true, ifa_family_str, NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifa_prefixlen", false);
-	jsonl_unsigned(0);
-	jsonl_field_close();
-	jsonl_field_open("ifa_flags", false);
-	jsonl_flags(ARR_ITEM(ifa_flags, idx), ifa_f_flags,
-		    ARRAY_SIZE(ifa_f_flags), "IFA_F_???");
-	jsonl_field_close();
-	jsonl_field_open("ifa_scope", false);
-	jsonl_const(ARR_ITEM(ifa_scopes, idx).val, true,
-		    ARR_ITEM(ifa_scopes, idx).str, NULL);
-	jsonl_field_close();
-	jsonl_field_open("ifa_index", false);
-	jsonl_ifindex(ifindex_lo(), "lo");
-	jsonl_field_close();
+	jsonl_field_const("ifa_family", true, ifa_family, ifa_family_str, NULL);
+	jsonl_field_unsigned("ifa_prefixlen", false, 0);
+	jsonl_field_flags("ifa_flags", false, ARR_ITEM(ifa_flags, idx),
+			  ifa_f_flags, ARRAY_SIZE(ifa_f_flags), "IFA_F_???");
+	jsonl_field_const("ifa_scope", false, ARR_ITEM(ifa_scopes, idx).val,
+			  ARR_ITEM(ifa_scopes, idx).str, NULL);
+	jsonl_field_ifindex("ifa_index", false, ifindex_lo(), "lo");
 	jsonl_struct_close();
 	printf("}");
 }

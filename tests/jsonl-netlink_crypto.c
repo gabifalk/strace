@@ -40,15 +40,9 @@ test_hdr(const int fd, const unsigned int type, const char *const type_sym,
 	jsonl_nlmsghdr_type_open(nlh.nlmsg_len);
 	jsonl_const(type, true, type_sym, NULL);
 	jsonl_field_close();
-	jsonl_field_open("nlmsg_flags", false);
-	jsonl_flags(flags, known, n, dflt);
-	jsonl_field_close();
-	jsonl_field_open("nlmsg_seq", false);
-	jsonl_unsigned(nlh.nlmsg_seq);
-	jsonl_field_close();
-	jsonl_field_open("nlmsg_pid", false);
-	jsonl_decimal(nlh.nlmsg_pid);
-	jsonl_field_close();
+	jsonl_field_flags("nlmsg_flags", false, flags, known, n, dflt);
+	jsonl_field_unsigned("nlmsg_seq", false, nlh.nlmsg_seq);
+	jsonl_field_pid("nlmsg_pid", false, "tgid", nlh.nlmsg_pid);
 	jsonl_struct_close();
 	jsonl_nl_sendto_close();
 }
@@ -87,12 +81,6 @@ test_nlmsg_flags(const int fd)
 }
 
 static void
-jsonl_nl_string(const void *const p, const size_t len)
-{
-	jsonl_string_value(p, len, false);
-}
-
-static void
 print_str_field(const char *const name, const char *const str,
 		const size_t size, const bool first)
 {
@@ -116,18 +104,10 @@ print_crypto_user_alg(const struct crypto_user_alg *const alg)
 			sizeof(alg->cru_driver_name), false);
 	print_str_field("cru_module_name", alg->cru_module_name,
 			sizeof(alg->cru_module_name), false);
-	jsonl_field_open("cru_type", false);
-	jsonl_hex(alg->cru_type);
-	jsonl_field_close();
-	jsonl_field_open("cru_mask", false);
-	jsonl_hex(alg->cru_mask);
-	jsonl_field_close();
-	jsonl_field_open("cru_refcnt", false);
-	jsonl_unsigned(alg->cru_refcnt);
-	jsonl_field_close();
-	jsonl_field_open("cru_flags", false);
-	jsonl_hex(alg->cru_flags);
-	jsonl_field_close();
+	jsonl_field_hex("cru_type", false, alg->cru_type);
+	jsonl_field_hex("cru_mask", false, alg->cru_mask);
+	jsonl_field_unsigned("cru_refcnt", false, alg->cru_refcnt);
+	jsonl_field_hex("cru_flags", false, alg->cru_flags);
 	jsonl_struct_close();
 }
 
