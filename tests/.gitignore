@@ -681,6 +681,7 @@ jsonl-recvmsg
 jsonl-seccomp-filter
 jsonl-sendfile
 jsonl-signalfd4
+jsonl-sendmmsg
 jsonl-sock_filter
 jsonl-prctl-dumpable
 jsonl-prctl-mce-kill

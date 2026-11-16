@@ -700,6 +700,7 @@ jsonl-merged-recvmsg	-e trace=recvmsg
 jsonl-merged-seccomp-filter	-e trace=seccomp -v
 jsonl-merged-sendfile	-e trace=sendfile
 jsonl-merged-signalfd4	-yy -e trace=signalfd4
+jsonl-merged-sendmmsg	-e verbose=none -e write=all -e trace=sendmmsg
 jsonl-merged-sock_filter	-e trace=setsockopt,getsockopt -v
 jsonl-merged-prctl-dumpable	-e trace=prctl
 jsonl-merged-prctl-mce-kill	-e trace=prctl
@@ -892,6 +893,7 @@ jsonl-split-recvmsg	-e trace=recvmsg
 jsonl-split-seccomp-filter	-e trace=seccomp -v
 jsonl-split-sendfile	-e trace=sendfile
 jsonl-split-signalfd4	-yy -e trace=signalfd4
+jsonl-split-sendmmsg	-e verbose=none -e write=all -e trace=sendmmsg
 jsonl-split-sock_filter	-e trace=setsockopt,getsockopt -v
 jsonl-split-prctl-dumpable	-e trace=prctl
 jsonl-split-prctl-mce-kill	-e trace=prctl
