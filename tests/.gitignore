@@ -580,6 +580,7 @@ jsonl-stopped
 jsonl-sysinfo
 jsonl-ustat
 jsonl-utime
+jsonl-v4l2
 jsonl-vfork-f
 kcmp
 kcmp-y

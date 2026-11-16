@@ -323,6 +323,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sysinfo \
 	jsonl-ustat \
 	jsonl-utime \
+	jsonl-v4l2 \
 	jsonl-vfork-f \
 	kcmp-y--pidns-translation \
 	kill--pidns-translation \
@@ -1014,6 +1015,7 @@ EXTRA_DIST = \
 	jsonl-sysinfo.c \
 	jsonl-ustat.c \
 	jsonl-utime.c \
+	jsonl-v4l2.c \
 	jsonl-vfork-f.c \
 	jsonl.h \
 	jsonl-ioctl.sh \
