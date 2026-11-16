@@ -1829,6 +1829,12 @@ tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 }
 
 void
+tprint_fract(unsigned int numerator, unsigned int denominator)
+{
+	STRACE_PRINTF("%u/%u", numerator, denominator);
+}
+
+void
 tprint_port_range(unsigned int ports)
 {
 	const unsigned short lo = ports & 0xffff;
@@ -1869,6 +1875,36 @@ tprint_negated_end(void)
 	if (structured_output) {
 		tprint_object_end();
 		tprint_object_field_end();
+	}
+}
+
+void
+tprint_fourcc(unsigned int fourcc, const char *name)
+{
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
+		PRINT_VAL_X(fourcc);
+	} else {
+		unsigned char a[] = {
+			(unsigned char) fourcc,
+			(unsigned char) (fourcc >> 8),
+			(unsigned char) (fourcc >> 16),
+			(unsigned char) (fourcc >> 24),
+		};
+
+		tprints_fn_begin("v4l2_fourcc");
+		/* Generic char array printing routine.  */
+		for (unsigned int i = 0; i < ARRAY_SIZE(a); ++i) {
+			unsigned char c = a[i];
+
+			if (i)
+				tprint_fn_next();
+
+			print_char(c, SCF_QUOTES);
+		}
+		tprint_fn_end();
+
+		if (name)
+			tprints_comment(name);
 	}
 }
 

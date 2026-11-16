@@ -371,6 +371,8 @@ extern void tprint_sysret_result_list_end(void);
 extern void tprints_namespace(const char *link);
 extern void tprints_xlat_dflt_only(unsigned long long val, const char *dflt);
 extern void tprint_fd_num(int fd);
+extern void tprint_fract(unsigned int numerator, unsigned int denominator);
+extern void tprint_fourcc(unsigned int fourcc, const char *name);
 extern void tprint_port_range(unsigned int ports);
 extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);

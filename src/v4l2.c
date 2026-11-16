@@ -37,7 +37,6 @@ typedef struct v4l2_window struct_v4l2_window;
 
 #include MPERS_DEFS
 
-#include "print_utils.h"
 #include "xstring.h"
 
 #include "xlat/v4l2_meta_fmts.h"
@@ -62,44 +61,14 @@ print_v4l2_rect(const MPERS_PTR_ARG(struct v4l2_rect *) const arg)
 #define PRINT_FIELD_FRACT(where_, field_)			\
 	do {							\
 		tprints_field_name(#field_);			\
-		tprintf_string("%u/%u",				\
-			      (where_).field_.numerator,	\
-			      (where_).field_.denominator);	\
+		tprint_fract((where_).field_.numerator,		\
+			     (where_).field_.denominator);	\
 	} while (0)
 
 static void
 print_pixelformat(uint32_t fourcc, const struct xlat *xlat)
 {
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
-		PRINT_VAL_X(fourcc);
-		return;
-	}
-
-	unsigned char a[] = {
-		(unsigned char) fourcc,
-		(unsigned char) (fourcc >> 8),
-		(unsigned char) (fourcc >> 16),
-		(unsigned char) (fourcc >> 24),
-	};
-
-	tprints_fn_begin("v4l2_fourcc");
-	/* Generic char array printing routine.  */
-	for (unsigned int i = 0; i < ARRAY_SIZE(a); ++i) {
-		unsigned char c = a[i];
-
-		if (i)
-			tprint_fn_next();
-
-		print_char(c, SCF_QUOTES);
-	}
-	tprint_fn_end();
-
-	if (xlat) {
-		const char *pixfmt_name = xlookup(xlat, fourcc);
-
-		if (pixfmt_name)
-			tprints_comment(pixfmt_name);
-	}
+	tprint_fourcc(fourcc, xlat ? xlookup(xlat, fourcc) : NULL);
 }
 
 #define PRINT_FIELD_PIXFMT(where_, field_, xlat_)	\
