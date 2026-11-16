@@ -276,7 +276,8 @@ extern void tprint_fd_info_dev(const char *path, const char *kind,
 			       unsigned int major, unsigned int minor,
 			       int tty_index, const char *tun_backend);
 extern void tprint_fd_info_pidfd(int pid);
-extern void tprints_fd_info_signalfd(const char *sigmask);
+extern void tprint_fd_info_signalfd_begin(void);
+extern void tprint_fd_info_signalfd_end(void);
 extern void tprint_fd_info_eventfd(const char *count, int id, int semaphore);
 extern void tprints_assoc_type_string(const char *type, const char *str,
 				      size_t len, bool deleted);

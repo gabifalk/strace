@@ -160,66 +160,6 @@ prepare_sigmask(const void *const sig_mask, const unsigned int bytes,
 	return mask;
 }
 
-const char *
-sprintsigmask_n(const char *prefix, const void *sig_mask, unsigned int bytes)
-{
-	/*
-	 * The maximum number of signal names to be printed
-	 * is NSIG_BYTES * 8 * 2 / 3.
-	 * Most of signal names have length 7,
-	 * average length of signal names is less than 7.
-	 * The length of prefix string does not exceed 16.
-	 */
-	static char outstr[128 + 8 * (NSIG_BYTES * 8 * 2 / 3)];
-
-	char *s;
-	const uint32_t *mask;
-	uint32_t inverted_mask[NSIG_BYTES / 4];
-	unsigned int size;
-	bool inverted;
-	char sep;
-
-	s = stpcpy(outstr, prefix);
-
-	mask = prepare_sigmask(sig_mask, bytes, inverted_mask, &size,
-			       &inverted);
-	if (inverted)
-		*s++ = '~';
-
-	sep = '[';
-	for (int i = 0; (i = next_set_bit(mask, i, size * (4 * 8))) >= 0; ) {
-		++i;
-		*s++ = sep;
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-			s = xappendstr(outstr, s, "%u", i);
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			s = xappendstr(outstr, s, " /* ");
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-			if ((unsigned) i < nsignals) {
-				s = stpcpy(s, signalent[i] + 3);
-			}
-#ifdef ASM_SIGRTMAX
-			else if (i >= ASM_SIGRTMIN && i <= ASM_SIGRTMAX) {
-				s = xappendstr(outstr, s, "RT_%u",
-					       i - ASM_SIGRTMIN);
-			}
-#endif
-			else if (xlat_verbose(xlat_verbosity)
-				 != XLAT_STYLE_ABBREV) {
-				s = xappendstr(outstr, s, "%u", i);
-			}
-		}
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-			s = xappendstr(outstr, s, " */");
-		sep = ' ';
-	}
-	if (sep == '[')
-		*s++ = sep;
-	*s++ = ']';
-	*s = '\0';
-	return outstr;
-}
-
 void
 print_sigmask_n(const void *const sig_mask, const unsigned int bytes)
 {
