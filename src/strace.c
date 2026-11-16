@@ -921,19 +921,8 @@ printleader(struct tcb *tcp)
 		struct timespec ts;
 		clock_gettime(CLOCK_REALTIME, &ts);
 
-		time_t local = ts.tv_sec;
-		char str[MAX(sizeof("HH:MM:SS"), sizeof(local) * 3)];
-		struct tm *tm = localtime(&local);
-
-		if (tm)
-			strftime(str, sizeof(str), tflag_format, tm);
-		else
-			xsprintf(str, "%lld", (long long) local);
-		if (tflag_width)
-			tprintf_string("%s.%0*ld ", str, tflag_width,
-				       (long) ts.tv_nsec / tflag_scale);
-		else
-			tprintf_string("%s ", str);
+		tprint_timestamp(ts.tv_sec, ts.tv_nsec, tflag_format,
+				 tflag_width, tflag_scale);
 	}
 
 	if (rflag) {
@@ -948,13 +937,8 @@ printleader(struct tcb *tcp)
 		ts_sub(&dts, &ts, &ots);
 		ots = ts;
 
-		tprintf_string("%s%6ld",
-			       tflag_format ? "(+" : "", (long) dts.tv_sec);
-		if (rflag_width) {
-			tprintf_string(".%0*ld", rflag_width,
-				       (long) dts.tv_nsec / rflag_scale);
-		}
-		tprints_string(tflag_format ? ") " : " ");
+		tprint_relative_timestamp(dts.tv_sec, dts.tv_nsec, rflag_width,
+					  rflag_scale, tflag_format != NULL);
 	}
 
 	if (nflag)

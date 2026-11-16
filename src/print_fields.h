@@ -598,6 +598,11 @@ extern void tprint_reserved_bits(unsigned long long val, unsigned int from,
 				 unsigned int to);
 extern void tprint_unused_bits(unsigned long long val, unsigned int first,
 			       unsigned int last);
+extern void tprint_timestamp(long long sec, long nsec, const char *format,
+			     unsigned int width, unsigned int scale);
+extern void tprint_relative_timestamp(long long sec, long nsec,
+				      unsigned int width, unsigned int scale,
+				      bool with_absolute);
 extern void tprint_syscall_duration(long long sec, long nsec);
 extern void tprint_sysret_injected(void);
 extern void tprint_sysret_end(void);

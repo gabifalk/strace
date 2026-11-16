@@ -3954,6 +3954,34 @@ tprint_unused_bits(unsigned long long val, unsigned int first,
 }
 
 void
+tprint_timestamp(long long sec, long nsec, const char *format,
+		 unsigned int width, unsigned int scale)
+{
+	time_t local = sec;
+	char str[MAX(sizeof("HH:MM:SS"), sizeof(local) * 3)];
+	struct tm *tm = localtime(&local);
+
+	if (tm)
+		strftime(str, sizeof(str), format, tm);
+	else
+		xsprintf(str, "%lld", (long long) local);
+	if (width)
+		tprintf_string("%s.%0*ld ", str, width, (long) (nsec / scale));
+	else
+		tprintf_string("%s ", str);
+}
+
+void
+tprint_relative_timestamp(long long sec, long nsec, unsigned int width,
+			  unsigned int scale, bool with_absolute)
+{
+	tprintf_string("%s%6ld", with_absolute ? "(+" : "", (long) sec);
+	if (width)
+		tprintf_string(".%0*ld", width, (long) (nsec / scale));
+	tprints_string(with_absolute ? ") " : " ");
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {
