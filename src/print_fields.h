@@ -310,6 +310,7 @@ extern void tprint_symbolic_mode(unsigned int mode, const char *ifmt);
 extern void tprint_dev_t(unsigned long long dev, unsigned int dev_major,
 			 unsigned int dev_minor);
 extern void tprint_err(long long err, bool negated, const char *name);
+extern void tprint_ifindex(unsigned int ifindex, const char *name);
 extern void tprint_flags_groups_begin(unsigned long long raw);
 extern void tprint_flags_groups_next(void);
 extern void tprint_flags_groups_end(void);

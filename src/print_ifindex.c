@@ -9,10 +9,7 @@
 #include <net/if.h>
 
 #ifdef HAVE_IF_INDEXTONAME
-# include "xstring.h"
 
-# define INI_PFX "if_nametoindex(\""
-# define INI_SFX "\")"
 # define IFNAME_QUOTED_SZ (IFNAMSIZ * 4 + 3)
 
 const char *
@@ -32,21 +29,6 @@ get_ifname(const unsigned int ifindex)
 	return name_quoted_buf;
 }
 
-static const char *
-sprint_ifname(const unsigned int ifindex)
-{
-	static char res[IFNAME_QUOTED_SZ + sizeof(INI_PFX INI_SFX)];
-
-	const char *name_quoted = get_ifname(ifindex);
-
-	if (!name_quoted)
-		return NULL;
-
-	xsprintf(res, INI_PFX "%s" INI_SFX, name_quoted);
-
-	return res;
-}
-
 #else /* !HAVE_IF_INDEXTONAME */
 
 const char *get_ifname(const unsigned int ifindex) { return NULL; }
@@ -56,9 +38,5 @@ const char *get_ifname(const unsigned int ifindex) { return NULL; }
 void
 print_ifindex(const unsigned int ifindex)
 {
-#ifdef HAVE_IF_INDEXTONAME
-	print_xlat_ex(ifindex, sprint_ifname(ifindex), XLAT_STYLE_FMT_U);
-#else
-	PRINT_VAL_U(ifindex);
-#endif
+	tprint_ifindex(ifindex, get_ifname(ifindex));
 }

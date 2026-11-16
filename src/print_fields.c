@@ -2091,6 +2091,15 @@ tprint_err(long long err, bool negated, const char *name)
 }
 
 void
+tprint_ifindex(unsigned int ifindex, const char *name)
+{
+	char *str = name ? xasprintf("if_nametoindex(\"%s\")", name) : NULL;
+
+	print_xlat_ex(ifindex, str, XLAT_STYLE_FMT_U);
+	free(str);
+}
+
+void
 tprint_addr(unsigned long long addr)
 {
 	PRINT_VAL_ADDR(addr);
