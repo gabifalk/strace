@@ -11,38 +11,44 @@
 #include "xlat/personality_types.h"
 
 
+static void
+print_personality(unsigned int pers)
+{
+	tprint_flags_begin();
+	printxval(personality_types, pers & PER_MASK, "PER_???");
+	pers &= ~PER_MASK;
+	if (pers) {
+		tprint_flags_or();
+		printflags_in(personality_flags, pers, NULL);
+	}
+	tprint_flags_end();
+}
+
+static void
+print_personality_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("");
+	print_personality(val);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(personality)
 {
-	unsigned int pers;
-
 	if (entering(tcp)) {
-		pers = tcp->u_arg[0];
+		const unsigned int pers = tcp->u_arg[0];
+
 		tprints_arg_name("persona");
-		if (0xffffffff == pers) {
+		if (0xffffffff == pers)
 			PRINT_VAL_X(0xffffffff);
-		} else {
-			tprint_flags_begin();
-			printxval(personality_types, pers & PER_MASK, "PER_???");
-			pers &= ~PER_MASK;
-			if (pers) {
-				tprint_flags_or();
-				printflags_in(personality_flags, pers, NULL);
-			}
-			tprint_flags_end();
-		}
+		else
+			print_personality(pers);
 		return 0;
 	}
 
 	if (syserror(tcp))
 		return 0;
 
-	pers = tcp->u_rval;
-	static char outstr[1024];
-	char *p = outstr + sprintxval(outstr, sizeof(outstr), personality_types,
-				      pers & PER_MASK, "PER_???");
-	pers &= ~PER_MASK;
-	if (pers)
-		strcpy(p, sprintflags("|", personality_flags, pers));
-	tcp->auxstr = outstr;
-	return RVAL_HEX | RVAL_STR;
+	tcp->rval_result_printer = print_personality_result;
+	return RVAL_RESULT;
 }
