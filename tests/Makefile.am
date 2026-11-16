@@ -309,6 +309,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_random \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
+	jsonl-kill \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-lsm_set_self_attr \
@@ -1077,6 +1078,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_random.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
+	jsonl-kill.c \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-lsm_set_self_attr.c \

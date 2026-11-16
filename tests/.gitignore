@@ -566,6 +566,7 @@ jsonl-ioctl_lirc
 jsonl-ioctl_random
 jsonl-ip_mreq
 jsonl-keyctl
+jsonl-kill
 jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-lsm_set_self_attr
