@@ -332,6 +332,9 @@ extern void tprints_shift_value_xlat_u(unsigned long long raw,
 				      unsigned int amount, const char *shift);
 extern void tprint_mac_addr(const void *addr, unsigned int size,
 			    const char *str);
+extern void tprint_fn_hton_begin(unsigned int size);
+extern void tprint_fn_hton_end(unsigned int size);
+extern void tprint_net_port(const void *raw, unsigned int port);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_secontext(const char *ctx, unsigned int ctx_len,
 			     const char *expected, unsigned int expected_len,
@@ -863,29 +866,11 @@ tprint_sysret_interrupted(void)
 
 # define PRINT_FIELD_NET_PORT(where_, field_)				\
 	do {								\
+		static_assert(sizeof((where_).field_) == 2,		\
+			      "unexpected size of " #field_);		\
 		tprints_field_name(#field_);				\
-									\
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)	\
-			print_quoted_string((const char *)		\
-					&(where_).field_,		\
-					sizeof((where_).field_),	\
-					QUOTE_FORCE_HEX);		\
-									\
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)	\
-			break;						\
-									\
-		if (xlat_verbose(xlat_verbosity)			\
-				== XLAT_STYLE_VERBOSE)			\
-			tprint_comment_begin();				\
-									\
-		tprints_fn_begin("htons");				\
-		unsigned short us_ = ntohs((where_).field_);		\
-		PRINT_VAL_U(us_);					\
-		tprint_fn_end();					\
-									\
-		if (xlat_verbose(xlat_verbosity)			\
-				== XLAT_STYLE_VERBOSE)			\
-			tprint_comment_end();				\
+		tprint_net_port(&(where_).field_,			\
+				ntohs((where_).field_));		\
 	} while (0)
 
 # define PRINT_FIELD_IFINDEX(where_, field_)				\

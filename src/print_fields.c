@@ -2199,6 +2199,39 @@ tprint_mac_addr(const void *addr, unsigned int size, const char *str)
 }
 
 void
+tprint_fn_hton_begin(unsigned int size)
+{
+	tprints_fn_begin(size == 2 ? "htons" : size == 4 ? "htonl"
+							 : "htobe64");
+}
+
+void
+tprint_fn_hton_end(unsigned int size)
+{
+	tprint_fn_end();
+}
+
+void
+tprint_net_port(const void *raw, unsigned int port)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		print_quoted_string(raw, 2, QUOTE_FORCE_HEX);
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+		return;
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_begin();
+
+	tprint_fn_hton_begin(2);
+	PRINT_VAL_U(port);
+	tprint_fn_hton_end(2);
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_end();
+}
+
+void
 tprint_addr(unsigned long long addr)
 {
 	PRINT_VAL_ADDR(addr);

@@ -476,9 +476,9 @@ print_sockaddr_data_ipx(struct tcb *tcp, const void *const buf,
 	PRINT_FIELD_NET_PORT(*sa_ipx, sipx_port);
 	tprint_struct_next();
 	tprints_field_name("sipx_network");
-	tprints_fn_begin("htonl");
+	tprint_fn_hton_begin(4);
 	PRINT_VAL_X(ntohl(sa_ipx->sipx_network));
-	tprint_fn_end();
+	tprint_fn_hton_end(4);
 	tprint_struct_next();
 	PRINT_FIELD_VAL_ARRAY(*sa_ipx, sipx_node, PRINT_VAL_0X);
 	tprint_struct_next();

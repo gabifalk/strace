@@ -287,11 +287,11 @@ DECL_NLA(xval)
 	if (!umoven_to_uint64_or_printaddr(tcp, addr, fetch_len, &data)) {
 		if (opts->process_fn)
 			data = opts->process_fn(data);
-		if (opts->fn_str)
-			tprints_fn_begin(opts->fn_str);
+		if (opts->hton_size)
+			tprint_fn_hton_begin(opts->hton_size);
 		printxval_ex(opts->xlat, data, opts->dflt, opts->style);
-		if (opts->fn_str)
-			tprint_fn_end();
+		if (opts->hton_size)
+			tprint_fn_hton_end(opts->hton_size);
 	}
 
 	return true;
@@ -310,7 +310,7 @@ DECL_NLA(ether_proto)
 		.dflt = "ETHER_P_???",
 		.size = 2,
 		.process_fn = process_host_order,
-		.fn_str     = "htons",
+		.hton_size  = 2,
 	};
 
 	return decode_nla_xval(tcp, addr, len, &opts);
@@ -379,13 +379,13 @@ DECL_NLA(flags)
 	if (!umoven_to_uint64_or_printaddr(tcp, addr, fetch_len, &data)) {
 		if (opts->process_fn)
 			data = opts->process_fn(data);
-		if (opts->fn_str)
-			tprints_fn_begin(opts->fn_str);
+		if (opts->hton_size)
+			tprint_fn_hton_begin(opts->hton_size);
 		tprint_flags_begin();
 		printflags_ex(data, opts->dflt, opts->style, opts->xlat, NULL);
 		tprint_flags_end();
-		if (opts->fn_str)
-			tprint_fn_end();
+		if (opts->hton_size)
+			tprint_fn_hton_end(opts->hton_size);
 	}
 
 	return true;
@@ -425,9 +425,9 @@ DECL_NLA(be16)
 	if (len < sizeof(num))
 		return false;
 	else if (!umove_or_printaddr(tcp, addr, &num)) {
-		tprints_fn_begin("htons");
+		tprint_fn_hton_begin(2);
 		PRINT_VAL_U(ntohs(num));
-		tprint_fn_end();
+		tprint_fn_hton_end(2);
 	}
 
 	return true;
@@ -440,9 +440,9 @@ DECL_NLA(be32)
 	if (len < sizeof(num))
 		return false;
 	else if (!umove_or_printaddr(tcp, addr, &num)) {
-		tprints_fn_begin("htonl");
+		tprint_fn_hton_begin(4);
 		PRINT_VAL_U(ntohl(num));
-		tprint_fn_end();
+		tprint_fn_hton_end(4);
 	}
 
 	return true;
@@ -456,9 +456,9 @@ DECL_NLA(be64)
 	if (len < sizeof(num))
 		return false;
 	else if (!umove_or_printaddr(tcp, addr, &num)) {
-		tprints_fn_begin("htobe64");
+		tprint_fn_hton_begin(8);
 		PRINT_VAL_U(be64toh(num));
-		tprint_fn_end();
+		tprint_fn_hton_end(8);
 	}
 
 	return true;

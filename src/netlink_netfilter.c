@@ -57,9 +57,9 @@ decode_netlink_netfilter(struct tcb *const tcp,
 			print_xlat_ex(nfmsg.res_id, "NFNL_SUBSYS_NFTABLES",
 				      XLAT_STYLE_DEFAULT);
 		} else {
-			tprints_fn_begin("htons");
+			tprint_fn_hton_begin(2);
 			PRINT_VAL_U(res_id);
-			tprint_fn_end();
+			tprint_fn_hton_end(2);
 		}
 		tprint_struct_end();
 
