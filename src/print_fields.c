@@ -1012,15 +1012,28 @@ tprints_shift_value_xlat_u(unsigned long long raw, unsigned long long val,
 void
 tprint_shift_value_begin(unsigned long long raw)
 {
-	tprint_shift_begin();
+	if (structured_output) {
+		tprints_object_type("shift");
+		tprintf_object_field_string("raw", "%#llx", raw);
+		tprints_object_field_begin("value");
+		tprint_object_begin();
+	} else {
+		tprint_shift_begin();
+	}
 }
 
 void
 tprint_shift_value_end_u(unsigned int amount)
 {
-	tprint_shift();
-	PRINT_VAL_U(amount);
-	tprint_shift_end();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+		tprintf_object_field_string("shift", "%u", amount);
+	} else {
+		tprint_shift();
+		PRINT_VAL_U(amount);
+		tprint_shift_end();
+	}
 }
 
 void
