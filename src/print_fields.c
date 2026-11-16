@@ -2840,9 +2840,13 @@ tprints_sysret_result_field(const char *name, bool labeled)
 void
 tprints_sysret_result_field_eq(const char *name)
 {
-	tprint_sysret_result_sep();
-	STRACE_PRINTS(name);
-	STRACE_PRINTS("=");
+	if (structured_output) {
+		tprints_sysret_result_field(name, false);
+	} else {
+		tprint_sysret_result_sep();
+		STRACE_PRINTS(name);
+		STRACE_PRINTS("=");
+	}
 }
 
 void
