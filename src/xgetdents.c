@@ -31,8 +31,12 @@ decode_dents(struct tcb *const tcp, kernel_ulong_t addr, unsigned int len,
 					tprint_array_begin();
 					++count;
 				} else {
+					if (count)
+						tprint_object_begin();
 					printstr_ex(tcp, addr, len,
 						    QUOTE_FORCE_HEX);
+					if (count)
+						tprint_object_end();
 				}
 			}
 			break;
@@ -42,8 +46,7 @@ decode_dents(struct tcb *const tcp, kernel_ulong_t addr, unsigned int len,
 		if (!tfetch_mem(tcp, addr, header_size, &dent)) {
 			if (!abbrev(tcp)) {
 				if (count) {
-					tprint_more_data_follows();
-					printaddr_comment(addr);
+					tprint_array_element_fetch_failed(addr);
 				} else {
 					printaddr(addr);
 				}
@@ -60,6 +63,8 @@ decode_dents(struct tcb *const tcp, kernel_ulong_t addr, unsigned int len,
 
 		kernel_ulong_t next_addr = 0;
 		unsigned int next_len = 0;
+		if (!abbrev(tcp))
+			tprint_object_begin();
 		unsigned int d_reclen = decode_dentry_head(tcp, &dent);
 
 		if (d_reclen > len) {
@@ -94,6 +99,7 @@ decode_dents(struct tcb *const tcp, kernel_ulong_t addr, unsigned int len,
 			int rc = decode_dentry_tail(tcp, addr + header_size,
 						   &dent,
 						   d_reclen - header_size);
+			tprint_object_end();
 			if (next_addr) {
 				tprint_array_next();
 				if (rc < 0) {
