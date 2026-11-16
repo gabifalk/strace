@@ -400,6 +400,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-signal \
 	jsonl-status-none \
 	jsonl-stopped \
+	jsonl-superseded \
 	jsonl-sysinfo \
 	jsonl-ustat \
 	jsonl-utime \
@@ -626,6 +627,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 attach_f_p_LDADD = -lpthread $(LDADD)
 jsonl_access_secontext_LDADD = $(LDADD) $(libselinux_LDADD)
 jsonl_exit_args_lost_LDADD = -lpthread $(LDADD)
+jsonl_superseded_LDADD = -lpthread $(LDADD)
 bpf_obj_get_info_by_fd_LDADD = $(clock_LIBS) $(LDADD)
 bpf_obj_get_info_by_fd_v_LDADD = $(clock_LIBS) $(LDADD)
 bpf_obj_get_info_by_fd_prog_LDADD = $(clock_LIBS) $(LDADD)
@@ -1176,6 +1178,7 @@ EXTRA_DIST = \
 	jsonl-signal.c \
 	jsonl-status-none.c \
 	jsonl-stopped.c \
+	jsonl-superseded.c \
 	jsonl-sysinfo.c \
 	jsonl-ustat.c \
 	jsonl-utime.c \

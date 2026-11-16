@@ -657,6 +657,7 @@ jsonl-sigchld
 jsonl-signal
 jsonl-status-none
 jsonl-stopped
+jsonl-superseded
 jsonl-sysinfo
 jsonl-ustat
 jsonl-utime

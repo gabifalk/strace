@@ -676,6 +676,7 @@ jsonl-merged-sigchld	-e trace=none
 jsonl-merged-signal	-e trace=none
 jsonl-merged-status-none	-e trace=all --status=none
 jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
+jsonl-merged-superseded	-qq -f -e trace=none
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-ustat	-e trace=ustat
 jsonl-merged-utime	-e trace=utime
@@ -801,6 +802,7 @@ jsonl-split-sigchld	-e trace=none
 jsonl-split-signal	-e trace=none
 jsonl-split-status-none	-e trace=all --status=none
 jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
+jsonl-split-superseded	-qq -f -e trace=none
 jsonl-split-sysinfo	-e trace=sysinfo
 jsonl-split-ustat	-e trace=ustat
 jsonl-split-utime	-e trace=utime
