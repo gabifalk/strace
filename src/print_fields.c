@@ -1017,9 +1017,10 @@ tprint_var_count(unsigned long long addr, unsigned int count,
 		 bool unterminated)
 {
 	if (structured_output) {
-		tprints_object_type("var_count");
+		tprints_object_type("addr_count");
 		tprintf_object_field_string("raw", "%#llx", addr);
 		tprintf_object_field_string("count", "%u", count);
+		tprints_object_field_string("unit", "vars");
 		if (unterminated)
 			tprints_object_field_bool("unterminated", true);
 	} else {
@@ -1129,13 +1130,25 @@ tprint_char(unsigned char c)
 void
 tprint_dirent_count_begin(unsigned long long addr)
 {
-	printaddr64(addr);
+	if (structured_output) {
+		tprints_object_type("addr_count");
+		tprintf_object_field_string("raw", "%#llx", addr);
+	} else {
+		printaddr64(addr);
+	}
 }
 
 void
 tprint_dirent_count_end(unsigned int count, bool truncated)
 {
-	tprintf_comment("%u%s entries", count, truncated ? "+" : "");
+	if (structured_output) {
+		tprintf_object_field_string("count", "%u", count);
+		tprints_object_field_string("unit", "entries");
+		if (truncated)
+			tprints_object_field_bool("truncated", true);
+	} else {
+		tprintf_comment("%u%s entries", count, truncated ? "+" : "");
+	}
 }
 
 void
