@@ -694,6 +694,7 @@ jsonl-merged-poke	-e trace=dup,dup2 -e inject=dup:poke_enter=arg1=100 -e inject=
 jsonl-merged-ppoll	-e trace=ppoll
 jsonl-merged-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-merged-sched_getaffinity	-e trace=sched_getaffinity
+jsonl-merged-recvfrom	-e trace=recvfrom
 jsonl-merged-recvmsg	-e trace=recvmsg
 jsonl-merged-seccomp-filter	-e trace=seccomp -v
 jsonl-merged-sendfile	-e trace=sendfile
@@ -884,6 +885,7 @@ jsonl-split-poke	-e trace=dup,dup2 -e inject=dup:poke_enter=arg1=100 -e inject=d
 jsonl-split-ppoll	-e trace=ppoll
 jsonl-split-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-split-sched_getaffinity	-e trace=sched_getaffinity
+jsonl-split-recvfrom	-e trace=recvfrom
 jsonl-split-recvmsg	-e trace=recvmsg
 jsonl-split-seccomp-filter	-e trace=seccomp -v
 jsonl-split-sendfile	-e trace=sendfile

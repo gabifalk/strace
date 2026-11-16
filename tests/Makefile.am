@@ -418,6 +418,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ppoll \
 	jsonl-prctl \
 	jsonl-sched_getaffinity \
+	jsonl-recvfrom \
 	jsonl-recvmsg \
 	jsonl-seccomp-filter \
 	jsonl-sendfile \
@@ -1260,6 +1261,7 @@ EXTRA_DIST = \
 	jsonl-ppoll.c \
 	jsonl-prctl.c \
 	jsonl-sched_getaffinity.c \
+	jsonl-recvfrom.c \
 	jsonl-recvmsg.c \
 	jsonl-seccomp-filter.c \
 	jsonl-sendfile.c \
