@@ -120,6 +120,17 @@ tprints_arg_exiting_name(unsigned int index, const char *name)
 }
 
 void
+tprints_arg_exiting_changed_name(unsigned int index, const char *name)
+{
+}
+
+void
+tprint_value_changed_inout(void)
+{
+	tprint_value_changed();
+}
+
+void
 tprint_struct_exiting_abandon(void)
 {
 	if (!structured_output)

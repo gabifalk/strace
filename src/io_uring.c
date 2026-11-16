@@ -319,16 +319,17 @@ print_io_uring_probe(struct tcb *tcp, const kernel_ulong_t addr,
 	unsigned long printed = exiting(tcp) ? get_tcb_priv_ulong(tcp) : false;
 
 	if (exiting(tcp) && syserror(tcp)) {
-		if (!printed)
+		if (!printed) {
+			tprints_arg_exiting_name(2, "arg");
 			printaddr(addr);
+		}
 		return RVAL_DECODED;
 	}
 	if (nargs > 256) {
+		tprints_arg_next_name("arg");
 		printaddr(addr);
 		return RVAL_DECODED;
 	}
-	if (printed)
-		tprint_value_changed();
 
 	/* Maximum size is 8 * 256 + 16, a bit over 4k */
 	size_t probe_sz = sizeof(probe->ops[0]) * nargs + sizeof(*probe);
@@ -338,10 +339,25 @@ print_io_uring_probe(struct tcb *tcp, const kernel_ulong_t addr,
 	 * So far, the operation doesn't use any data from the arg provided,
 	 * but it checks that it is filled with zeroes.
 	 */
-	if (umoven_or_printaddr(tcp, addr, probe_sz, probe))
-		return RVAL_DECODED;
-	if (entering(tcp) && is_filled((const char *) probe, 0, probe_sz))
-		return 0;
+	if (entering(tcp)) {
+		if (!tfetch_mem(tcp, addr, probe_sz, probe)) {
+			tprints_arg_next_name("arg");
+			printaddr(addr);
+			return RVAL_DECODED;
+		}
+		if (is_filled((const char *) probe, 0, probe_sz)) {
+			tprints_arg_next_name_deferred("arg");
+			return 0;
+		}
+		tprints_arg_next_name("arg");
+	} else {
+		if (printed)
+			tprint_arg_exiting_changed_begin(2, "arg");
+		else
+			tprints_arg_exiting_name(2, "arg");
+		if (umoven_or_printaddr(tcp, addr, probe_sz, probe))
+			return RVAL_DECODED;
+	}
 	set_tcb_priv_ulong(tcp, true);
 
 	tprint_struct_begin();
@@ -365,6 +381,8 @@ print_io_uring_probe(struct tcb *tcp, const kernel_ulong_t addr,
 						? PAF_ARRAY_TRUNCATED : 0,
 			NULL, NULL);
 	tprint_struct_end();
+	if (entering(tcp))
+		tprint_arg_inout();
 
 	return 0;
 }
@@ -767,13 +785,17 @@ print_io_uring_buf_status(struct tcb *tcp, const kernel_ulong_t addr,
 	CHECK_TYPE_SIZE(arg.resv, 8 * sizeof(uint32_t));
 
 	if (nargs != 1) {
+		tprints_arg_next_name("arg");
 		printaddr(addr);
 		return RVAL_DECODED;
 	}
 
-	if (entering(tcp))
+	if (entering(tcp)) {
+		tprints_arg_next_name_deferred("arg");
 		return 0;
+	}
 
+	tprints_arg_exiting_name(2, "arg");
 	if (umove_or_printaddr(tcp, addr, &arg))
 		return RVAL_DECODED;
 
@@ -841,7 +863,7 @@ print_ioring_register_napi(struct tcb *tcp, const kernel_ulong_t addr,
 	if (exiting(tcp)) {
 		if (syserror(tcp))
 			return 0;
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(2, "arg");
 	}
 
 	if (nargs != 1) {
@@ -849,7 +871,10 @@ print_ioring_register_napi(struct tcb *tcp, const kernel_ulong_t addr,
 		return RVAL_DECODED;
 	}
 
-	return print_io_uring_napi(tcp, addr);
+	int rc = print_io_uring_napi(tcp, addr);
+	if (entering(tcp) && !rc)
+		tprint_arg_inout();
+	return rc;
 }
 
 static int
@@ -857,13 +882,17 @@ print_ioring_unregister_napi(struct tcb *tcp, const kernel_ulong_t addr,
 			     const unsigned int nargs)
 {
 	if (nargs != 1) {
+		tprints_arg_next_name("arg");
 		printaddr(addr);
 		return RVAL_DECODED;
 	}
 
-	if (entering(tcp))
+	if (entering(tcp)) {
+		tprints_arg_next_name_deferred("arg");
 		return 0;
+	}
 
+	tprints_arg_exiting_name(2, "arg");
 	print_io_uring_napi(tcp, addr);
 
 	return RVAL_DECODED;
@@ -1386,11 +1415,14 @@ print_io_uring_zcrx_ctrl(struct tcb *tcp, const kernel_ulong_t addr)
 		 * other ops return RVAL_DECODED on entry.
 		 */
 		if (tfetch_obj(tcp, addr, &arg)) {
-			tprint_struct_next();
+			tprint_struct_exiting_begin(2, "arg");
+			tprint_struct_exiting_next();
 			PRINT_FIELD_OBJ_TCB_PTR(arg, zc_export,
 					tcp, print_zcrx_ctrl_export);
+			tprint_struct_end();
+		} else {
+			tprint_struct_exiting_abandon();
 		}
-		tprint_struct_end();
 		return RVAL_DECODED;
 	}
 
@@ -1430,6 +1462,8 @@ print_io_uring_zcrx_ctrl(struct tcb *tcp, const kernel_ulong_t addr)
 		/* On entry, skip zc_export (zcrx_fd is 0, no meaningful input) */
 		/* Don't close structure - it will be closed on exit after adding zc_export */
 		/* Return 0 to indicate we need to decode on exit */
+		tprint_struct_mark_split();
+		tprint_struct_entering_end();
 		return 0;
 
 	case ZCRX_CTRL_ARM_EVENT:
@@ -1766,17 +1800,21 @@ static void
 print_io_uring_register_opcode(struct tcb *tcp, const unsigned int opcode,
 			       const unsigned int flags)
 {
-	if (flags)
-		tprint_flags_begin();
-
-	printxval(uring_register_opcodes, opcode, "IORING_REGISTER_???");
-
-	if (flags) {
-		tprint_flags_or();
-		printflags_in(uring_register_opcode_flags, flags, NULL);
-		tprint_flags_end();
+	if (!flags) {
+		printxval(uring_register_opcodes, opcode,
+			  "IORING_REGISTER_???");
+		return;
 	}
 
+	tprint_flags_groups_begin(opcode | flags);
+	tprint_flags_group_begin(opcode);
+	printxval(uring_register_opcodes, opcode, "IORING_REGISTER_???");
+	tprint_flags_group_end();
+	tprint_flags_groups_next();
+	tprint_flags_group_begin(flags);
+	printflags_in(uring_register_opcode_flags, flags, NULL);
+	tprint_flags_group_end();
+	tprint_flags_groups_end();
 }
 
 SYS_FUNC(io_uring_register)
@@ -1803,7 +1841,15 @@ SYS_FUNC(io_uring_register)
 		tprints_arg_next_name("opcode");
 		print_io_uring_register_opcode(tcp, opcode, opcode_flags);
 
-		tprints_arg_next_name("arg");
+		switch (opcode) {
+		case IORING_REGISTER_PROBE:
+		case IORING_REGISTER_PBUF_STATUS:
+		case IORING_UNREGISTER_NAPI:
+			/* The decoder prints the name.  */
+			break;
+		default:
+			tprints_arg_next_name("arg");
+		}
 	}
 
 	/* arg */
@@ -1838,9 +1884,11 @@ SYS_FUNC(io_uring_register)
 		print_affinitylist(tcp, arg, nargs);
 		break;
 	case IORING_REGISTER_IOWQ_MAX_WORKERS:
+		if (exiting(tcp))
+			tprints_arg_exiting_changed_name(2, "arg");
 		rc = print_io_uring_iowq_acct(tcp, arg, nargs);
 		if (entering(tcp) && !rc)
-			tprint_value_changed();
+			tprint_value_changed_inout();
 		break;
 	case IORING_REGISTER_RING_FDS:
 		print_io_uring_ringfds_register(tcp, arg, nargs);

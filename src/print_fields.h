@@ -272,6 +272,9 @@ extern void tprint_struct_exiting_changed_next(void);
 extern void tprint_arg_exiting_changed_begin(unsigned int index,
 					     const char *name);
 extern void tprints_arg_exiting_name(unsigned int index, const char *name);
+extern void tprints_arg_exiting_changed_name(unsigned int index,
+					     const char *name);
+extern void tprint_value_changed_inout(void);
 extern void tprint_struct_exiting_abandon(void);
 extern void tprint_struct_exiting_abandon_more_data(void);
 extern void tprint_struct_resumed_begin(void);
