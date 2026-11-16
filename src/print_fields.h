@@ -182,6 +182,17 @@ tprint_struct_fields_end(void)
 	return false;
 }
 
+static inline void
+tprint_flags_element_mark(void)
+{
+}
+
+static inline bool
+tprint_flags_element_open(void)
+{
+	return false;
+}
+
 extern void tprint_struct_begin(void);
 extern void tprint_struct_next(void);
 extern void tprint_struct_end(void);

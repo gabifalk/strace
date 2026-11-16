@@ -815,6 +815,7 @@ tprint_flags_value_begin(unsigned long long raw)
 		tprint_list_begin();
 		tprint_list_element_begin();
 		tprint_object_begin();
+		tprint_flags_element_mark();
 	} else {
 		tprint_flags_begin();
 	}
@@ -828,6 +829,7 @@ tprint_flags_value_or(void)
 		tprint_list_element_end();
 		tprint_list_element_begin();
 		tprint_object_begin();
+		tprint_flags_element_mark();
 	} else {
 		tprint_flags_or();
 	}
@@ -853,43 +855,64 @@ tprint_flags_value_end(void)
 bool
 tprint_xlat_flags_value_begin(unsigned long long raw)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(raw);
+	if (structured_output) {
+		tprint_flags_value_begin(raw);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			PRINT_VAL_X(raw);
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return false;
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return false;
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
 
-	tprint_flags_begin();
+		tprint_flags_begin();
+	}
 	return true;
 }
 
 void
 tprint_xlat_flags_value_end(void)
 {
-	tprint_flags_end();
+	if (structured_output) {
+		tprint_flags_value_end();
+	} else {
+		tprint_flags_end();
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	}
 }
 
 void
 tprints_flags_value_const(unsigned long long val, const char *sym)
 {
-	tprints_string(sym);
+	if (structured_output) {
+		tprints_object_type("const");
+		tprintf_object_field_string("raw", "%#llx", val);
+		tprints_object_field_string("sym", sym);
+	} else {
+		tprints_string(sym);
+	}
 }
 
 void
 tprints_shift_value(unsigned long long raw, unsigned long long val,
 		    const char *shift)
 {
-	tprint_shift_begin();
-	PRINT_VAL_U(val);
-	tprint_shift();
-	tprints_string(shift);
-	tprint_shift_end();
+	if (structured_output) {
+		tprints_object_type("shift");
+		tprintf_object_field_string("raw", "%#llx", raw);
+		tprintf_object_field_string("value", "%llu", val);
+		tprints_object_field_string("shift", shift);
+	} else {
+		tprint_shift_begin();
+		PRINT_VAL_U(val);
+		tprint_shift();
+		tprints_string(shift);
+		tprint_shift_end();
+	}
 }
 
 void
@@ -956,20 +979,23 @@ tprint_xlat_flags_begin(uint64_t flags, const char *dflt,
 			enum xlat_style style)
 {
 	if (structured_output) {
-		tprints_object_type("flags");
-		tprints_object_field_string("raw",
-					    sprint_xlat_val(flags, style));
-		tprints_object_field_begin("groups");
-		tprint_list_begin();
-		tprint_list_element_begin();
-		tprint_object_begin();
-		tprints_object_field_string("raw",
-					    sprint_xlat_val(flags, style));
-		tprints_object_field_string("group_type", "flags");
-		if (!dflt)
-			tprints_object_field_string("dflt_null", "true");
-		tprints_object_field_begin("elems");
-		tprint_list_begin();
+		if (!tprint_flags_element_open()) {
+			tprints_object_type("flags");
+			tprints_object_field_string("raw",
+				sprint_xlat_val(flags, style));
+			tprints_object_field_begin("groups");
+			tprint_list_begin();
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_field_string("raw",
+				sprint_xlat_val(flags, style));
+			tprints_object_field_string("group_type", "flags");
+			if (!dflt)
+				tprints_object_field_string("dflt_null",
+							    "true");
+			tprints_object_field_begin("elems");
+			tprint_list_begin();
+		}
 	} else {
 		if (xlat_verbose(style) == XLAT_STYLE_RAW) {
 			if (flags || dflt)
@@ -992,14 +1018,23 @@ tprints_xlat_flags_sym(const char *sym, uint64_t val, uint64_t flags,
 	const bool need_comment = xlat_verbose(style) == XLAT_STYLE_VERBOSE;
 
 	if (structured_output) {
-		tprint_list_element_begin();
-		tprint_object_begin();
-		tprints_object_type("const");
-		tprints_object_field_string("raw",
-					    sprint_xlat_val(val, style));
-		tprints_object_field_string("sym", sym);
-		tprint_object_end();
-		tprint_list_element_end();
+		if (tprint_flags_element_open()) {
+			if (n)
+				tprint_flags_value_or();
+			tprints_object_type("const");
+			tprints_object_field_string("raw",
+				sprint_xlat_val(val, style));
+			tprints_object_field_string("sym", sym);
+		} else {
+			tprint_list_element_begin();
+			tprint_object_begin();
+			tprints_object_type("const");
+			tprints_object_field_string("raw",
+				sprint_xlat_val(val, style));
+			tprints_object_field_string("sym", sym);
+			tprint_object_end();
+			tprint_list_element_end();
+		}
 	} else if (xlat_verbose(style) != XLAT_STYLE_RAW) {
 		if (need_comment && !flags)
 			PRINT_VAL_U(0);
@@ -1023,25 +1058,36 @@ tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags, unsigned int n,
 		      const char *dflt, enum xlat_style style)
 {
 	if (structured_output) {
+		const bool flattened = tprint_flags_element_open();
+
 		if (flags) {
-			tprint_list_element_begin();
-			tprint_object_begin();
+			if (flattened) {
+				if (n)
+					tprint_flags_value_or();
+			} else {
+				tprint_list_element_begin();
+				tprint_object_begin();
+			}
 			tprints_object_type("remainder");
 			tprints_object_field_string("raw",
 						    sprint_xlat_val(flags,
 								    style));
 			if (dflt && !n)
 				tprints_object_field_string("sym", dflt);
-			tprint_object_end();
-			tprint_list_element_end();
+			if (!flattened) {
+				tprint_object_end();
+				tprint_list_element_end();
+			}
 			n++;
 		}
-		tprint_list_end();
-		tprint_object_field_end();
-		tprint_object_end();
-		tprint_list_element_end();
-		tprint_list_end();
-		tprint_object_field_end();
+		if (!flattened) {
+			tprint_list_end();
+			tprint_object_field_end();
+			tprint_object_end();
+			tprint_list_element_end();
+			tprint_list_end();
+			tprint_object_field_end();
+		}
 	} else if (xlat_verbose(style) == XLAT_STYLE_RAW) {
 		n = orig_flags || dflt;
 	} else if (n) {
