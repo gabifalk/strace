@@ -572,6 +572,7 @@ jsonl-netlink_kobject_uevent
 jsonl-netlink_netfilter
 jsonl-netlink_protocol
 jsonl-netlink_route
+jsonl-netlink_selinux
 jsonl-nfnetlink_acct
 jsonl-nfnetlink_cthelper
 jsonl-nfnetlink_ctnetlink
