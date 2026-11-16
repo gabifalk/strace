@@ -1698,6 +1698,19 @@ tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 }
 
 void
+tprint_port_range(unsigned int ports)
+{
+	PRINT_VAL_X(ports);
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		unsigned short lo = ports & 0xffff;
+		unsigned short hi = ports >> 16;
+
+		if (ports && (!lo || !hi || lo <= hi))
+			tprintf_comment("%.0hu..%.0hu", lo, hi);
+	}
+}
+
+void
 tprint_negated_begin(long long raw)
 {
 	if (structured_output) {

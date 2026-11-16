@@ -780,14 +780,7 @@ print_port_range(struct tcb *const tcp, const kernel_ulong_t addr,
 		return;
 
 	tprint_indirect_begin();
-	PRINT_VAL_X(ports);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		unsigned short lo = ports & 0xffff;
-		unsigned short hi = ports >> 16;
-
-		if (ports && (!lo || !hi || lo <= hi))
-			tprintf_comment("%.0hu..%.0hu", lo, hi);
-	}
+	tprint_port_range(ports);
 	tprint_indirect_end();
 }
 

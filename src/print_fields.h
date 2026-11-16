@@ -303,6 +303,7 @@ extern void tprints_quoted_string(const char *quoted, const char *raw,
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);
+extern void tprint_port_range(unsigned int ports);
 extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);
 extern void tprint_sigmask_next(void);
