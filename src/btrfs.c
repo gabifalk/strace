@@ -390,7 +390,9 @@ decode_search_arg_buf(struct tcb *tcp, kernel_ulong_t buf_addr, uint64_t buf_siz
 				printaddr_comment(addr);
 				break;
 			}
+			tprint_object_begin();
 			print_btrfs_ioctl_search_header(&sh);
+			tprint_object_end();
 			off += sizeof(sh) + sh.len;
 
 		}
@@ -735,9 +737,11 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 			break;
 
 		tprint_array_begin();
+		tprint_object_begin();
 		btrfs_print_features(&flarg[0]);
-		tprint_array_next();
+		tprint_array_element_next();
 		btrfs_print_features(&flarg[1]);
+		tprint_object_end();
 		tprint_array_end();
 		break;
 	}
@@ -754,16 +758,18 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 			break;
 
 		tprint_array_begin();
+		tprint_object_begin();
 		btrfs_print_features(&flarg[0]);
 		tprints_comment("supported");
 
-		tprint_array_next();
+		tprint_array_element_next();
 		btrfs_print_features(&flarg[1]);
 		tprints_comment("safe to set");
 
-		tprint_array_next();
+		tprint_array_element_next();
 		btrfs_print_features(&flarg[2]);
 		tprints_comment("safe to clear");
+		tprint_object_end();
 		tprint_array_end();
 
 		break;
@@ -850,6 +856,8 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 		 * value.
 		 */
 		tprint_struct_next();
+		tprints_object_field_begin("values");
+		tprint_object_begin();
 		tprint_array_begin();
 		for (uint64_t i = 0; i < args.nr_items; ++i) {
 			if (i)
@@ -859,11 +867,13 @@ MPERS_PRINTER_DECL(int, btrfs_ioctl,
 				break;
 			}
 
+			tprint_object_begin();
 			tprint_array_index_begin();
 			printxval_u(btrfs_dev_stats_values, i, NULL);
 			tprint_array_index_equal();
 			PRINT_VAL_U(args.values[i]);
 			tprint_array_index_end();
+			tprint_object_end();
 		}
 		tprint_array_end();
 		tprint_struct_end();
