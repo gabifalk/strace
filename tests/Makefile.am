@@ -293,6 +293,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-dup-yy \
 	jsonl-fcntl-getlease \
 	jsonl-fork-f \
+	jsonl-fsconfig \
 	jsonl-getcpu \
 	jsonl-getegid \
 	jsonl-geteuid \
@@ -1046,6 +1047,7 @@ EXTRA_DIST = \
 	jsonl-dup-yy.c \
 	jsonl-fcntl-getlease.c \
 	jsonl-fork-f.c \
+	jsonl-fsconfig.c \
 	jsonl-getcpu.c \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \

@@ -550,6 +550,7 @@ jsonl-dup-y
 jsonl-dup-yy
 jsonl-fcntl-getlease
 jsonl-fork-f
+jsonl-fsconfig
 jsonl-getcpu
 jsonl-getegid
 jsonl-geteuid
