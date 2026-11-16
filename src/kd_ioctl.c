@@ -73,13 +73,7 @@ kiocsound(struct tcb *const tcp, const kernel_ulong_t arg)
 	unsigned int freq = arg ? KERNEL_PIT_TICK_RATE / arg : 0;
 
 	tprints_arg_next_name("argp");
-	PRINT_VAL_U(arg);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (freq)
-			tprintf_comment("%u Hz", freq);
-		else
-			tprints_comment("off");
-	}
+	tprint_pit_count(arg, freq);
 
 	return RVAL_IOCTL_DECODED;
 }

@@ -2287,6 +2287,22 @@ tprint_ticks(unsigned long long val, long freq, unsigned int precision)
 	}
 }
 
+/*
+ * Print the PIT counter value `count' that sets the frequency `freq'
+ * (in Hz) of the PC speaker, 0 meaning that the speaker is turned off.
+ */
+void
+tprint_pit_count(unsigned long long count, unsigned int freq)
+{
+	PRINT_VAL_U(count);
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (freq)
+			tprintf_comment("%u Hz", freq);
+		else
+			tprints_comment("off");
+	}
+}
+
 void
 tprint_ticks_d(long long val, long freq, unsigned int precision)
 {
