@@ -1831,7 +1831,14 @@ tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str,
 void
 tprint_fract(unsigned int numerator, unsigned int denominator)
 {
-	STRACE_PRINTF("%u/%u", numerator, denominator);
+	if (structured_output) {
+		tprints_object_type("fract");
+		tprintf_object_field_string("numerator", "%u", numerator);
+		tprintf_object_field_string("denominator", "%u",
+					    denominator);
+	} else {
+		STRACE_PRINTF("%u/%u", numerator, denominator);
+	}
 }
 
 void
@@ -1881,7 +1888,12 @@ tprint_negated_end(void)
 void
 tprint_fourcc(unsigned int fourcc, const char *name)
 {
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
+	if (structured_output) {
+		tprints_object_type("fourcc");
+		tprintf_object_field_string("raw", "%#x", fourcc);
+		if (name)
+			tprints_object_field_string("sym", name);
+	} else if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
 		PRINT_VAL_X(fourcc);
 	} else {
 		unsigned char a[] = {
