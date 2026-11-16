@@ -401,6 +401,15 @@ tprints_xlat_dflt(const char *dflt)
 }
 
 void
+tprint_sun_path_abstract(void)
+{
+	if (structured_output)
+		tprints_object_field_bool("abstract", true);
+	else
+		STRACE_PRINTS("@");
+}
+
+void
 tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
 		      bool nul_terminated)
 {

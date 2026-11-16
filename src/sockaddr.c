@@ -118,12 +118,13 @@ print_sockaddr_data_un(struct tcb *tcp, const void *const buf, const int addrlen
 	const int path_len = un_len - SIZEOF_SA_FAMILY;
 
 	tprints_field_name("sun_path");
+	tprints_object_type("sun_path");
 	if (sa_un->sun_path[0]) {
 		print_quoted_string(sa_un->sun_path, path_len + 1,
 				    QUOTE_0_TERMINATED);
 		selinux_printfilecon(tcp, sa_un->sun_path);
 	} else {
-		tprints_string("@");
+		tprint_sun_path_abstract();
 		print_quoted_string(sa_un->sun_path + 1, path_len - 1, 0);
 	}
 }

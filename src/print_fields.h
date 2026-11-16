@@ -96,6 +96,13 @@ tprint_object_end(void)
 }
 
 static inline void
+tprints_object_field_bool(const char *field, bool val)
+{
+	(void) field;
+	(void) val;
+}
+
+static inline void
 tprints_object_field_null(const char *field)
 {
 	(void) field;
@@ -194,6 +201,7 @@ extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
 extern void tprints_xlat_sym(const char *str);
 extern void tprints_xlat_dflt(const char *dflt);
+extern void tprint_sun_path_abstract(void);
 extern void tprints_quoted_string(const char *quoted, const char *raw,
 				  unsigned int size, bool nul_terminated);
 extern void tprint_sysret_begin(void);
