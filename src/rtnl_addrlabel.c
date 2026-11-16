@@ -64,7 +64,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_ifaddrlblmsg)
 
 	offset = NLMSG_ALIGN(sizeof(ifal));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_addrlabel_attrs, "IFAL_???",
 			      ifaddrlblmsg_nla_decoders,

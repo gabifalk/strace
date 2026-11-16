@@ -276,8 +276,13 @@ decode_rta_multipath(struct tcb *const tcp,
 		if (cur > addr)
 			tprint_array_next();
 
-		if (rtnh_len > offset)
+		if (is_array)
+			tprint_object_begin();
+
+		if (rtnh_len > offset) {
 			tprint_array_begin();
+			tprint_object_begin();
+		}
 
 		/* print the whole structure regardless of its rtnh_len */
 		tprint_struct_begin();
@@ -292,7 +297,7 @@ decode_rta_multipath(struct tcb *const tcp,
 		tprint_struct_end();
 
 		if (rtnh_len > offset) {
-			tprint_array_next();
+			tprint_array_element_next();
 			decode_nlattr(tcp, cur + offset, rtnh_len - offset,
 				      rtnl_route_attrs, "RTA_???",
 				      rtmsg_nla_decoders,
@@ -300,8 +305,13 @@ decode_rta_multipath(struct tcb *const tcp,
 				      opaque_data);
 		}
 
-		if (rtnh_len > offset)
+		if (rtnh_len > offset) {
+			tprint_object_end();
 			tprint_array_end();
+		}
+
+		if (is_array)
+			tprint_object_end();
 
 		if (RTNH_ALIGN(rtnh_len) >= left)
 			break;
@@ -359,7 +369,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_rtmsg)
 
 	offset = NLMSG_ALIGN(sizeof(rtmsg));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_route_attrs, "RTA_???",
 			      rtmsg_nla_decoders,

@@ -23,7 +23,7 @@ DECL_NETLINK_GENERIC_DECODER(decode_genl_msg)
 	tprint_struct_end();
 
 	if (len > 0) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr, len, NULL, NULL, NULL, 0, NULL);
 	}
 }

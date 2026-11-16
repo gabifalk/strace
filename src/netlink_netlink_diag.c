@@ -181,7 +181,7 @@ DECL_NETLINK_DIAG_DECODER(decode_netlink_diag_msg)
 
 	offset = NLMSG_ALIGN(sizeof(msg));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      netlink_diag_attrs, "NETLINK_DIAG_???",
 			      netlink_diag_msg_nla_decoders,

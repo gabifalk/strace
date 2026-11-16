@@ -1548,7 +1548,7 @@ decode_ifla_bridge_vlan_info(struct tcb *const tcp,
 	tprint_struct_end();
 
 	if (len > sizeof(bvi)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		printstr_ex(tcp, addr + sizeof(bvi), len - sizeof(bvi),
 			    QUOTE_FORCE_HEX);
 	}
@@ -1818,7 +1818,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_ifinfomsg)
 
 	offset = NLMSG_ALIGN(sizeof(ifinfo));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_link_attrs, "IFLA_???",
 			      ARRSZ_PAIR(ifinfomsg_nla_decoders), &ifinfo);

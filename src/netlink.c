@@ -62,7 +62,11 @@ fetch_nlmsghdr(struct tcb *const tcp, struct nlmsghdr *const nlmsghdr,
 	       const bool in_array)
 {
 	if (len < sizeof(struct nlmsghdr)) {
+		if (in_array)
+			tprint_object_begin();
 		printstr_ex(tcp, addr, len, QUOTE_FORCE_HEX);
+		if (in_array)
+			tprint_object_end();
 		return false;
 	}
 
@@ -70,8 +74,7 @@ fetch_nlmsghdr(struct tcb *const tcp, struct nlmsghdr *const nlmsghdr,
 		return true;
 
 	if (in_array) {
-		tprint_more_data_follows();
-		printaddr_comment(addr);
+		tprint_array_element_fetch_failed(addr);
 	} else {
 		printaddr(addr);
 	}
@@ -588,8 +591,10 @@ decode_nlmsgerr(struct tcb *const tcp,
 	const unsigned int payload =
 		MIN(len, capped ? sizeof(err.msg) : nlmsg_len);
 
-	if (len > payload)
+	if (len > payload) {
 		tprint_array_begin();
+		tprint_object_begin();
+	}
 
 	tprint_struct_begin();
 
@@ -604,13 +609,14 @@ decode_nlmsgerr(struct tcb *const tcp,
 	tprint_struct_end();
 
 	if (len > payload) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + payload,
 			      len - payload, nlmsgerr_attrs,
 			      "NLMSGERR_ATTR_???",
 			      nlmsgerr_nla_decoders,
 			      ARRAY_SIZE(nlmsgerr_nla_decoders),
 			      NULL);
+		tprint_object_end();
 		tprint_array_end();
 	}
 }
@@ -634,11 +640,6 @@ decode_payload(struct tcb *const tcp,
 	       const unsigned int error_nesting)
 {
 	if (nlmsghdr->nlmsg_type == NLMSG_ERROR) {
-		if (error_nesting >= NLMSG_ERROR_MAX_NESTING) {
-			tprint_more_data_follows();
-			return;
-		}
-
 		decode_nlmsgerr(tcp, fd, family, addr, len,
 				nlmsghdr->nlmsg_flags & NLM_F_CAPPED,
 				error_nesting);
@@ -684,15 +685,26 @@ decode_nlmsghdr_with_payload(struct tcb *const tcp,
 {
 	const unsigned int nlmsg_len = MIN(nlmsghdr->nlmsg_len, len);
 
-	if (nlmsg_len > NLMSG_HDRLEN)
+	if (nlmsg_len > NLMSG_HDRLEN) {
 		tprint_array_begin();
+		tprint_object_begin();
+	}
 
 	print_nlmsghdr(tcp, fd, family, nlmsghdr);
 
 	if (nlmsg_len > NLMSG_HDRLEN) {
-		tprint_array_next();
-		decode_payload(tcp, fd, family, nlmsghdr, addr + NLMSG_HDRLEN,
-			       nlmsg_len - NLMSG_HDRLEN, error_nesting);
+		if (nlmsghdr->nlmsg_type == NLMSG_ERROR
+		    && error_nesting >= NLMSG_ERROR_MAX_NESTING) {
+			tprint_object_end();
+			tprint_array_next();
+			tprint_more_data_follows();
+		} else {
+			tprint_array_element_next();
+			decode_payload(tcp, fd, family, nlmsghdr,
+				       addr + NLMSG_HDRLEN,
+				       nlmsg_len - NLMSG_HDRLEN, error_nesting);
+			tprint_object_end();
+		}
 		tprint_array_end();
 	}
 }
@@ -738,8 +750,12 @@ decode_netlink(struct tcb *const tcp,
 			is_array = true;
 		}
 
+		if (is_array)
+			tprint_object_begin();
 		decode_nlmsghdr_with_payload(tcp, fd, family,
 					     &nlmsghdr, addr, len, 0);
+		if (is_array)
+			tprint_object_end();
 
 		if (!next_addr)
 			break;

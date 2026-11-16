@@ -167,6 +167,14 @@ extern void tprint_array_begin(void);
 extern void tprint_array_next(void);
 extern void tprint_array_end(void);
 
+static inline void
+tprint_array_element_next(void)
+{
+	tprint_object_end();
+	tprint_array_next();
+	tprint_object_begin();
+}
+
 extern void tprint_array_element_fetch_failed(unsigned long long addr);
 extern void tprint_array_index_begin(void);
 extern void tprint_array_index_equal(void);

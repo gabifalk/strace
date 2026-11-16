@@ -139,7 +139,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_fib_rule_hdr)
 
 	offset = NLMSG_ALIGN(sizeof(msg));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_rule_attrs, "FRA_???",
 			      fib_rule_hdr_nla_decoders,

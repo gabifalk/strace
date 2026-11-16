@@ -287,7 +287,7 @@ DECL_NETLINK_GENERIC_DECODER(decode_nlctrl)
 
 		unsigned int family_names_idx = 0;
 
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr, len, genl_ctrl_attr, "CTRL_ATTR_???",
 			      ARRSZ_PAIR(decoders), &family_names_idx);
 	}

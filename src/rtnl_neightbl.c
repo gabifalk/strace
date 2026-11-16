@@ -156,7 +156,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_ndtmsg)
 
 	const size_t offset = NLMSG_ALIGN(sizeof(ndtmsg));
 	if (len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_neightbl_attrs, "NDTA_???",
 			      ndtmsg_nla_decoders,

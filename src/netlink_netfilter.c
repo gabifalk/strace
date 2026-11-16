@@ -65,7 +65,7 @@ decode_netlink_netfilter(struct tcb *const tcp,
 
 		const size_t offset = NLMSG_ALIGN(sizeof(nfmsg));
 		if (len > offset) {
-			tprint_array_next();
+			tprint_array_element_next();
 			if ((nlmsghdr->nlmsg_type >= NFNL_MSG_BATCH_BEGIN
 			     && nlmsghdr->nlmsg_type <= NFNL_MSG_BATCH_END)
 			    || nlmsghdr->nlmsg_type < NLMSG_MIN_TYPE)

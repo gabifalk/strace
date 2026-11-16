@@ -70,7 +70,7 @@ decode_ifstats_link_xstats_bridge_vlan(struct tcb *const tcp,
 	tprint_struct_end();
 
 	if (len > sizeof(st)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		printstr_ex(tcp, addr + sizeof(st), len - sizeof(st),
 			    QUOTE_FORCE_HEX);
 	}
@@ -135,7 +135,7 @@ decode_ifstats_link_xstats_bridge_mcast(struct tcb *const tcp,
 #undef PRINT_FIELD_MCAST_ARRAY_
 
 	if (len > sizeof(st)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		printstr_ex(tcp, addr + sizeof(st), len - sizeof(st),
 			    QUOTE_FORCE_HEX);
 	}
@@ -172,7 +172,7 @@ decode_ifstats_link_xstats_bridge_stp(struct tcb *const tcp,
 	tprint_struct_end();
 
 	if (len > sizeof(st)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		printstr_ex(tcp, addr + sizeof(st), len - sizeof(st),
 			    QUOTE_FORCE_HEX);
 	}
@@ -322,7 +322,7 @@ decode_ifstats_af_mpls_stats_link(struct tcb *const tcp,
 	tprint_struct_end();
 
 	if (len > sizeof(st)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		printstr_ex(tcp, addr + sizeof(st), len - sizeof(st),
 			    QUOTE_FORCE_HEX);
 	}
@@ -412,7 +412,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_ifstatsmsg)
 
 	offset = NLMSG_ALIGN(sizeof(ifstats));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      ifstats_attrs, "IFLA_STATS_???",
 			      ARRSZ_PAIR(ifstatsmsg_nla_decoders), &ifstats);

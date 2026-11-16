@@ -24,7 +24,11 @@ fetch_nlattr(struct tcb *const tcp, struct nlattr *const nlattr,
 	     const bool in_array)
 {
 	if (len < sizeof(struct nlattr)) {
+		if (in_array)
+			tprint_object_begin();
 		printstr_ex(tcp, addr, len, QUOTE_FORCE_HEX);
+		if (in_array)
+			tprint_object_end();
 		return false;
 	}
 
@@ -32,8 +36,7 @@ fetch_nlattr(struct tcb *const tcp, struct nlattr *const nlattr,
 		return true;
 
 	if (in_array) {
-		tprint_more_data_follows();
-		printaddr_comment(addr);
+		tprint_array_element_fetch_failed(addr);
 	} else {
 		printaddr(addr);
 	}
@@ -81,8 +84,10 @@ decode_nlattr_with_data(struct tcb *const tcp,
 	const unsigned int nla_len = MIN(nla->nla_len, len);
 	const bool use_type = (size != -1U);
 
-	if (nla_len > NLA_HDRLEN)
+	if (nla_len > NLA_HDRLEN) {
 		tprint_array_begin();
+		tprint_object_begin();
+	}
 
 	print_nlattr(nla, table, dflt);
 
@@ -90,7 +95,7 @@ decode_nlattr_with_data(struct tcb *const tcp,
 		const unsigned int idx =
 			(use_type && size) ? nla->nla_type & NLA_TYPE_MASK : 0;
 
-		tprint_array_next();
+		tprint_array_element_next();
 		if (!decoders
 		    || (use_type && size && idx >= size)
 		    || !decoders[idx]
@@ -102,6 +107,7 @@ decode_nlattr_with_data(struct tcb *const tcp,
 		    )
 			printstr_ex(tcp, addr + NLA_HDRLEN,
 				    nla_len - NLA_HDRLEN, QUOTE_FORCE_HEX);
+		tprint_object_end();
 		tprint_array_end();
 	}
 }
@@ -151,8 +157,12 @@ decode_nlattr(struct tcb *const tcp,
 			is_array = true;
 		}
 
+		if (is_array)
+			tprint_object_begin();
 		decode_nlattr_with_data(tcp, &nla, addr, len, table, dflt,
 					decoders, size, opaque_data);
+		if (is_array)
+			tprint_object_end();
 
 		if (!next_addr)
 			break;

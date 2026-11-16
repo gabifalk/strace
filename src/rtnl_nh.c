@@ -240,7 +240,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_nhmsg)
 
 	offset = NLMSG_ALIGN(sizeof(nhmsg));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_nexthop_attrs, "NHA_???",
 			      ARRSZ_PAIR(nhmsg_nla_decoders), &nhmsg);

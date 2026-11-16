@@ -177,7 +177,7 @@ decode_inet_diag_bc_op(struct tcb *const tcp,
 	print_inet_diag_bc_op(&op);
 
 	if (len > sizeof(op)) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_bytecode_data(tcp, addr + sizeof(op),
 				     len - sizeof(op), op.code);
 	}
@@ -234,7 +234,7 @@ decode_inet_diag_req_compat(struct tcb *const tcp,
 
 	offset = NLMSG_ALIGN(sizeof(req));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      inet_diag_req_attrs, "INET_DIAG_REQ_???",
 			      inet_diag_req_nla_decoders,
@@ -281,7 +281,7 @@ decode_inet_diag_req_v2(struct tcb *const tcp,
 
 	offset = NLMSG_ALIGN(sizeof(req));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      inet_diag_req_attrs, "INET_DIAG_REQ_???",
 			      inet_diag_req_nla_decoders,
@@ -759,8 +759,9 @@ decode_diag_sockopt(struct tcb *const tcp,
 
 #undef OPT_PRINT_FIELD_U
 
-	print_nonzero_bytes(tcp, tprint_array_next, addr, sizeof(sockopt),
-			    MIN(len, get_pagesize()), QUOTE_FORCE_HEX);
+	print_nonzero_bytes(tcp, tprint_array_element_next, addr,
+			    sizeof(sockopt), MIN(len, get_pagesize()),
+			    QUOTE_FORCE_HEX);
 
 	return true;
 }
@@ -831,7 +832,7 @@ DECL_NETLINK_DIAG_DECODER(decode_inet_diag_msg)
 
 	offset = NLMSG_ALIGN(sizeof(msg));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      inet_diag_attrs, "INET_DIAG_???",
 			      inet_diag_msg_nla_decoders,

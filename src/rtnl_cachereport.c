@@ -87,7 +87,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_cachereport)
 	const size_t offset = NLMSG_ALIGN(sizeof(rtgenmsg));
 
 	if (len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nla_af_spec(tcp, addr + offset, len - offset,
 				   rtgenmsg.rtgen_family,
 				   ARRSZ_PAIR(cachereport_descs));

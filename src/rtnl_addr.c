@@ -150,7 +150,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_ifaddrmsg)
 
 	offset = NLMSG_ALIGN(sizeof(ifaddr));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_addr_attrs, "IFA_???",
 			      ifaddrmsg_nla_decoders,

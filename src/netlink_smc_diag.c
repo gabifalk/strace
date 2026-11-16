@@ -287,7 +287,7 @@ DECL_NETLINK_DIAG_DECODER(decode_smc_diag_msg)
 
 	offset = NLMSG_ALIGN(sizeof(msg));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      smc_diag_attrs, "SMC_DIAG_???",
 			      smc_diag_msg_nla_decoders,

@@ -42,7 +42,7 @@ DECL_NETLINK_ROUTE_DECODER(decode_dcbmsg)
 
 	offset = NLMSG_ALIGN(sizeof(dcb));
 	if (decode_nla && len > offset) {
-		tprint_array_next();
+		tprint_array_element_next();
 		decode_nlattr(tcp, addr + offset, len - offset,
 			      rtnl_dcb_attrs, "DCB_ATTR_???", NULL, 0, NULL);
 	}
