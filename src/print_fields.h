@@ -162,6 +162,8 @@ extern void tprints_xlat_dflt(const char *dflt);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);
+extern void tprint_negated_begin(long long raw);
+extern void tprint_negated_end(void);
 extern void tprint_char(unsigned char c);
 extern void tprint_sysret_end(void);
 

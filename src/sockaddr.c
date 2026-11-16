@@ -595,13 +595,16 @@ print_sockaddr_data_tipc(struct tcb *tcp, const void *const buf,
 	tprints_field_name("scope");
 
 	signed char scope = sa->scope;
+	const bool negated = scope < 0;
 
-	if (scope < 0) {
-		tprints_string("-");
+	if (negated) {
+		tprint_negated_begin(scope);
 		scope = -scope;
 	}
 
 	printxval(af_tipc_scope, scope, "TIPC_???_SCOPE");
+	if (negated)
+		tprint_negated_end();
 	tprint_struct_next();
 	tprints_field_name("addr");
 

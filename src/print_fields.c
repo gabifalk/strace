@@ -412,6 +412,17 @@ tprints_sysret_string(const char *name, const char *str)
 }
 
 void
+tprint_negated_begin(long long raw)
+{
+	tprints_string("-");
+}
+
+void
+tprint_negated_end(void)
+{
+}
+
+void
 tprint_char(unsigned char c)
 {
 	if (structured_output) {
