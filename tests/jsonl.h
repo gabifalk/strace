@@ -22,29 +22,49 @@
 #  define JSONL_PERSONALITY 0
 # endif
 
-/* Prefix of a jsonl-split "syscall" event up to the "args" array bracket. */
+/*
+ * Prefix of a jsonl-split "syscall" event of process pid
+ * up to the "args" array bracket.
+ */
 static inline void
-jsonl_syscall_open(const char *name, long scno, bool entering)
+jsonl_syscall_open_pid(pid_t pid, const char *name, long scno, bool entering)
 {
 	printf("{\"event\": \"syscall\", "
 	       "\"pid\": {\"type\": \"tid\", \"raw\": \"%d\"}, \"syscall\": "
 	       "{\"type\": \"syscall\", \"name\": \"%s\", \"scno\": \"%ld\", "
 	       "\"personality\": %d}, "
 	       "\"entering\": %s, \"args\": [",
-	       (int) getpid(), name, scno, JSONL_PERSONALITY,
+	       (int) pid, name, scno, JSONL_PERSONALITY,
 	       entering ? "true" : "false");
 }
 
-/* Prefix of a jsonl-merged "syscall" event up to the "args" array bracket. */
+/* Prefix of a jsonl-split "syscall" event up to the "args" array bracket. */
 static inline void
-jsonl_syscall_merged_open(const char *name, long scno)
+jsonl_syscall_open(const char *name, long scno, bool entering)
+{
+	jsonl_syscall_open_pid(getpid(), name, scno, entering);
+}
+
+/*
+ * Prefix of a jsonl-merged "syscall" event of process pid
+ * up to the "args" array bracket.
+ */
+static inline void
+jsonl_syscall_merged_open_pid(pid_t pid, const char *name, long scno)
 {
 	printf("{\"event\": \"syscall\", "
 	       "\"pid\": {\"type\": \"tid\", \"raw\": \"%d\"}, \"syscall\": "
 	       "{\"type\": \"syscall\", \"name\": \"%s\", \"scno\": \"%ld\", "
 	       "\"personality\": %d}, "
 	       "\"args\": [",
-	       (int) getpid(), name, scno, JSONL_PERSONALITY);
+	       (int) pid, name, scno, JSONL_PERSONALITY);
+}
+
+/* Prefix of a jsonl-merged "syscall" event up to the "args" array bracket. */
+static inline void
+jsonl_syscall_merged_open(const char *name, long scno)
+{
+	jsonl_syscall_merged_open_pid(getpid(), name, scno);
 }
 
 /*
@@ -66,13 +86,21 @@ jsonl_arg_close(const char *side)
 	printf(side ? "}}" : "}");
 }
 
-/* The "exit" event of the current process. */
+/* Emit len bytes of str as a decimal-integer array value. */
 static inline void
-jsonl_exit_event(int status)
+jsonl_bytes_n(const char *str, size_t len)
 {
-	printf("{\"event\": \"exit\", "
-	       "\"pid\": {\"type\": \"tid\", \"raw\": \"%d\"}, \"status\": %d}\n",
-	       (int) getpid(), status);
+	printf("[");
+	for (size_t i = 0; i < len; ++i)
+		printf("%s%u", i ? ", " : "", (unsigned char) str[i]);
+	printf("]");
+}
+
+/* Emit a NUL-terminated string as a decimal-integer array value. */
+static inline void
+jsonl_bytes(const char *str)
+{
+	jsonl_bytes_n(str, strlen(str));
 }
 
 #endif /* !STRACE_TESTS_JSONL_H */
