@@ -509,9 +509,17 @@ void
 tprint_var_count(unsigned long long addr, unsigned int count,
 		 bool unterminated)
 {
-	printaddr64(addr);
-	tprintf_comment("%u var%s%s", count, count == 1 ? "" : "s",
-			unterminated ? ", unterminated" : "");
+	if (structured_output) {
+		tprints_object_type("var_count");
+		tprintf_object_field_string("raw", "%#llx", addr);
+		tprintf_object_field_string("count", "%u", count);
+		if (unterminated)
+			tprints_object_field_bool("unterminated", true);
+	} else {
+		printaddr64(addr);
+		tprintf_comment("%u var%s%s", count, count == 1 ? "" : "s",
+				unterminated ? ", unterminated" : "");
+	}
 }
 
 void
