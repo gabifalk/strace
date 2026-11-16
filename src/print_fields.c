@@ -10,6 +10,7 @@
 #include "hyperlink.h"
 #include "print_fields.h"
 #include "print_utils.h"
+#include "xstring.h"
 
 static void
 tprints_object_field_bytes(const char *field, const char *raw, size_t len)
@@ -873,51 +874,90 @@ tprint_var_count(unsigned long long addr, unsigned int count,
 	}
 }
 
+static void
+tprint_time_fields(const char *type, long long sec, const char *frac_name,
+		   const char *frac)
+{
+	tprints_object_type(type);
+	tprints_object_field_begin("fields");
+	tprint_object_begin();
+	tprintf_object_field_string("tv_sec", "%lld", sec);
+	tprints_object_field_string(frac_name, frac);
+	tprint_object_end();
+	tprint_object_field_end();
+}
+
 void
 tprint_timespec(long long sec, unsigned long long nsec)
 {
-	tprint_struct_begin();
-	tprints_field_name("tv_sec");
-	PRINT_VAL_D(sec);
-	tprint_struct_next();
-	tprints_field_name("tv_nsec");
-	PRINT_VAL_U(nsec);
-	tprint_struct_end();
+	if (structured_output) {
+		char frac[sizeof(nsec) * 3];
+
+		xsprintf(frac, "%llu", nsec);
+		tprint_time_fields("timespec_t", sec, "tv_nsec", frac);
+	} else {
+		tprint_struct_begin();
+		tprints_field_name("tv_sec");
+		PRINT_VAL_D(sec);
+		tprint_struct_next();
+		tprints_field_name("tv_nsec");
+		PRINT_VAL_U(nsec);
+		tprint_struct_end();
+	}
 }
 
 void
 tprint_timespec_signed(long long sec, long long nsec)
 {
-	tprint_struct_begin();
-	tprints_field_name("tv_sec");
-	PRINT_VAL_D(sec);
-	tprint_struct_next();
-	tprints_field_name("tv_nsec");
-	PRINT_VAL_D(nsec);
-	tprint_struct_end();
+	if (structured_output) {
+		char frac[sizeof(nsec) * 3];
+
+		xsprintf(frac, "%lld", nsec);
+		tprint_time_fields("timespec_t", sec, "tv_nsec", frac);
+	} else {
+		tprint_struct_begin();
+		tprints_field_name("tv_sec");
+		PRINT_VAL_D(sec);
+		tprint_struct_next();
+		tprints_field_name("tv_nsec");
+		PRINT_VAL_D(nsec);
+		tprint_struct_end();
+	}
 }
 
 void
 tprint_timespec_sym(long long sec, unsigned long long nsec, const char *sym)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+	if (structured_output) {
 		tprint_timespec(sec, nsec);
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprints_comment(sym);
-	else if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV)
-		tprints_string(sym);
+		tprints_object_field_string("sym", sym);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			tprint_timespec(sec, nsec);
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprints_comment(sym);
+		else if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV)
+			tprints_string(sym);
+	}
 }
 
 void
 tprint_timeval(long long sec, unsigned long long usec)
 {
-	tprint_struct_begin();
-	tprints_field_name("tv_sec");
-	PRINT_VAL_D(sec);
-	tprint_struct_next();
-	tprints_field_name("tv_usec");
-	PRINT_VAL_U(usec);
-	tprint_struct_end();
+	if (structured_output) {
+		char frac[sizeof(usec) * 3];
+
+		xsprintf(frac, "%llu", usec);
+		tprint_time_fields("timeval_t", sec, "tv_usec", frac);
+	} else {
+		tprint_struct_begin();
+		tprints_field_name("tv_sec");
+		PRINT_VAL_D(sec);
+		tprint_struct_next();
+		tprints_field_name("tv_usec");
+		PRINT_VAL_U(usec);
+		tprint_struct_end();
+	}
 }
 
 void
