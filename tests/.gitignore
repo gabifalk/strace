@@ -640,6 +640,7 @@ jsonl-printsignal
 jsonl-process_vm_readv
 jsonl-process_vm_writev
 jsonl-pwritev
+jsonl-rt_tgsigqueueinfo
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
 jsonl-setgroups

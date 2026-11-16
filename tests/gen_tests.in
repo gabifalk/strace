@@ -659,6 +659,7 @@ jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-merged-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-merged-pwritev	-s7 -e trace=pwritev
+jsonl-merged-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-setgroups	-s2 -e trace=setgroups
@@ -775,6 +776,7 @@ jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-split-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-split-pwritev	-s7 -e trace=pwritev
+jsonl-split-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-split-setgroups	-s2 -e trace=setgroups

@@ -383,6 +383,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-process_vm_readv \
 	jsonl-process_vm_writev \
 	jsonl-pwritev \
+	jsonl-rt_tgsigqueueinfo \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-setgroups \
@@ -1149,6 +1150,7 @@ EXTRA_DIST = \
 	jsonl-process_vm_readv.c \
 	jsonl-process_vm_writev.c \
 	jsonl-pwritev.c \
+	jsonl-rt_tgsigqueueinfo.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-setgroups.c \
