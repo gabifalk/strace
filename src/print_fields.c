@@ -1108,13 +1108,23 @@ tprint_ticks_d(long long val, long freq, unsigned int precision)
 void
 tprint_err(long long err, bool negated, const char *name)
 {
-	if (!name || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		tprintf_string(negated ? "%lld" : "%llu", err);
-	if (!name || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV
-		? tprintf_string : tprintf_comment)("%s%s",
-						    negated ? "-" : "", name);
+	if (structured_output) {
+		tprints_object_type(name ? "errno"
+					 : negated ? "decimal" : "unsigned");
+		tprintf_object_field_string("raw", negated ? "%lld" : "%llu",
+					    err);
+		if (name)
+			tprints_object_field_string("sym", name);
+	} else {
+		if (!name || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			tprintf_string(negated ? "%lld" : "%llu", err);
+		if (!name || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return;
+		(xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV
+			? tprintf_string : tprintf_comment)("%s%s",
+							    negated ? "-" : "",
+							    name);
+	}
 }
 
 void
