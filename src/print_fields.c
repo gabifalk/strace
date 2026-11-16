@@ -1207,6 +1207,41 @@ tprint_xlat_flags_end(uint64_t orig_flags, uint64_t flags, unsigned int n,
 }
 
 void
+tprint_sockaddr_begin(void)
+{
+	tprint_struct_begin();
+}
+
+void
+tprint_sockaddr_family_begin(void)
+{
+	tprints_field_name("sa_family");
+}
+
+void
+tprint_sockaddr_family_end(void)
+{
+}
+
+void
+tprint_sockaddr_next(void)
+{
+	tprint_struct_next();
+}
+
+void
+tprint_sockaddr_end(void)
+{
+	tprint_struct_end();
+}
+
+void
+tprint_sun_path_name(void)
+{
+	tprints_field_name("sun_path");
+}
+
+void
 tprint_sun_path_abstract(void)
 {
 	if (structured_output)

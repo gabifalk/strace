@@ -276,6 +276,12 @@ extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
 extern void tprints_xlat_sym(const char *str);
 extern void tprints_xlat_dflt(const char *dflt);
+extern void tprint_sockaddr_begin(void);
+extern void tprint_sockaddr_family_begin(void);
+extern void tprint_sockaddr_family_end(void);
+extern void tprint_sockaddr_next(void);
+extern void tprint_sockaddr_end(void);
+extern void tprint_sun_path_name(void);
 extern void tprint_sun_path_abstract(void);
 extern void tprints_quoted_string(const char *quoted, const char *raw,
 				  unsigned int size, bool nul_terminated);

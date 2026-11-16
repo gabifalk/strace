@@ -117,7 +117,7 @@ print_sockaddr_data_un(struct tcb *tcp, const void *const buf, const int addrlen
 			   ? (int) sizeof(*sa_un) : addrlen;
 	const int path_len = un_len - SIZEOF_SA_FAMILY;
 
-	tprints_field_name("sun_path");
+	tprint_sun_path_name();
 	tprints_object_type("sun_path");
 	if (sa_un->sun_path[0]) {
 		print_quoted_string(sa_un->sun_path, path_len + 1,
@@ -1135,11 +1135,14 @@ print_sockaddr(struct tcb *tcp, const void *const buf, const int addrlen)
 {
 	const struct sockaddr *const sa = buf;
 
-	tprint_struct_begin();
-	PRINT_FIELD_XVAL(*sa, sa_family, addrfams, "AF_???");
+	tprint_sockaddr_begin();
+	tprint_sockaddr_family_begin();
+	printxval64(addrfams, zero_extend_signed_to_ull(sa->sa_family),
+		    "AF_???");
+	tprint_sockaddr_family_end();
 
 	if (addrlen > (int) SIZEOF_SA_FAMILY) {
-		tprint_struct_next();
+		tprint_sockaddr_next();
 
 		if (sa->sa_family < ARRAY_SIZE(sa_printers)
 		    && sa_printers[sa->sa_family].printer
@@ -1150,7 +1153,7 @@ print_sockaddr(struct tcb *tcp, const void *const buf, const int addrlen)
 		}
 	}
 
-	tprint_struct_end();
+	tprint_sockaddr_end();
 }
 
 int
