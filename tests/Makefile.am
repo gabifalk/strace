@@ -339,6 +339,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_ifinfomsg \
 	jsonl-nlattr_ifla_af_spec \
 	jsonl-nlattr_ifla_brport \
+	jsonl-nlattr_ifla_linkinfo \
 	jsonl-nlattr_ifla_port \
 	jsonl-nlattr_ifla_protinfo \
 	jsonl-nlattr_ifla_proto_down_reason \
@@ -1090,6 +1091,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_ifinfomsg.c \
 	jsonl-nlattr_ifla_af_spec.c \
 	jsonl-nlattr_ifla_brport.c \
+	jsonl-nlattr_ifla_linkinfo.c \
 	jsonl-nlattr_ifla_port.c \
 	jsonl-nlattr_ifla_protinfo.c \
 	jsonl-nlattr_ifla_proto_down_reason.c \
