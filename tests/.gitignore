@@ -562,6 +562,7 @@ jsonl-prctl-no-args
 jsonl-prctl-tsc
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
+jsonl-setxattr
 jsonl-status-none
 jsonl-sysinfo
 jsonl-vfork-f
