@@ -318,6 +318,30 @@ tprint_bitset_end(void)
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
 }
 
+void
+tprint_cpu_set_begin(void)
+{
+	tprint_bitset_begin();
+}
+
+void
+tprint_cpu_set_next(void)
+{
+	tprint_bitset_next();
+}
+
+void
+tprint_cpu_set_cpu(int cpu)
+{
+	PRINT_VAL_D(cpu);
+}
+
+void
+tprint_cpu_set_end(void)
+{
+	tprint_bitset_end();
+}
+
 static unsigned long long
 bitset_word(const void *buf, unsigned int idx)
 {

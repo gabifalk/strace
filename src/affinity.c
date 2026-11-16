@@ -58,8 +58,8 @@ print_affinitylist(struct tcb *const tcp, const kernel_ulong_t addr,
 	}
 
 	if (!len) {
-		tprint_array_begin();
-		tprint_array_end();
+		tprint_cpu_set_begin();
+		tprint_cpu_set_end();
 		return;
 	}
 
@@ -71,23 +71,23 @@ print_affinitylist(struct tcb *const tcp, const kernel_ulong_t addr,
 	if (!umoven_or_printaddr(tcp, addr, umove_size, cpu)) {
 		bool printed = false;
 
-		tprint_bitset_begin();
+		tprint_cpu_set_begin();
 		for (int i = 0;; i++) {
 			i = next_set_bit(cpu, i, ncpu);
 			if (i < 0)
 				break;
 			if (printed)
-				tprint_bitset_next();
+				tprint_cpu_set_next();
 			else
 				printed = true;
-			PRINT_VAL_D(i);
+			tprint_cpu_set_cpu(i);
 		}
 		if (size < len) {
 			if (printed)
-				tprint_bitset_next();
+				tprint_cpu_set_next();
 			tprint_more_data_follows();
 		}
-		tprint_bitset_end();
+		tprint_cpu_set_end();
 	}
 
 	free(cpu);
