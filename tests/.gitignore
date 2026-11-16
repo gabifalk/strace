@@ -571,6 +571,7 @@ jsonl-netlink_netfilter
 jsonl-netlink_protocol
 jsonl-netlink_route
 jsonl-nfnetlink_acct
+jsonl-nfnetlink_cthelper
 jsonl-nlattr
 jsonl-nlattr_ndmsg
 jsonl-pause
