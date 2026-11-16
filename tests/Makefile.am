@@ -329,6 +329,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nfnetlink_queue \
 	jsonl-nfnetlink_ulog \
 	jsonl-nlattr \
+	jsonl-nlattr_crypto_user_alg \
 	jsonl-nlattr_ndmsg \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
@@ -1049,6 +1050,7 @@ EXTRA_DIST = \
 	jsonl-nfnetlink_queue.c \
 	jsonl-nfnetlink_ulog.c \
 	jsonl-nlattr.c \
+	jsonl-nlattr_crypto_user_alg.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
