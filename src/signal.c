@@ -241,26 +241,8 @@ print_sigmask_n(const void *const sig_mask, const unsigned int bytes)
 	tprint_sigmask_end();
 }
 
-#define sprintsigmask_val(prefix, mask) \
-	sprintsigmask_n((prefix), &(mask), sizeof(mask))
-
 #define tprintsigmask_val(mask) \
 	print_sigmask_n(&(mask), sizeof(mask))
-
-static const char *
-sprint_old_sigmask_val(const char *const prefix, const unsigned long mask)
-{
-#if defined(current_wordsize) || !defined(WORDS_BIGENDIAN)
-	return sprintsigmask_n(prefix, &mask, current_wordsize);
-#else /* !current_wordsize && WORDS_BIGENDIAN */
-	if (current_wordsize == sizeof(mask)) {
-		return sprintsigmask_val(prefix, mask);
-	} else {
-		uint32_t mask32 = mask;
-		return sprintsigmask_val(prefix, mask32);
-	}
-#endif
-}
 
 static void
 tprint_old_sigmask_val(const unsigned long mask)
@@ -317,15 +299,23 @@ print_sigset_addr(struct tcb *const tcp, const kernel_ulong_t addr)
 	tprint_struct_end();
 }
 
+static void
+print_ssetmask_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("old mask ");
+	tprint_old_sigmask_val((unsigned) tcp->u_rval);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(ssetmask)
 {
 	if (entering(tcp)) {
 		tprints_arg_name("newmask");
 		tprint_old_sigmask_val((unsigned) tcp->u_arg[0]);
 	} else if (!syserror(tcp)) {
-		tcp->auxstr = sprint_old_sigmask_val("old mask ",
-						     (unsigned) tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_result_printer = print_ssetmask_result;
+		return RVAL_RESULT;
 	}
 	return 0;
 }
@@ -420,6 +410,15 @@ SYS_FUNC(sigaction)
 	return 0;
 }
 
+static void
+print_sa_handler_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("");
+	print_xlat_ex(val, get_sa_handler_str(tcp->u_rval), XLAT_STYLE_ABBREV);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(signal)
 {
 	if (entering(tcp)) {
@@ -432,17 +431,28 @@ SYS_FUNC(signal)
 		print_sa_handler(tcp->u_arg[1]);
 		return 0;
 	} else if (!syserror(tcp)) {
-		tcp->auxstr = get_sa_handler_str(tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		if (!get_sa_handler_str(tcp->u_rval))
+			return RVAL_HEX;
+		tcp->rval_result_printer = print_sa_handler_result;
+		return RVAL_RESULT;
 	}
 	return 0;
+}
+
+static void
+print_sgetmask_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("mask ");
+	tprint_old_sigmask_val(tcp->u_rval);
+	tprint_sysret_result_end();
 }
 
 SYS_FUNC(sgetmask)
 {
 	if (exiting(tcp) && !syserror(tcp)) {
-		tcp->auxstr = sprint_old_sigmask_val("mask ", tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_result_printer = print_sgetmask_result;
+		return RVAL_RESULT;
 	}
 	return 0;
 }
@@ -462,6 +472,18 @@ SYS_FUNC(sigsuspend)
 }
 
 #ifdef ALPHA
+static void
+print_osf_sigprocmask_result(struct tcb *const tcp,
+			     const unsigned long long val)
+{
+	const kernel_long_t mask = tcp->u_rval;
+
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("old mask ");
+	tprintsigmask_val(mask);
+	tprint_sysret_result_end();
+}
+
 /*
  * The OSF/1 sigprocmask is different: it doesn't pass in two pointers,
  * but rather passes in the new bitmask as an argument and then returns
@@ -484,8 +506,8 @@ SYS_FUNC(osf_sigprocmask)
 		tprints_arg_next_name("set");
 		tprintsigmask_val(tcp->u_arg[1]);
 	} else if (!syserror(tcp)) {
-		tcp->auxstr = sprintsigmask_val("old mask ", tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_result_printer = print_osf_sigprocmask_result;
+		return RVAL_RESULT;
 	}
 	return 0;
 }
