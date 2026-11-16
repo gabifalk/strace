@@ -834,6 +834,13 @@ tprint_extra_data_end(bool truncated)
 }
 
 void
+tprint_time_t(long long sec, const char *str)
+{
+	PRINT_VAL_D(sec);
+	tprints_comment(str);
+}
+
+void
 tprint_ticks(unsigned long long val, long freq, unsigned int precision)
 {
 	if (structured_output) {

@@ -249,6 +249,7 @@ extern void tprint_char(unsigned char c);
 extern void tprint_extra_data_unavailable(void);
 extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
 extern void tprint_extra_data_end(bool truncated);
+extern void tprint_time_t(long long sec, const char *str);
 extern void tprint_ticks(unsigned long long val, long freq,
 			 unsigned int precision);
 extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
@@ -658,6 +659,12 @@ tprint_sysret_interrupted(void)
 	do {								\
 		tprints_field_name(#field_);				\
 		print_clock_t((where_).field_);				\
+	} while (0)
+
+# define PRINT_FIELD_TIME_T(where_, field_)				\
+	do {								\
+		tprints_field_name(#field_);				\
+		print_time_t((where_).field_);				\
 	} while (0)
 
 # define PRINT_FIELD_STRING(where_, field_, len_, style_)		\

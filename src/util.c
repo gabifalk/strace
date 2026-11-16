@@ -280,6 +280,12 @@ print_clock_t(uint64_t val)
 	print_ticks(val, clk_tck, frac_width);
 }
 
+void
+print_time_t(long long sec)
+{
+	tprint_time_t(sec, sprinttime(sec));
+}
+
 #if !defined HAVE_STPCPY
 char *
 stpcpy(char *dst, const char *src)

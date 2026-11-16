@@ -27,11 +27,9 @@ SYS_FUNC(utime)
 	tprints_arg_next_name("times");
 	if (!umove_or_printaddr(tcp, tcp->u_arg[1], &u)) {
 		tprint_struct_begin();
-		PRINT_FIELD_D(u, actime);
-		tprints_comment(sprinttime(u.actime));
+		PRINT_FIELD_TIME_T(u, actime);
 		tprint_struct_next();
-		PRINT_FIELD_D(u, modtime);
-		tprints_comment(sprinttime(u.modtime));
+		PRINT_FIELD_TIME_T(u, modtime);
 		tprint_struct_end();
 	}
 
