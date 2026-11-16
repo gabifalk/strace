@@ -157,6 +157,18 @@ SYS_FUNC(modify_ldt)
 	return 0;
 }
 
+static unsigned int set_thread_area_entry_number;
+
+static void
+print_set_thread_area_result(struct tcb *const tcp,
+			     const unsigned long long val)
+{
+	tprint_sysret_result_begin("set_thread_area_result", val);
+	tprints_sysret_result_field_eq("entry_number");
+	PRINT_VAL_U(set_thread_area_entry_number);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(set_thread_area)
 {
 	if (entering(tcp)) {
@@ -169,11 +181,9 @@ SYS_FUNC(set_thread_area)
 		    umove(tcp, tcp->u_arg[0], &desc) < 0) {
 			/* returned entry_number is not available */
 		} else {
-			static char outstr[32];
-
-			xsprintf(outstr, "entry_number=%u", desc.entry_number);
-			tcp->auxstr = outstr;
-			return RVAL_STR;
+			set_thread_area_entry_number = desc.entry_number;
+			tcp->rval_result_printer = print_set_thread_area_result;
+			return RVAL_RESULT;
 		}
 	}
 	return 0;
