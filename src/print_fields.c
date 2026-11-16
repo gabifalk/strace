@@ -414,6 +414,23 @@ tprints_sysret_string(const char *name, const char *str)
 		STRACE_PRINTF("(%s)", str);
 }
 
+static const char *
+timescale_to_unit(int scale)
+{
+	switch (scale) {
+	case 1000000000:
+		return "seconds";
+	case 1000000:
+		return "milliseconds";
+	case 1000:
+		return "microseconds";
+	case 1:
+		return "nanoseconds";
+	default:
+		return NULL;
+	}
+}
+
 void
 tprint_negated_begin(long long raw)
 {
@@ -456,14 +473,27 @@ tprint_addr(unsigned long long addr)
 void
 tprint_syscall_duration(long long sec, long nsec)
 {
-	tprints_sysret_next("time");
-	tprint_associated_info_begin();
-	PRINT_VAL_D(sec);
-	if (Tflag_width) {
-		tprintf_string(".%0*ld", Tflag_width,
-			       nsec / Tflag_scale);
+	if (structured_output) {
+		const char *unit = timescale_to_unit(Tflag_scale);
+
+		if (unit) {
+			long long factor = 1000000000LL / Tflag_scale;
+
+			tprintf_object_field_string("time", "%lld",
+						    sec * factor
+						    + nsec / Tflag_scale);
+			tprints_object_field_string("time_unit", unit);
+		}
+	} else {
+		tprints_sysret_next("time");
+		tprint_associated_info_begin();
+		PRINT_VAL_D(sec);
+		if (Tflag_width) {
+			tprintf_string(".%0*ld", Tflag_width,
+				       nsec / Tflag_scale);
+		}
+		tprint_associated_info_end();
 	}
-	tprint_associated_info_end();
 }
 
 void
