@@ -213,6 +213,7 @@ tee_open_session(struct tcb *const tcp, const kernel_ulong_t arg)
 			return rval;
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		PRINT_FIELD_U(buf_data, buf_len);
 		tprint_struct_next();
 		tprints_field_name("buf_ptr");
@@ -254,20 +255,25 @@ tee_open_session(struct tcb *const tcp, const kernel_ulong_t arg)
 		tee_print_params(tcp, params, open_session.num_params);
 
 		tprint_struct_end();
+		tprint_struct_entering_end();
 		return 0;
 
 	} else if (syserror(tcp)) {
-		tprint_struct_end();
+		tprint_struct_exiting_abandon();
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
+		tprint_struct_exiting_begin(2, "argp");
+		tprints_field_exiting_name("buf_ptr");
 		/*
 		 * Yes, params are [in/out] for TEE_IOC_OPEN_SESSION.
 		 * As for all other operations they are used in.
 		 */
-		if ((rval = TEE_FETCH_BUF_DATA(buf_data, open_session, &params)))
+		rval = TEE_FETCH_BUF_DATA(buf_data, open_session, &params);
+		if (rval) {
+			tprint_struct_entering_end();
 			return rval;
+		}
 
 		tprint_struct_begin();
 		PRINT_FIELD_SESSION(open_session, session);
@@ -298,6 +304,7 @@ tee_invoke(struct tcb *const tcp, const kernel_ulong_t arg)
 			return rval;
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		PRINT_FIELD_U(buf_data, buf_len);
 		tprint_struct_next();
 		tprints_field_name("buf_ptr");
@@ -312,16 +319,20 @@ tee_invoke(struct tcb *const tcp, const kernel_ulong_t arg)
 		tee_print_params(tcp, params, invoke.num_params);
 
 		tprint_struct_end();
+		tprint_struct_entering_end();
 		return 0;
 
 	} else if (syserror(tcp)) {
-		tprint_struct_end();
+		tprint_struct_exiting_abandon();
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
-		if ((rval = TEE_FETCH_BUF_DATA(buf_data, invoke, &params)))
+		tprint_struct_exiting_begin(2, "argp");
+		tprints_field_exiting_name("buf_ptr");
+		if ((rval = TEE_FETCH_BUF_DATA(buf_data, invoke, &params))) {
+			tprint_struct_entering_end();
 			return rval;
+		}
 
 		tprint_struct_begin();
 		PRINT_FIELD_U(invoke, ret);
@@ -384,6 +395,7 @@ tee_suppl_recv(struct tcb *const tcp, const kernel_ulong_t arg)
 			return rval;
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		PRINT_FIELD_U(buf_data, buf_len);
 		tprint_struct_next();
 		tprints_field_name("buf_ptr");
@@ -394,16 +406,20 @@ tee_suppl_recv(struct tcb *const tcp, const kernel_ulong_t arg)
 		tee_print_params(tcp, params, supp_recv.num_params);
 
 		tprint_struct_end();
+		tprint_struct_entering_end();
 		return 0;
 
 	} else if (syserror(tcp)) {
-		tprint_struct_end();
+		tprint_struct_exiting_abandon();
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
-		if ((rval = TEE_FETCH_BUF_DATA(buf_data, supp_recv, &params)))
+		tprint_struct_exiting_begin(2, "argp");
+		tprints_field_exiting_name("buf_ptr");
+		if ((rval = TEE_FETCH_BUF_DATA(buf_data, supp_recv, &params))) {
+			tprint_struct_entering_end();
 			return rval;
+		}
 
 		/* num_params is [in/out] for TEE_IOC_SUPPL_RECV only */
 		tprint_struct_begin();
@@ -430,6 +446,7 @@ tee_suppl_send(struct tcb *const tcp, const kernel_ulong_t arg)
 			return rval;
 
 		tprint_struct_begin();
+		tprint_struct_mark_split();
 		PRINT_FIELD_U(buf_data, buf_len);
 		tprint_struct_next();
 		tprints_field_name("buf_ptr");
@@ -438,16 +455,20 @@ tee_suppl_send(struct tcb *const tcp, const kernel_ulong_t arg)
 		tee_print_params(tcp, params, supp_send.num_params);
 
 		tprint_struct_end();
+		tprint_struct_entering_end();
 		return 0;
 
 	} else if (syserror(tcp)) {
-		tprint_struct_end();
+		tprint_struct_exiting_abandon();
 		return RVAL_IOCTL_DECODED;
 
 	} else {
-		tprint_value_changed();
-		if ((rval = TEE_FETCH_BUF_DATA(buf_data, supp_send, &params)))
+		tprint_struct_exiting_begin(2, "argp");
+		tprints_field_exiting_name("buf_ptr");
+		if ((rval = TEE_FETCH_BUF_DATA(buf_data, supp_send, &params))) {
+			tprint_struct_entering_end();
 			return rval;
+		}
 
 		tprint_struct_begin();
 		PRINT_FIELD_U(supp_send, ret);
