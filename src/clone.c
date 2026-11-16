@@ -282,7 +282,7 @@ SYS_FUNC(clone)
 static void
 tprint_value_changed_struct_begin(void)
 {
-	tprint_value_changed();
+	tprint_arg_exiting_changed_begin(0, "cl_args");
 	tprint_struct_begin();
 }
 
@@ -401,7 +401,7 @@ SYS_FUNC(clone3)
 		goto out;
 
 	if (umoven(tcp, addr, fetch_size, &arg)) {
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(0, "cl_args");
 		printaddr(addr);
 		goto out;
 	}
