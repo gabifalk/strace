@@ -225,7 +225,8 @@ ioctl_decode_command_number(struct tcb *tcp, const struct finfo *finfo)
 	switch (_IOC_TYPE(code)) {
 	case '!': /* 0x21 */
 		if (code == _IOC(_IOC_READ, '!', 2, sizeof(uint64_t))) {
-			tprints_string("SECCOMP_IOCTL_NOTIF_ID_VALID_WRONG_DIR");
+			tprints_ioctl_cmd(
+				"SECCOMP_IOCTL_NOTIF_ID_VALID_WRONG_DIR");
 			return 1;
 		}
 		return 0;
@@ -523,10 +524,10 @@ SYS_FUNC(ioctl)
 				if (iop) {
 					if (ret)
 						tprint_alternative_value();
-					tprints_string(iop->symbol);
+					tprints_ioctl_cmd(iop->symbol);
 					while ((iop = ioctl_next_match(iop))) {
 						tprint_alternative_value();
-						tprints_string(iop->symbol);
+						tprints_ioctl_cmd(iop->symbol);
 					}
 				} else if (!ret) {
 					unknown = true;

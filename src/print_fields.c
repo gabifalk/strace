@@ -1716,10 +1716,16 @@ tprint_qcmd_end(void)
 void
 tprint_ioctl_op_begin(unsigned int code)
 {
-	if (xlat_verbosity != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(code);
-	if (xlat_verbosity == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
+	if (structured_output) {
+		tprints_object_type("ioctl_op");
+		tprintf_object_field_string("raw", "%#x", code);
+		tprint_ioctl_cmds_reset();
+	} else {
+		if (xlat_verbosity != XLAT_STYLE_ABBREV)
+			PRINT_VAL_X(code);
+		if (xlat_verbosity == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+	}
 }
 
 /*
@@ -1732,31 +1738,47 @@ tprint_ioctl_op_end(bool unknown, unsigned int dir, unsigned int type,
 		    unsigned int nr, unsigned int size,
 		    const struct xlat *dir_xlat)
 {
-	if (unknown) {
-		const bool abbrev =
-			xlat_verbose(xlat_verbosity) != XLAT_STYLE_VERBOSE;
+	if (structured_output) {
+		tprint_ioctl_cmds_finish();
 
-		tprints_fn_begin("_IOC");
+		tprints_object_field_begin("dir");
+		tprint_object_begin();
+		printflags_ex(dir, "_IOC_???", XLAT_STYLE_ABBREV, dir_xlat,
+			      NULL);
+		tprint_object_end();
+		tprint_object_field_end();
 
-		tprint_flags_begin();
-		printflags_ex(dir, abbrev ? "_IOC_???" : "",
-			      abbrev ? XLAT_STYLE_DEFAULT : XLAT_STYLE_ABBREV,
-			      dir_xlat, NULL);
-		tprint_flags_end();
+		tprintf_object_field_string("ioc_type", "%#x", type);
+		tprintf_object_field_string("ioc_nr", "%#x", nr);
+		tprintf_object_field_string("ioc_size", "%#x", size);
+	} else {
+		if (unknown) {
+			const bool abbrev = xlat_verbose(xlat_verbosity)
+					    != XLAT_STYLE_VERBOSE;
 
-		tprint_fn_next();
-		PRINT_VAL_X(type);
+			tprints_fn_begin("_IOC");
 
-		tprint_fn_next();
-		PRINT_VAL_X(nr);
+			tprint_flags_begin();
+			printflags_ex(dir, abbrev ? "_IOC_???" : "",
+				      abbrev ? XLAT_STYLE_DEFAULT
+					     : XLAT_STYLE_ABBREV,
+				      dir_xlat, NULL);
+			tprint_flags_end();
 
-		tprint_fn_next();
-		PRINT_VAL_X(size);
+			tprint_fn_next();
+			PRINT_VAL_X(type);
 
-		tprint_fn_end();
+			tprint_fn_next();
+			PRINT_VAL_X(nr);
+
+			tprint_fn_next();
+			PRINT_VAL_X(size);
+
+			tprint_fn_end();
+		}
+		if (xlat_verbosity == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
 	}
-	if (xlat_verbosity == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
 }
 
 /*

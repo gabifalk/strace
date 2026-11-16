@@ -198,6 +198,22 @@ tprints_string_value(const char *str)
 	STRACE_PRINTS(str);
 }
 
+static inline void
+tprint_ioctl_cmds_reset(void)
+{
+}
+
+static inline void
+tprint_ioctl_cmds_finish(void)
+{
+}
+
+static inline void
+tprints_ioctl_cmd(const char *name)
+{
+	STRACE_PRINTS(name);
+}
+
 static inline bool
 tprint_struct_fields_end(void)
 {
