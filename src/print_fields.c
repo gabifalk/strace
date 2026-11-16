@@ -4144,6 +4144,73 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 }
 
 void
+tprint_uring_restriction_op_begin(const struct xlat *xlat, unsigned int opcode,
+				  const char *dflt)
+{
+	printxval(xlat, opcode, dflt);
+}
+
+void
+tprint_uring_restriction_op_next(void)
+{
+	tprint_struct_next();
+}
+
+void
+tprint_uring_restriction_op_unknown(unsigned int op)
+{
+	tprintf_comment("op: %#x", op);
+}
+
+void
+tprint_uring_restriction_op_end(void)
+{
+}
+
+void
+tprint_query_list_begin(void)
+{
+}
+
+void
+tprint_query_list_addr(unsigned long long addr)
+{
+	printaddr64(addr);
+}
+
+void
+tprint_query_list_truncated(unsigned long long addr)
+{
+	printaddr64(addr);
+	tprints_comment("...");
+}
+
+void
+tprint_query_list_entry_begin(void)
+{
+}
+
+void
+tprint_query_list_entry_next(const char *next_name)
+{
+	tprint_struct_next();
+	tprints_field_name(next_name);
+}
+
+void
+tprint_query_list_end(unsigned int count)
+{
+	for (; count > 0; --count)
+		tprint_struct_end();
+}
+
+void
+tprints_field_decoded_name(const char *name)
+{
+	tprints_field_name(name);
+}
+
+void
 tprint_summary_personality(FILE *outf, const char *name)
 {
 	if (!structured_output)

@@ -70,6 +70,20 @@ struct summary_row {
 	uint64_t calls;
 	uint64_t errors;
 };
+
+extern void tprint_uring_restriction_op_begin(const struct xlat *xlat,
+					      unsigned int opcode,
+					      const char *dflt);
+extern void tprint_uring_restriction_op_next(void);
+extern void tprint_uring_restriction_op_unknown(unsigned int op);
+extern void tprint_uring_restriction_op_end(void);
+extern void tprint_query_list_begin(void);
+extern void tprint_query_list_addr(unsigned long long addr);
+extern void tprint_query_list_truncated(unsigned long long addr);
+extern void tprint_query_list_entry_begin(void);
+extern void tprint_query_list_entry_next(const char *next_name);
+extern void tprint_query_list_end(unsigned int count);
+extern void tprints_field_decoded_name(const char *name);
 extern void tprint_summary_personality(FILE *outf, const char *name);
 extern void tprint_summary(unsigned int personality,
 			   const struct summary_row *rows, size_t nrows,

@@ -397,26 +397,28 @@ print_io_uring_restriction(struct tcb *tcp, void *elem_buf, size_t elem_size,
 	CHECK_TYPE_SIZE(r->resv2, 12);
 
 	tprint_struct_begin();
-	PRINT_FIELD_XVAL(*r, opcode, uring_restriction_opcodes,
-			 "IORING_RESTRICTION_???");
+	tprints_field_name("opcode");
+	tprint_uring_restriction_op_begin(uring_restriction_opcodes, r->opcode,
+					  "IORING_RESTRICTION_???");
 	switch (r->opcode) {
 	case IORING_RESTRICTION_REGISTER_OP:
-		tprint_struct_next();
+		tprint_uring_restriction_op_next();
 		PRINT_FIELD_XVAL(*r, register_op, uring_register_opcodes,
 				   "IORING_REGISTER_???");
 		break;
 	case IORING_RESTRICTION_SQE_OP:
-		tprint_struct_next();
+		tprint_uring_restriction_op_next();
 		PRINT_FIELD_XVAL(*r, sqe_op, uring_ops, "IORING_OP_???");
 		break;
 	case IORING_RESTRICTION_SQE_FLAGS_ALLOWED:
 	case IORING_RESTRICTION_SQE_FLAGS_REQUIRED:
-		tprint_struct_next();
+		tprint_uring_restriction_op_next();
 		PRINT_FIELD_FLAGS(*r, sqe_flags, uring_sqe_flags, "IOSQE_???");
 		break;
 	default:
-		tprintf_comment("op: %#x", r->register_op);
+		tprint_uring_restriction_op_unknown(r->register_op);
 	}
+	tprint_uring_restriction_op_end();
 	if (r->resv) {
 		tprint_struct_next();
 		PRINT_FIELD_X(*r, resv);
@@ -1716,17 +1718,20 @@ print_io_uring_query_list(struct tcb *tcp, kernel_ulong_t addr)
 
 	unsigned int count = 0;
 
+	tprint_query_list_begin();
 	for (;;) {
-		if (umove_or_printaddr(tcp, addr, &hdr))
-			break;
-
-		if (count >= IO_MAX_QUERY_ENTRIES ||
-		    sequence_truncation_needed(tcp, count + 1)) {
-			printaddr(addr);
-			tprintf_comment("...");
+		if (!tfetch_obj(tcp, addr, &hdr)) {
+			tprint_query_list_addr(addr);
 			break;
 		}
 
+		if (count >= IO_MAX_QUERY_ENTRIES ||
+		    sequence_truncation_needed(tcp, count + 1)) {
+			tprint_query_list_truncated(addr);
+			break;
+		}
+
+		tprint_query_list_entry_begin();
 		tprint_struct_begin();
 		++count;
 
@@ -1748,7 +1753,7 @@ print_io_uring_query_list(struct tcb *tcp, kernel_ulong_t addr)
 		/* Decode query_data if present */
 		if (hdr.query_data && hdr.size > 0) {
 			tprint_struct_next();
-			tprints_field_name("query_data");
+			tprints_field_decoded_name("query_data");
 			switch (hdr.query_op) {
 			case IO_URING_QUERY_OPCODES:
 				print_io_uring_query_opcode(tcp, hdr.query_data);
@@ -1770,17 +1775,12 @@ print_io_uring_query_list(struct tcb *tcp, kernel_ulong_t addr)
 		}
 
 		/* Handle next_entry field */
-		tprint_struct_next();
-		tprints_field_name("next_entry");
+		tprint_query_list_entry_next("next_entry");
 
 		addr = (kernel_ulong_t) hdr.next_entry;
 	}
 
-	/* Close any remaining open structures */
-	while (count > 0) {
-		tprint_struct_end();
-		--count;
-	}
+	tprint_query_list_end(count);
 }
 
 static int
@@ -1953,7 +1953,7 @@ SYS_FUNC(io_uring_register)
 
 	if (rc || exiting(tcp)) {
 		/* nr_args */
-		tprints_arg_next_name("nr_args");
+		tprints_arg_next_name_at(3, "nr_args");
 		PRINT_VAL_U(nargs);
 	}
 
