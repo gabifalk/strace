@@ -24,20 +24,17 @@ SYS_FUNC(memfd_create)
 	tprints_arg_next_name("flags");
 	unsigned int flags = tcp->u_arg[1];
 
-	if (!flags || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+	if (!flags) {
 		PRINT_VAL_X(flags);
-
-	if (!flags || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
 		return RVAL_DECODED | RVAL_FD;
+	}
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
+	if (!tprint_xlat_flags_value_begin(flags))
+		return RVAL_DECODED | RVAL_FD;
 
 	const unsigned int mask = MFD_HUGE_MASK << MFD_HUGE_SHIFT;
 	const unsigned int hugetlb_value = flags & mask;
 	flags &= ~mask;
-
-	tprint_flags_begin();
 
 	if (flags || !hugetlb_value)
 		printflags_ex(flags, "MFD_???", XLAT_STYLE_ABBREV,
@@ -45,22 +42,13 @@ SYS_FUNC(memfd_create)
 
 	if (hugetlb_value) {
 		if (flags)
-			tprint_flags_or();
-		tprint_shift_begin();
-		PRINT_VAL_U(hugetlb_value >> MFD_HUGE_SHIFT);
-		tprint_shift();
-		/*
-		 * print_xlat_u is not used here because the whole thing
-		 * is potentially inside a comment already.
-		 */
-		tprints_string("MFD_HUGE_SHIFT");
-		tprint_shift_end();
+			tprint_flags_value_or();
+		tprints_shift_value(hugetlb_value,
+				    hugetlb_value >> MFD_HUGE_SHIFT,
+				    "MFD_HUGE_SHIFT");
 	}
 
-	tprint_flags_end();
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+	tprint_xlat_flags_value_end();
 
 	return RVAL_DECODED | RVAL_FD;
 }

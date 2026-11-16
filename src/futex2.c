@@ -14,31 +14,20 @@
 static void
 print_futex2_flags(unsigned int flags)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(flags);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+	if (!tprint_xlat_flags_value_begin(flags))
 		return;
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
-	tprint_flags_begin();
 
 	printxvals_ex(flags & FUTEX2_SIZE_MASK, NULL, XLAT_STYLE_ABBREV,
 		      futex2_sizes, NULL);
 	flags &= ~FUTEX2_SIZE_MASK;
 
 	if (flags) {
-		tprint_flags_or();
+		tprint_flags_value_or();
 		printflags_ex(flags, NULL, XLAT_STYLE_ABBREV,
 			      futex2_flags, NULL);
 	}
 
-	tprint_flags_end();
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-                tprint_comment_end();
+	tprint_xlat_flags_value_end();
 }
 
 struct print_waiter_data {

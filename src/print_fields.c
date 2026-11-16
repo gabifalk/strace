@@ -850,6 +850,48 @@ tprint_flags_value_end(void)
 	}
 }
 
+bool
+tprint_xlat_flags_value_begin(unsigned long long raw)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		PRINT_VAL_X(raw);
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+		return false;
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_begin();
+
+	tprint_flags_begin();
+	return true;
+}
+
+void
+tprint_xlat_flags_value_end(void)
+{
+	tprint_flags_end();
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_end();
+}
+
+void
+tprints_flags_value_const(unsigned long long val, const char *sym)
+{
+	tprints_string(sym);
+}
+
+void
+tprints_shift_value(unsigned long long raw, unsigned long long val,
+		    const char *shift)
+{
+	tprint_shift_begin();
+	PRINT_VAL_U(val);
+	tprint_shift();
+	tprints_string(shift);
+	tprint_shift_end();
+}
+
 void
 tprint_newline(void)
 {

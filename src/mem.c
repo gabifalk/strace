@@ -57,16 +57,8 @@ SYS_FUNC(brk)
 static void
 print_mmap_flags(kernel_ulong_t flags)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(flags);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+	if (!tprint_xlat_flags_value_begin(flags))
 		return;
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
-	tprint_flags_begin();
 
 	printxvals_ex(flags & MAP_TYPE, "MAP_???", XLAT_STYLE_ABBREV,
 		      mmap_flags, NULL);
@@ -77,28 +69,19 @@ print_mmap_flags(kernel_ulong_t flags)
 
 	flags &= ~mask;
 	if (flags) {
-		tprint_flags_or();
+		tprint_flags_value_or();
 		printflags_ex(flags, NULL, XLAT_STYLE_ABBREV,
 			      mmap_flags, NULL);
 	}
 
 	if (hugetlb_value) {
-		tprint_flags_or();
-		tprint_shift_begin();
-		PRINT_VAL_U(hugetlb_value >> MAP_HUGE_SHIFT);
-		tprint_shift();
-		/*
-		 * print_xlat_u is not used here because the whole thing
-		 * is potentially inside a comment already.
-		 */
-		tprints_string("MAP_HUGE_SHIFT");
-		tprint_shift_end();
+		tprint_flags_value_or();
+		tprints_shift_value(hugetlb_value,
+				    hugetlb_value >> MAP_HUGE_SHIFT,
+				    "MAP_HUGE_SHIFT");
 	}
 
-	tprint_flags_end();
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-                tprint_comment_end();
+	tprint_xlat_flags_value_end();
 }
 
 static void

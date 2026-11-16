@@ -36,6 +36,8 @@ extern void tprints_xlat_const(uint64_t val, enum xlat_style style,
 extern void tprints_xlat_flags_sym(const char *sym, uint64_t val,
 				   uint64_t flags, unsigned int n,
 				   enum xlat_style style);
+extern bool tprint_xlat_flags_value_begin(unsigned long long raw);
+extern void tprint_xlat_flags_value_end(void);
 extern void tprint_wait_status(int status, const struct xlat *events);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
@@ -278,6 +280,10 @@ extern void tprint_err(long long err, bool negated, const char *name);
 extern void tprint_flags_value_begin(unsigned long long raw);
 extern void tprint_flags_value_or(void);
 extern void tprint_flags_value_end(void);
+extern void tprints_flags_value_const(unsigned long long val,
+				      const char *sym);
+extern void tprints_shift_value(unsigned long long raw, unsigned long long val,
+				const char *shift);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_secontext(const char *ctx, unsigned int ctx_len,
 			     const char *expected, unsigned int expected_len,
