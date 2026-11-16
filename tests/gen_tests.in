@@ -580,6 +580,7 @@ jsonl-merged-getsockname	-e trace=getsockname
 jsonl-merged-group_req	-e trace=setsockopt
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ip_mreq	-e trace=setsockopt
+jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-memfd_secret	-e trace=memfd_secret
@@ -686,6 +687,7 @@ jsonl-split-getsockname	-e trace=getsockname
 jsonl-split-group_req	-e trace=setsockopt
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ip_mreq	-e trace=setsockopt
+jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-memfd_secret	-e trace=memfd_secret
