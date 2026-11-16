@@ -2997,7 +2997,10 @@ tprint_syscall_duration(long long sec, long nsec)
 void
 tprint_sysret_injected(void)
 {
-	tprints_sysret_string("inject", "INJECTED");
+	if (structured_output)
+		tprints_object_field_bool("injected", true);
+	else
+		tprints_sysret_string("inject", "INJECTED");
 }
 
 void
