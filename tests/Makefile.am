@@ -344,6 +344,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_ifla_proto_down_reason \
 	jsonl-nlattr_ifla_vfinfo \
 	jsonl-nlattr_ifla_xdp \
+	jsonl-nlattr_ifstats \
 	jsonl-nlattr_inet_diag_req_compat \
 	jsonl-nlattr_inet_diag_req_v2 \
 	jsonl-nlattr_mdba_router_port \
@@ -1094,6 +1095,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_ifla_proto_down_reason.c \
 	jsonl-nlattr_ifla_vfinfo.c \
 	jsonl-nlattr_ifla_xdp.c \
+	jsonl-nlattr_ifstats.c \
 	jsonl-nlattr_inet_diag_req_compat.c \
 	jsonl-nlattr_inet_diag_req_v2.c \
 	jsonl-nlattr_mdba_router_port.c \
