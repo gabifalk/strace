@@ -10,10 +10,39 @@
 
 #ifdef ALPHA
 
-# include "xstring.h"
+static long getxxid_rval2;
+
+static void
+print_getxxid_result(const char *const type, const char *const name,
+		     const unsigned long long val)
+{
+	tprint_sysret_result_begin(type, val);
+	tprints_sysret_result_field(name, true);
+	PRINT_VAL_D_AS(type, getxxid_rval2);
+	tprint_sysret_result_end();
+}
+
+static void
+print_getxpid_result(struct tcb *const tcp, const unsigned long long val)
+{
+	print_getxxid_result("tgid", "ppid", val);
+}
+
+static void
+print_getxuid_result(struct tcb *const tcp, const unsigned long long val)
+{
+	print_getxxid_result("uid", "euid", val);
+}
+
+static void
+print_getxgid_result(struct tcb *const tcp, const unsigned long long val)
+{
+	print_getxxid_result("gid", "egid", val);
+}
 
 static int
-decode_getxxid(struct tcb *tcp, const char *what)
+decode_getxxid(struct tcb *tcp,
+	       void (*const printer)(struct tcb *, unsigned long long))
 {
 	if (entering(tcp))
 		return 0;
@@ -21,26 +50,24 @@ decode_getxxid(struct tcb *tcp, const char *what)
 	long rval = getrval2(tcp);
 	if (rval == -1)
 		return 0;
-	static const char const fmt[] = "%s %ld";
-	static char outstr[sizeof(fmt) + 3 * sizeof(rval)];
-	xsprintf(outstr, fmt, what, rval);
-	tcp->auxstr = outstr;
-	return RVAL_STR;
+	getxxid_rval2 = rval;
+	tcp->rval_result_printer = printer;
+	return RVAL_RESULT;
 }
 
 SYS_FUNC(getxpid)
 {
-	return decode_getxxid(tcp, "ppid");
+	return decode_getxxid(tcp, print_getxpid_result);
 }
 
 SYS_FUNC(getxuid)
 {
-	return decode_getxxid(tcp, "euid");
+	return decode_getxxid(tcp, print_getxuid_result);
 }
 
 SYS_FUNC(getxgid)
 {
-	return decode_getxxid(tcp, "egid");
+	return decode_getxxid(tcp, print_getxgid_result);
 }
 
 SYS_FUNC(osf_statfs)
