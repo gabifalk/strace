@@ -1505,6 +1505,7 @@ printpathn(struct tcb *const tcp, const kernel_ulong_t addr, unsigned int n)
 	if (nul_seen < 0)
 		printaddr(addr);
 	else {
+		tprints_object_type("path");
 		print_quoted_cstring(path, (unsigned int) nul_seen ?: n);
 
 		if (nul_seen)
