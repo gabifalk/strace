@@ -883,25 +883,13 @@ printdev(pid_t pid, int fd, const char *path, const struct finfo *finfo)
 	switch (finfo->type) {
 	case FINFO_DEV_BLK:
 	case FINFO_DEV_CHR:
-		tprint_associated_info_begin();
-		print_quoted_string_ex(finfo->path, strlen(finfo->path),
-				       QUOTE_OMIT_LEADING_TRAILING_QUOTES,
-				       "<>");
-		tprint_associated_info_begin();
-		tprintf_string("%s %u:%u",
-			       (finfo->type == FINFO_DEV_BLK)? "block" : "char",
-			       finfo->dev.major, finfo->dev.minor);
-		if (is_ptmx(finfo) && finfo->dev.tty_index >= 0)
-			tprintf_string(" @/dev/pts/%d", finfo->dev.tty_index);
-		else if (is_tun(finfo) && finfo->dev.tun_backend[0]) {
-			tprints_string(" @");
-			print_quoted_string_ex(
-				finfo->dev.tun_backend,
-				strlen(finfo->dev.tun_backend),
-				QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
-		}
-		tprint_associated_info_end();
-		tprint_associated_info_end();
+		tprint_fd_info_dev(finfo->path,
+				   finfo->type == FINFO_DEV_BLK ? "block"
+								: "char",
+				   finfo->dev.major, finfo->dev.minor,
+				   is_ptmx(finfo) ? finfo->dev.tty_index : -1,
+				   is_tun(finfo) ? finfo->dev.tun_backend
+						 : "");
 		return true;
 	default:
 		break;
