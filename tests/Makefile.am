@@ -783,6 +783,7 @@ MISC_TESTS = \
 	strace-E.test \
 	strace-J-header-merged.test \
 	strace-J-header-split.test \
+	strace-J-syscall-times.test \
 	strace-S.test \
 	strace-T_upper.test \
 	strace-V.test \
