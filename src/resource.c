@@ -29,7 +29,7 @@ print_rlim64_t(uint64_t lim) {
 		str = buf;
 	}
 
-	tprint_rlim(lim, str);
+	tprint_rlim(lim, str, lim == UINT64_MAX);
 }
 
 static void
@@ -64,7 +64,7 @@ print_rlim32_t(uint32_t lim) {
 		str = buf;
 	}
 
-	tprint_rlim(lim, str);
+	tprint_rlim(lim, str, lim == UINT32_MAX);
 }
 
 static void

@@ -696,18 +696,31 @@ timescale_to_unit(int scale)
 	}
 }
 
-/* Print a resource limit `lim' followed by its symbolic form `str', if any. */
+/*
+ * Print a resource limit `lim' followed by its symbolic form `str', if any;
+ * `infinity' tells that `str' names an infinite limit.
+ */
 void
-tprint_rlim(unsigned long long lim, const char *str)
+tprint_rlim(unsigned long long lim, const char *str, bool infinity)
 {
 	const enum xlat_style style = xlat_verbose(xlat_verbosity);
 
-	if (!str || style != XLAT_STYLE_ABBREV)
-		PRINT_VAL_U(lim);
-	if (str && style == XLAT_STYLE_VERBOSE)
-		tprints_comment(str);
-	else if (str && style == XLAT_STYLE_ABBREV)
-		tprints_string(str);
+	if (structured_output) {
+		if (infinity) {
+			tprint_type_const();
+			tprintf_object_field_string("raw", "%llu", lim);
+			tprints_object_field_string("sym", str);
+		} else {
+			PRINT_VAL_U(lim);
+		}
+	} else {
+		if (!str || style != XLAT_STYLE_ABBREV)
+			PRINT_VAL_U(lim);
+		if (str && style == XLAT_STYLE_VERBOSE)
+			tprints_comment(str);
+		else if (str && style == XLAT_STYLE_ABBREV)
+			tprints_string(str);
+	}
 }
 
 void
