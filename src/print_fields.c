@@ -1837,23 +1837,47 @@ void
 tprint_kd_key(unsigned int key, const char *sym, const struct xlat *type_xlat,
 	      unsigned int type, unsigned int value, bool is_char)
 {
-	PRINT_VAL_X(key);
-
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+	if (structured_output) {
+		tprints_object_type("kd_key");
+		tprintf_object_field_string("raw", "%#x", key);
 		if (sym) {
-			tprints_comment(sym);
+			tprints_object_field_string("sym", sym);
 		} else {
-			tprint_comment_begin();
-			tprints_fn_begin("K");
-			printxvals_ex(type, NULL, XLAT_STYLE_ABBREV,
+			tprints_object_field_begin("key_type");
+			tprint_object_begin();
+			printxvals_ex(type, NULL, XLAT_STYLE_DEFAULT,
 				      type_xlat, NULL);
-			tprint_fn_next();
+			tprint_object_end();
+			tprint_object_field_end();
+			tprints_object_field_begin("key_value");
+			tprint_object_begin();
 			if (is_char)
-				print_char(value, SCF_QUOTES | SCF_ESC_WS);
+				tprint_char(value);
 			else
 				PRINT_VAL_X(value);
-			tprint_fn_end();
-			tprint_comment_end();
+			tprint_object_end();
+			tprint_object_field_end();
+		}
+	} else {
+		PRINT_VAL_X(key);
+
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (sym) {
+				tprints_comment(sym);
+			} else {
+				tprint_comment_begin();
+				tprints_fn_begin("K");
+				printxvals_ex(type, NULL, XLAT_STYLE_ABBREV,
+					      type_xlat, NULL);
+				tprint_fn_next();
+				if (is_char)
+					print_char(value,
+						   SCF_QUOTES | SCF_ESC_WS);
+				else
+					PRINT_VAL_X(value);
+				tprint_fn_end();
+				tprint_comment_end();
+			}
 		}
 	}
 }
