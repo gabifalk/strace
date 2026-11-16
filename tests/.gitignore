@@ -553,6 +553,7 @@ jsonl-geteuid
 jsonl-getgid
 jsonl-getresuid
 jsonl-getsockname
+jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-memfd_secret
 jsonl-mlockall
@@ -568,8 +569,10 @@ jsonl-printsignal
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
 jsonl-setxattr
+jsonl-sigchld
 jsonl-signal
 jsonl-status-none
+jsonl-stopped
 jsonl-sysinfo
 jsonl-vfork-f
 kcmp
