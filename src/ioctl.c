@@ -71,31 +71,6 @@ ioctl_next_match(const struct_ioctlent *iop)
 	return NULL;
 }
 
-static void
-ioctl_print_code(const unsigned int code)
-{
-	const bool abbrev = xlat_verbose(xlat_verbosity) != XLAT_STYLE_VERBOSE;
-
-	tprints_fn_begin("_IOC");
-
-	tprint_flags_begin();
-	printflags_ex(_IOC_DIR(code), abbrev ? "_IOC_???" : "",
-		      abbrev ? XLAT_STYLE_DEFAULT : XLAT_STYLE_ABBREV,
-		      ioctl_dirs, NULL);
-	tprint_flags_end();
-
-	tprint_fn_next();
-	PRINT_VAL_X(_IOC_TYPE(code));
-
-	tprint_fn_next();
-	PRINT_VAL_X(_IOC_NR(code));
-
-	tprint_fn_next();
-	PRINT_VAL_X(_IOC_SIZE(code));
-
-	tprint_fn_end();
-}
-
 static int
 evdev_decode_number(const unsigned int code)
 {
@@ -526,6 +501,8 @@ SYS_FUNC(ioctl)
 		struct finfo *finfo = NULL;
 		char path[PATH_MAX + 1];
 		bool deleted;
+		const unsigned int code = tcp->u_arg[1];
+		bool unknown = false;
 
 		tprints_arg_name("fd");
 		if (ioctl_command_overlaps(tcp->u_arg[1]) &&
@@ -538,14 +515,11 @@ SYS_FUNC(ioctl)
 			printfd(tcp, tcp->u_arg[0]);
 
 		tprints_arg_next_name("op");
-		if (xlat_verbosity != XLAT_STYLE_ABBREV)
-			PRINT_VAL_X((unsigned int) tcp->u_arg[1]);
-		if (xlat_verbosity == XLAT_STYLE_VERBOSE)
-			tprint_comment_begin();
+		tprint_ioctl_op_begin(code);
 		if (xlat_verbosity != XLAT_STYLE_RAW) {
 			ret = ioctl_decode_command_number(tcp, finfo);
 			if (!(ret & IOCTL_NUMBER_STOP_LOOKUP)) {
-				iop = ioctl_lookup(tcp->u_arg[1]);
+				iop = ioctl_lookup(code);
 				if (iop) {
 					if (ret)
 						tprint_alternative_value();
@@ -555,12 +529,13 @@ SYS_FUNC(ioctl)
 						tprints_string(iop->symbol);
 					}
 				} else if (!ret) {
-					ioctl_print_code(tcp->u_arg[1]);
+					unknown = true;
 				}
 			}
 		}
-		if (xlat_verbosity == XLAT_STYLE_VERBOSE)
-			tprint_comment_end();
+		tprint_ioctl_op_end(unknown, _IOC_DIR(code), _IOC_TYPE(code),
+				    _IOC_NR(code), _IOC_SIZE(code),
+				    ioctl_dirs);
 
 		ret = ioctl_decode(tcp, finfo);
 	} else {

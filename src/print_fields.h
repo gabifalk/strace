@@ -51,6 +51,10 @@ extern void tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,
 					  const char *dflt);
 extern void tprint_flags_with_value_end(uint64_t flags);
 extern void tprint_wait_status(int status, const struct xlat *events);
+extern void tprint_ioctl_op_end(bool unknown, unsigned int dir,
+				unsigned int type, unsigned int nr,
+				unsigned int size,
+				const struct xlat *dir_xlat);
 extern void tprint_net_xval(const void *raw, unsigned int size,
 			    const struct xlat *xlat, unsigned long long val,
 			    const char *dflt);
@@ -400,6 +404,7 @@ extern void tprint_ticks(unsigned long long val, long freq,
 			 unsigned int precision);
 extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
 extern void tprint_kernel_version(unsigned long version);
+extern void tprint_ioctl_op_begin(unsigned int code);
 extern bool tprint_qcmd_begin(unsigned int qcmd);
 extern void tprint_rlim(unsigned long long lim, const char *str,
 			bool infinity);

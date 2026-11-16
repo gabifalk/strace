@@ -1713,6 +1713,52 @@ tprint_qcmd_end(void)
 	}
 }
 
+void
+tprint_ioctl_op_begin(unsigned int code)
+{
+	if (xlat_verbosity != XLAT_STYLE_ABBREV)
+		PRINT_VAL_X(code);
+	if (xlat_verbosity == XLAT_STYLE_VERBOSE)
+		tprint_comment_begin();
+}
+
+/*
+ * Finish printing an ioctl command number that consists of `dir', `type',
+ * `nr', and `size' parts; `unknown' tells that no name has been printed
+ * for it.
+ */
+void
+tprint_ioctl_op_end(bool unknown, unsigned int dir, unsigned int type,
+		    unsigned int nr, unsigned int size,
+		    const struct xlat *dir_xlat)
+{
+	if (unknown) {
+		const bool abbrev =
+			xlat_verbose(xlat_verbosity) != XLAT_STYLE_VERBOSE;
+
+		tprints_fn_begin("_IOC");
+
+		tprint_flags_begin();
+		printflags_ex(dir, abbrev ? "_IOC_???" : "",
+			      abbrev ? XLAT_STYLE_DEFAULT : XLAT_STYLE_ABBREV,
+			      dir_xlat, NULL);
+		tprint_flags_end();
+
+		tprint_fn_next();
+		PRINT_VAL_X(type);
+
+		tprint_fn_next();
+		PRINT_VAL_X(nr);
+
+		tprint_fn_next();
+		PRINT_VAL_X(size);
+
+		tprint_fn_end();
+	}
+	if (xlat_verbosity == XLAT_STYLE_VERBOSE)
+		tprint_comment_end();
+}
+
 /*
  * Print the I/O priority value `ioprio' whose decoded form is `str';
  * the raw value is printed as a signed decimal number if `signed_raw',
