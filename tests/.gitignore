@@ -682,6 +682,7 @@ jsonl-printsignal
 jsonl-prlimit64
 jsonl-process_vm_readv
 jsonl-process_vm_writev
+jsonl-ptrace
 jsonl-pwritev
 jsonl-quotactl
 jsonl-recvmmsg

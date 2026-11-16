@@ -701,6 +701,7 @@ jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-prlimit64	-e trace=prlimit64 "QUIRK:START-OF-TEST-OUTPUT-REGEX:.pid., [^}]*.raw.: .2147483647."
 jsonl-merged-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-merged-process_vm_writev	-s5 -e trace=process_vm_writev
+jsonl-merged-ptrace	-e trace=ptrace -e signal=none
 jsonl-merged-pwritev	-s7 -e trace=pwritev
 jsonl-merged-quotactl	-e trace=quotactl
 jsonl-merged-recvmmsg	-e trace=recvmmsg
@@ -878,6 +879,7 @@ jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-prlimit64	-e trace=prlimit64 "QUIRK:START-OF-TEST-OUTPUT-REGEX:.pid., [^}]*.raw.: .2147483647."
 jsonl-split-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-split-process_vm_writev	-s5 -e trace=process_vm_writev
+jsonl-split-ptrace	-e trace=ptrace -e signal=none
 jsonl-split-pwritev	-s7 -e trace=pwritev
 jsonl-split-quotactl	-e trace=quotactl
 jsonl-split-recvmmsg	-e trace=recvmmsg

@@ -425,6 +425,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prlimit64 \
 	jsonl-process_vm_readv \
 	jsonl-process_vm_writev \
+	jsonl-ptrace \
 	jsonl-pwritev \
 	jsonl-quotactl \
 	jsonl-recvmmsg \
@@ -1254,6 +1255,7 @@ EXTRA_DIST = \
 	jsonl-prlimit64.c \
 	jsonl-process_vm_readv.c \
 	jsonl-process_vm_writev.c \
+	jsonl-ptrace.c \
 	jsonl-pwritev.c \
 	jsonl-quotactl.c \
 	jsonl-recvmmsg.c \
