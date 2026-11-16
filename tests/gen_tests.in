@@ -584,6 +584,7 @@ jsonl-merged-getrandom	-s3 -e trace=getrandom "QUIRK:START-OF-TEST-OUTPUT-REGEX:
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-getsockname	-e trace=getsockname
 jsonl-merged-group_req	-e trace=setsockopt
+jsonl-merged-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=42 -e inject=vhangup:error=ENOTTY
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
@@ -720,6 +721,7 @@ jsonl-split-getrandom	-s3 -e trace=getrandom "QUIRK:START-OF-TEST-OUTPUT-REGEX:.
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-getsockname	-e trace=getsockname
 jsonl-split-group_req	-e trace=setsockopt
+jsonl-split-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=42 -e inject=vhangup:error=ENOTTY
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl

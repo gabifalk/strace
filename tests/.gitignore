@@ -565,6 +565,7 @@ jsonl-getrandom
 jsonl-getresuid
 jsonl-getsockname
 jsonl-group_req
+jsonl-injected
 jsonl-ioctl
 jsonl-ioctl_evdev
 jsonl-ioctl_kd

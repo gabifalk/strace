@@ -154,21 +154,37 @@ jsonl_dev_t(unsigned long long dev)
 }
 
 /*
- * The "return" field of a syscall event: an errno object for rc == -1,
- * otherwise a value of the given type.
+ * The "return" field of a syscall event up to its closing brace: an errno
+ * object for rc == -1, otherwise a value of the given type.
  */
 static inline void
-jsonl_return(const char *type, long rc)
+jsonl_return_open(const char *type, long rc)
 {
 	if (rc == -1) {
 		printf("\"return\": {\"type\": \"decimal\", \"raw\": \"-1\","
 		       " \"errno\": {\"type\": \"errno\", \"raw\": \"%d\","
-		       " \"sym\": \"%s\", \"strerror\": \"%s\"}}",
+		       " \"sym\": \"%s\", \"strerror\": \"%s\"}",
 		       errno, errno2name(errno), strerror(errno));
 	} else {
-		printf("\"return\": {\"type\": \"%s\", \"raw\": \"%ld\"}",
+		printf("\"return\": {\"type\": \"%s\", \"raw\": \"%ld\"",
 		       type, rc);
 	}
+}
+
+/* The "return" field of a syscall event. */
+static inline void
+jsonl_return(const char *type, long rc)
+{
+	jsonl_return_open(type, rc);
+	printf("}");
+}
+
+/* The "return" field of a syscall event whose return value is injected. */
+static inline void
+jsonl_return_injected(const char *type, long rc)
+{
+	jsonl_return_open(type, rc);
+	printf(", \"injected\": true}");
 }
 
 /* The ", \"indirect\": true" marker of a value fetched through a pointer. */

@@ -308,6 +308,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getresuid \
 	jsonl-getsockname \
 	jsonl-group_req \
+	jsonl-injected \
 	jsonl-ioctl \
 	jsonl-ioctl_evdev \
 	jsonl-ioctl_kd \
@@ -1097,6 +1098,7 @@ EXTRA_DIST = \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
 	jsonl-group_req.c \
+	jsonl-injected.c \
 	jsonl-ioctl_evdev.c \
 	jsonl-ioctl_kd.c \
 	jsonl-ioctl_gpio.c \
