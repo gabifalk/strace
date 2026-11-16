@@ -560,6 +560,7 @@ jsonl-getresuid
 jsonl-getsockname
 jsonl-group_req
 jsonl-ioctl
+jsonl-ioctl_gpio
 jsonl-ip_mreq
 jsonl-keyctl
 jsonl-killed
