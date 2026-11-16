@@ -1,6 +1,7 @@
 /*
  * Check JSONL output of the io_uring_register syscall: restriction
- * opcodes and the query list of IORING_REGISTER_QUERY.
+ * opcodes and the query list of IORING_REGISTER_QUERY, including a list
+ * that ends at an unfetchable entry and a list cut short by the limit.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -144,6 +145,53 @@ test_query(void)
 	call_close(0, rc, saved_errno);
 }
 
+static void
+test_query_unfetchable(void)
+{
+	TAIL_ALLOC_OBJECT_CONST_PTR(struct io_uring_query_hdr, hdr);
+	memset(hdr, 0, sizeof(*hdr));
+	hdr->next_entry = (uintptr_t) (hdr + 1);
+	hdr->query_op = IO_URING_QUERY_SCQ;
+	const struct io_uring_query_hdr saved = *hdr;
+
+	long rc = syscall(__NR_io_uring_register, -1, IORING_REGISTER_QUERY,
+			  hdr, 0);
+	int saved_errno = errno;
+
+	call_open(IORING_REGISTER_QUERY, "IORING_REGISTER_QUERY");
+	printf("\"type\": \"query_list\", \"elems\": [");
+	query_entry(&saved);
+	printf(", {");
+	jsonl_addr(hdr + 1);
+	printf("}]");
+	call_close(0, rc, saved_errno);
+}
+
+static void
+test_query_truncated(void)
+{
+	TAIL_ALLOC_OBJECT_CONST_PTR(struct io_uring_query_hdr, hdr);
+	memset(hdr, 0, sizeof(*hdr));
+	hdr->next_entry = (uintptr_t) hdr;
+	hdr->query_op = IO_URING_QUERY_SCQ;
+	const struct io_uring_query_hdr saved = *hdr;
+
+	long rc = syscall(__NR_io_uring_register, -1, IORING_REGISTER_QUERY,
+			  hdr, 0);
+	int saved_errno = errno;
+
+	call_open(IORING_REGISTER_QUERY, "IORING_REGISTER_QUERY");
+	printf("\"type\": \"query_list\", \"elems\": [");
+	for (unsigned int i = 0; i < DEFAULT_STRLEN; ++i) {
+		if (i)
+			printf(", ");
+		query_entry(&saved);
+	}
+	printf("], \"truncated\": true, \"truncated_addr\": \"%#lx\"",
+	       (unsigned long) (uintptr_t) hdr);
+	call_close(0, rc, saved_errno);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -151,6 +199,8 @@ main(int argc, char *argv[])
 
 	test_restrictions();
 	test_query();
+	test_query_unfetchable();
+	test_query_truncated();
 
 	jsonl_exit_event(0);
 	return 0;
