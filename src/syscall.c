@@ -1069,8 +1069,6 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		tprints_sysret_xlat_sym(sprintflags_ex("", tcp->rval_xlat,
 				(kernel_ulong_t) tcp->u_rval, '\0',
 				XLAT_STYLE_DEFAULT | SPFF_AUXSTR_MODE));
-	} else if ((sys_res & RVAL_STR) && tcp->auxstr) {
-		tprints_sysret_string("retstr", tcp->auxstr);
 	}
 	tprint_sysret_end();
 	print_injected_note(tcp);

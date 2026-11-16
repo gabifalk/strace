@@ -674,7 +674,7 @@ void
 qualify_namespace(const char *const str)
 {
 	if (strcmp(str, "new") == 0) {
-		namespace_auxstr_init();
+		namespace_report_init();
 	} else {
 		error_msg_and_die("invalid -e namespace= argument: '%s'", str);
 	}

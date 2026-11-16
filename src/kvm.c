@@ -511,7 +511,7 @@ static void
 kvm_run_structure_decode_main(struct tcb *tcp,
 			      struct kvm_run *state,
 			      struct vcpu_info *info,
-			      const char *auxstr)
+			      const char *exit_reason_str)
 {
 	tprint_struct_begin();
 
@@ -523,8 +523,8 @@ kvm_run_structure_decode_main(struct tcb *tcp,
 # endif
 
 	PRINT_FIELD_U(*state, exit_reason);
-	if (auxstr)
-		tprints_comment(auxstr);
+	if (exit_reason_str)
+		tprints_comment(exit_reason_str);
 	tprint_struct_next();
 	PRINT_FIELD_U(*state, ready_for_interrupt_injection);
 	tprint_struct_next();
@@ -572,10 +572,10 @@ kvm_run_structure_decode(struct tcb * tcp)
 			tprintf_string(" VCPU:%d< ", info->cpuid);
 		else
 			tprints_string(" VCPU< ");
-		const char *auxstr = xlookup(kvm_exit_reason,
-					     tcp->vcpu_entering->exit_reason);
+		const char *str = xlookup(kvm_exit_reason,
+					  tcp->vcpu_entering->exit_reason);
 		kvm_run_structure_decode_main(tcp, tcp->vcpu_entering, info,
-					      auxstr);
+					      str);
 	}
 
 	if (syserror(tcp)) {

@@ -57,7 +57,7 @@
 #endif
 
 static bool show_namespace = false;
-extern void namespace_auxstr_init(void)
+extern void namespace_report_init(void)
 {
 	show_namespace = true;
 }

@@ -504,7 +504,7 @@ SYS_FUNC(prctl)
 			return RVAL_FLAGS;
 		}
 
-		return RVAL_STR;
+		return 0;
 
 	case PR_SET_SPECULATION_CTRL:		/*  53 */
 		tprints_arg_next_name("misfeature");

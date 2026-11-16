@@ -281,7 +281,6 @@ struct tcb {
 	FILE *outf;		/* Output file for this process */
 	struct staged_output_data *staged_output_data;
 
-	const char *auxstr;	/* Auxiliary info from syscall (see RVAL_STR) */
 	const struct xlat *rval_xlat;	/* Return value xlat (see RVAL_XLAT,
 					   RVAL_FLAGS) */
 	/* Return value printer (see RVAL_PRINTER) */
@@ -478,7 +477,6 @@ extern const struct xlat whence_codes[];
 # define RVAL_GID	016	/* group ID */
 # define RVAL_MASK	017	/* mask for these values */
 
-# define RVAL_STR	020	/* Print `auxstr' field after return val */
 # define RVAL_NONE	040	/* Print nothing */
 
 # define RVAL_DECODED	0100	/* syscall decoding finished */
@@ -1691,7 +1689,7 @@ extern void kvm_vcpu_info_free(struct tcb *);
 extern void kvm_run_structure_decode(struct tcb *);
 # endif
 
-extern void namespace_auxstr_init(void);
+extern void namespace_report_init(void);
 
 extern void maybe_load_task_comm(struct tcb *tcp);
 /* Load the contents of /proc/$pid/comm into `buf'. */
