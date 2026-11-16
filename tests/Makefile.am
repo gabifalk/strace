@@ -425,6 +425,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sendfile \
 	jsonl-signalfd4 \
 	jsonl-sendmmsg \
+	jsonl-shmget \
 	jsonl-sock_filter \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
@@ -1270,6 +1271,7 @@ EXTRA_DIST = \
 	jsonl-sendfile.c \
 	jsonl-signalfd4.c \
 	jsonl-sendmmsg.c \
+	jsonl-shmget.c \
 	jsonl-sock_filter.c \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
