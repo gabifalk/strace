@@ -76,7 +76,9 @@ PRINT_TIMESPEC_ARRAY_DATA_SIZE(const void *arg, const unsigned int nmemb,
 	for (unsigned int i = 0; i < nmemb; i++, arg += sizeof(TIMESPEC_T)) {
 		if (i)
 			tprint_array_next();
+		tprint_object_begin();
 		print_unaligned_timespec_t(arg);
+		tprint_object_end();
 	}
 
 	tprint_array_end();
