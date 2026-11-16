@@ -219,7 +219,7 @@ ilog10(uint64_t val)
 	return ret;
 }
 
-static void
+void
 print_ticks_comment(uint64_t val, long freq, unsigned int precision,
 		    bool negative)
 {
@@ -251,10 +251,7 @@ print_ticks_comment(uint64_t val, long freq, unsigned int precision,
 void
 print_ticks(uint64_t val, long freq, unsigned int precision)
 {
-	PRINT_VAL_U(val);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
-	    && freq > 0 && val > 0)
-		print_ticks_comment(val, freq, precision, false);
+	tprint_ticks(val, freq, precision);
 }
 
 void

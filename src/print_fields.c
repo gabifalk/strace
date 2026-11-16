@@ -834,6 +834,15 @@ tprint_extra_data_end(bool truncated)
 }
 
 void
+tprint_ticks(unsigned long long val, long freq, unsigned int precision)
+{
+	PRINT_VAL_U(val);
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
+	    && freq > 0 && val > 0)
+		print_ticks_comment(val, freq, precision, false);
+}
+
+void
 tprint_addr(unsigned long long addr)
 {
 	PRINT_VAL_ADDR(addr);

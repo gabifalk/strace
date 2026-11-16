@@ -1639,6 +1639,8 @@ extern const struct timespec *ts_max(const struct timespec *, const struct times
 extern int parse_ts(const char *s, struct timespec *t);
 
 /** Print a time interval value specified as a number 1/freq-sized ticks. */
+extern void print_ticks_comment(uint64_t val, long freq, unsigned int precision,
+				bool negative);
 extern void print_ticks(uint64_t val, long freq, unsigned int precision);
 extern void print_ticks_d(int64_t val, long freq, unsigned int precision);
 /** Print a clock_t value, as used by times(2) (and not clock(3)). */
