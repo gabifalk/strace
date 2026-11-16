@@ -1,7 +1,8 @@
 /*
- * Check JSONL output of parametric ioctl commands: the op argument
- * of EVIOCGABS and EVIOCGBIT ioctl commands, whose ioctl_cmd carries
- * the arguments encoded in the command number.
+ * Check JSONL output of evdev ioctl commands: the op argument of EVIOCGABS
+ * and EVIOCGBIT ioctl commands, whose ioctl_cmd carries the arguments
+ * encoded in the command number, and the arrays written by EVIOCSREP
+ * and EVIOCSKEYCODE ioctl commands.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -72,6 +73,41 @@ main(int argc, char *argv[])
 	printf("}, {");
 	jsonl_unsigned(8);
 	end_ioctl(EVIOCGBIT(EV_KEY, 8));
+
+	test_ioctl(EVIOCGBIT(0x6, 8), "EVIOCGBIT");
+	jsonl_const(0x6, true, NULL, "EV_???");
+	printf("}, {");
+	jsonl_unsigned(8);
+	end_ioctl(EVIOCGBIT(0x6, 8));
+
+	TAIL_ALLOC_OBJECT_CONST_ARR(unsigned int, pair, 2);
+
+	pair[0] = 0xdeadbeef;
+	pair[1] = 250;
+	jsonl_ioctl_call(EVIOCSREP, "EVIOCSREP", NULL, pair);
+	jsonl_ioctl_argp_open("argp", false);
+	jsonl_array_open();
+	printf("{");
+	jsonl_unsigned(pair[0]);
+	printf("}, {");
+	jsonl_unsigned(pair[1]);
+	printf("}");
+	jsonl_array_close();
+	jsonl_ioctl_argp_close();
+	jsonl_ioctl_end();
+
+	pair[1] = KEY_ESC;
+	jsonl_ioctl_call(EVIOCSKEYCODE, "EVIOCSKEYCODE", NULL, pair);
+	jsonl_ioctl_argp_open("argp", false);
+	jsonl_array_open();
+	printf("{");
+	jsonl_unsigned(pair[0]);
+	printf("}, {");
+	jsonl_const(KEY_ESC, true, "KEY_ESC", NULL);
+	printf("}");
+	jsonl_array_close();
+	jsonl_ioctl_argp_close();
+	jsonl_ioctl_end();
 
 	jsonl_exit_event(0);
 	return 0;

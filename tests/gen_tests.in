@@ -591,6 +591,7 @@ jsonl-merged-group_req	-e trace=setsockopt
 jsonl-merged-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=42 -e inject=vhangup:error=ENOTTY
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_evdev_bitset	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=8
 jsonl-merged-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kd_io	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kd_kbent	+jsonl-ioctl.sh -e trace=ioctl
@@ -760,6 +761,7 @@ jsonl-split-group_req	-e trace=setsockopt
 jsonl-split-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=42 -e inject=vhangup:error=ENOTTY
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_evdev_bitset	+jsonl-ioctl.sh -e trace=ioctl -e inject=ioctl:retval=8
 jsonl-split-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kd_io	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kd_kbent	+jsonl-ioctl.sh -e trace=ioctl

@@ -315,6 +315,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-injected \
 	jsonl-ioctl \
 	jsonl-ioctl_evdev \
+	jsonl-ioctl_evdev_bitset \
 	jsonl-ioctl_kd \
 	jsonl-ioctl_kd_io \
 	jsonl-ioctl_kd_kbent \
@@ -1136,6 +1137,7 @@ EXTRA_DIST = \
 	jsonl-group_req.c \
 	jsonl-injected.c \
 	jsonl-ioctl_evdev.c \
+	jsonl-ioctl_evdev_bitset.c \
 	jsonl-ioctl_kd.c \
 	jsonl-ioctl_kd_io.c \
 	jsonl-ioctl_kd_kbent.c \

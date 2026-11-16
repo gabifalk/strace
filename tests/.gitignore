@@ -572,6 +572,7 @@ jsonl-group_req
 jsonl-injected
 jsonl-ioctl
 jsonl-ioctl_evdev
+jsonl-ioctl_evdev_bitset
 jsonl-ioctl_kd
 jsonl-ioctl_kd_io
 jsonl-ioctl_kd_kbent
