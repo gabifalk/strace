@@ -253,6 +253,11 @@ tprints_arg_next_name(const char *name)
 }
 
 void
+tprints_arg_inout_entering_d(unsigned int index, const char *name, int val)
+{
+}
+
+void
 tprint_arg_inout_exiting_d(int entering_val, int exiting_val)
 {
 	tprint_indirect_begin();

@@ -209,6 +209,9 @@ decode_sockname(struct tcb *tcp)
 
 		if (fetch_socklen(tcp, &ulen, tcp->u_arg[1], tcp->u_arg[2])) {
 			set_tcb_priv_ulong(tcp, ulen);
+
+			/* addrlen */
+			tprints_arg_inout_entering_d(2, "addrlen", ulen);
 			return 0;
 		} else {
 			/* addr */
