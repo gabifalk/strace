@@ -608,6 +608,7 @@ jsonl-nlattr_nlmsgerr
 jsonl-nlattr_rtgenmsg
 jsonl-nlattr_tc_stats
 jsonl-nlattr_tca_stab
+jsonl-nlattr_tcamsg
 jsonl-nlattr_tcmsg
 jsonl-nlattr_unix_diag_msg
 jsonl-pause

@@ -351,6 +351,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nlattr_rtgenmsg \
 	jsonl-nlattr_tc_stats \
 	jsonl-nlattr_tca_stab \
+	jsonl-nlattr_tcamsg \
 	jsonl-nlattr_tcmsg \
 	jsonl-nlattr_unix_diag_msg \
 	jsonl-pause \
@@ -1094,6 +1095,7 @@ EXTRA_DIST = \
 	jsonl-nlattr_rtgenmsg.c \
 	jsonl-nlattr_tc_stats.c \
 	jsonl-nlattr_tca_stab.c \
+	jsonl-nlattr_tcamsg.c \
 	jsonl-nlattr_tcmsg.c \
 	jsonl-nlattr_unix_diag_msg.c \
 	jsonl-pause.c \
