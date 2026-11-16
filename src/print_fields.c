@@ -516,17 +516,40 @@ tprint_char(unsigned char c)
 	}
 }
 
+static bool extra_data_field;
+
 void
 tprint_extra_data_begin(unsigned int offset, unsigned int size)
 {
-	tprintf_string("/* bytes %u..%u */ ", offset, offset + size - 1);
+	if (structured_output) {
+		extra_data_field = tprint_struct_fields_end();
+		if (extra_data_field) {
+			tprints_object_field_begin("extra_data");
+			tprint_object_begin();
+		}
+		tprints_object_type("bytes");
+		tprintf_object_field_string("offset", "%u", offset);
+		tprintf_object_field_string("size", "%u", size);
+	} else {
+		tprintf_string("/* bytes %u..%u */ ", offset,
+			       offset + size - 1);
+	}
 }
 
 void
 tprint_extra_data_end(bool truncated)
 {
-	if (truncated)
+	if (structured_output) {
+		if (truncated)
+			tprints_object_field_bool("truncated", true);
+		if (extra_data_field) {
+			tprint_object_end();
+			tprint_object_field_end();
+			extra_data_field = false;
+		}
+	} else if (truncated) {
 		tprint_more_data_follows();
+	}
 }
 
 void
