@@ -83,10 +83,11 @@ keycode_ioctl(struct tcb *const tcp, const kernel_ulong_t arg)
 
 	if (!umove_or_printaddr(tcp, arg, &keycode)) {
 		tprint_array_begin();
+		tprint_object_begin();
 		PRINT_VAL_U(keycode[0]);
-		tprint_array_next();
-
+		tprint_array_element_next();
 		printxval(evdev_keycode, keycode[1], "KEY_???");
+		tprint_object_end();
 		tprint_array_end();
 	}
 
@@ -240,7 +241,10 @@ mtslots_ioctl(struct tcb *const tcp, const unsigned int code,
 static int
 repeat_ioctl(struct tcb *const tcp, const kernel_ulong_t arg)
 {
-	printpair_int(tcp, arg, "%u");
+	unsigned int rep[2];
+
+	if (!umove_or_printaddr(tcp, arg, &rep))
+		print_local_array(tcp, rep, print_uint_array_member);
 	return RVAL_IOCTL_DECODED;
 }
 
