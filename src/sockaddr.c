@@ -840,6 +840,14 @@ print_sockaddr_data_bt(struct tcb *tcp, const void *const buf,
 }
 
 static void
+print_rxrpc_transport_data(const void *const buf, const int len)
+{
+	tprints_unnamed_field_name("addr_data");
+	tprints_object_type("string");
+	print_quoted_string(buf, len, 0);
+}
+
+static void
 print_sockaddr_data_rxrpc(struct tcb *tcp, const void *const buf,
 			  const int len)
 {
@@ -876,7 +884,8 @@ print_sockaddr_data_rxrpc(struct tcb *tcp, const void *const buf,
 					       transport_len);
 		} else if (transport_rest > 0) {
 			tprint_struct_next();
-			print_quoted_string(transport_buf, transport_rest, 0);
+			print_rxrpc_transport_data(transport_buf,
+						   transport_rest);
 		}
 		tprint_struct_end();
 		break;
@@ -892,7 +901,8 @@ print_sockaddr_data_rxrpc(struct tcb *tcp, const void *const buf,
 						transport_len);
 		} else if (transport_rest > 0) {
 			tprint_struct_next();
-			print_quoted_string(transport_buf, transport_rest, 0);
+			print_rxrpc_transport_data(transport_buf,
+						   transport_rest);
 		}
 		tprint_struct_end();
 		break;
@@ -901,7 +911,8 @@ print_sockaddr_data_rxrpc(struct tcb *tcp, const void *const buf,
 		PRINT_FIELD_XVAL(sa->transport, family, addrfams, "AF_???");
 		if (transport_rest > 0) {
 			tprint_struct_next();
-			print_quoted_string(transport_buf, transport_rest, 0);
+			print_rxrpc_transport_data(transport_buf,
+						   transport_rest);
 		}
 	}
 

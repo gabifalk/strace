@@ -278,6 +278,7 @@ extern void tprint_unavailable_error(const char *msg);
 extern void tprint_flags_or(void);
 extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
+extern void tprints_unnamed_field_name(const char *name);
 extern void tprints_xlat_sym(const char *str);
 extern void tprints_xlat_dflt(const char *dflt);
 extern void tprint_sockaddr_begin(void);

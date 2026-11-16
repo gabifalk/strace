@@ -1072,6 +1072,11 @@ tprints_field_name(const char *name)
 }
 
 void
+tprints_unnamed_field_name(const char *name)
+{
+}
+
+void
 tprints_xlat_sym(const char *str)
 {
 	if (!str || !*str)
