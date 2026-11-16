@@ -592,6 +592,11 @@ jsonl-merged-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_kd_io	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_kd_kbent	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_kd_sound	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_kd_tone	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
@@ -748,6 +753,11 @@ jsonl-split-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=4
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_evdev	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_kd_io	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_kd_kbent	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_kd_sound	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_kd_tone	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl

@@ -573,6 +573,11 @@ jsonl-injected
 jsonl-ioctl
 jsonl-ioctl_evdev
 jsonl-ioctl_kd
+jsonl-ioctl_kd_io
+jsonl-ioctl_kd_kbent
+jsonl-ioctl_kd_sound
+jsonl-ioctl_kd_tone
+jsonl-ioctl_kd_uniscrnmap
 jsonl-ioctl_gpio
 jsonl-ioctl_lirc
 jsonl-ioctl_random

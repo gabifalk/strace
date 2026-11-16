@@ -316,6 +316,11 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl \
 	jsonl-ioctl_evdev \
 	jsonl-ioctl_kd \
+	jsonl-ioctl_kd_io \
+	jsonl-ioctl_kd_kbent \
+	jsonl-ioctl_kd_sound \
+	jsonl-ioctl_kd_tone \
+	jsonl-ioctl_kd_uniscrnmap \
 	jsonl-ioctl_gpio \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
@@ -1124,6 +1129,11 @@ EXTRA_DIST = \
 	jsonl-injected.c \
 	jsonl-ioctl_evdev.c \
 	jsonl-ioctl_kd.c \
+	jsonl-ioctl_kd_io.c \
+	jsonl-ioctl_kd_kbent.c \
+	jsonl-ioctl_kd_sound.c \
+	jsonl-ioctl_kd_tone.c \
+	jsonl-ioctl_kd_uniscrnmap.c \
 	jsonl-ioctl_gpio.c \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \
