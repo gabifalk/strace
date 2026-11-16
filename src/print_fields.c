@@ -510,32 +510,61 @@ tprint_bitset_words_end(void)
 void
 tprint_xval_dflt(unsigned long long val, const char *dflt)
 {
-	PRINT_VAL_X(val);
-	tprints_comment(dflt);
+	if (structured_output) {
+		tprint_type_const();
+		tprintf_object_field_string("raw", "%#llx", val);
+		tprints_object_field_string("sym_pattern", dflt);
+	} else {
+		PRINT_VAL_X(val);
+		tprints_comment(dflt);
+	}
 }
 
 void
 tprint_bpf_insn_begin(bool jump)
 {
-	tprints_fn_begin(jump ? "BPF_JUMP" : "BPF_STMT");
+	if (structured_output) {
+		tprints_object_type("bpf_insn");
+		tprints_object_field_string("kind", jump ? "jump" : "stmt");
+		tprints_object_field_begin("code");
+		tprint_object_begin();
+	} else {
+		tprints_fn_begin(jump ? "BPF_JUMP" : "BPF_STMT");
+	}
 }
 
 void
 tprint_bpf_insn_k(void)
 {
-	tprint_fn_next();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+		tprints_object_field_begin("k");
+		tprint_object_begin();
+	} else {
+		tprint_fn_next();
+	}
 }
 
 void
 tprint_bpf_insn_end(bool jump, unsigned int jt, unsigned int jf)
 {
-	if (jump) {
-		tprint_fn_next();
-		PRINT_VAL_X(jt);
-		tprint_fn_next();
-		PRINT_VAL_X(jf);
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+		if (jump) {
+			tprintf_object_field_string("jt", "%u", jt);
+			tprintf_object_field_string("jf", "%u", jf);
+		}
+	} else {
+		if (jump) {
+			tprint_fn_next();
+			PRINT_VAL_X(jt);
+			tprint_fn_next();
+			PRINT_VAL_X(jf);
+		}
+		tprint_fn_end();
 	}
-	tprint_fn_end();
 }
 
 void
