@@ -1641,8 +1641,15 @@ void
 tprint_reserved_bits(unsigned long long val, unsigned int from,
 		     unsigned int to)
 {
-	PRINT_VAL_X(val);
-	tprintf_comment("Bits %u..%u", from, to);
+	if (structured_output) {
+		tprints_object_type("reserved_bits");
+		tprintf_object_field_string("raw", "%#llx", val);
+		tprintf_object_field_string("first_bit", "%u", MIN(from, to));
+		tprintf_object_field_string("last_bit", "%u", MAX(from, to));
+	} else {
+		PRINT_VAL_X(val);
+		tprintf_comment("Bits %u..%u", from, to);
+	}
 }
 
 void
