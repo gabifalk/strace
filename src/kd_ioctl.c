@@ -16,6 +16,7 @@
 
 #include "print_fields.h"
 #include "print_utils.h"
+#include "xstring.h"
 
 #include "xlat/kd_default_led_flags.h"
 #include "xlat/kd_kbd_modes.h"
@@ -219,17 +220,16 @@ print_scrmap_array_member(struct tcb *tcp, void *elem_buf,
 {
 	unsigned short val = *(unsigned short *) elem_buf;
 
-	if ((xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) ||
-	    ((val & ~UNI_DIRECT_MASK) != UNI_DIRECT_BASE))
+	if ((val & ~UNI_DIRECT_MASK) == UNI_DIRECT_BASE) {
+		static const char prefix[] = "UNI_DIRECT_BASE+";
+		char s[sizeof(prefix) + sizeof("0xffff")];
+
+		xsprintf(s, "%s%#hx", prefix,
+			 (unsigned short) (val & UNI_DIRECT_MASK));
+		print_xlat_ex(val, s, XLAT_STYLE_DEFAULT);
+	} else {
 		PRINT_VAL_X(val);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return true;
-
-	if ((val & ~UNI_DIRECT_MASK) == UNI_DIRECT_BASE)
-		(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-			? tprintf_comment : tprintf_string)("UNI_DIRECT_BASE+%#hx",
-							    val & UNI_DIRECT_MASK);
+	}
 
 	return true;
 }
