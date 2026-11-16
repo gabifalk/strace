@@ -697,13 +697,20 @@ timescale_to_unit(int scale)
 void
 tprint_clockid_fd(int clockid, unsigned int fd)
 {
-	PRINT_VAL_D(clockid);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		tprint_comment_begin();
-		tprints_fn_begin("FD_TO_CLOCKID");
-		PRINT_VAL_U(fd);
-		tprint_fn_end();
-		tprint_comment_end();
+	if (structured_output) {
+		tprints_object_type("clockid");
+		tprintf_object_field_string("raw", "%d", clockid);
+		tprints_object_field_string("kind", "fd");
+		tprintf_object_field_string("fd", "%u", fd);
+	} else {
+		PRINT_VAL_D(clockid);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			tprint_comment_begin();
+			tprints_fn_begin("FD_TO_CLOCKID");
+			PRINT_VAL_U(fd);
+			tprint_fn_end();
+			tprint_comment_end();
+		}
 	}
 }
 
@@ -716,15 +723,30 @@ tprint_clockid_cpu_begin(int clockid, int pid, bool per_thread)
 {
 	bool print_clock = true;
 
-	PRINT_VAL_D(clockid);
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
-		print_clock = false;
+	if (structured_output) {
+		tprints_object_type("clockid");
+		tprintf_object_field_string("raw", "%d", clockid);
+		tprints_object_field_string("kind", "cpu");
+		tprints_object_field_begin("pid");
+		tprint_object_begin();
+		tprints_object_type(per_thread ? "tid" : "tgid");
+		tprintf_object_field_string("raw", "%d", pid);
+		tprint_object_end();
+		tprint_object_field_end();
+		tprints_object_field_bool("per_thread", per_thread);
+		tprints_object_field_begin("cpu_clock");
+		tprint_object_begin();
 	} else {
-		tprint_comment_begin();
-		tprints_fn_begin(per_thread ? "MAKE_THREAD_CPUCLOCK"
-					    : "MAKE_PROCESS_CPUCLOCK");
-		PRINT_VAL_D(pid);
-		tprint_fn_next();
+		PRINT_VAL_D(clockid);
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
+			print_clock = false;
+		} else {
+			tprint_comment_begin();
+			tprints_fn_begin(per_thread ? "MAKE_THREAD_CPUCLOCK"
+						    : "MAKE_PROCESS_CPUCLOCK");
+			PRINT_VAL_D(pid);
+			tprint_fn_next();
+		}
 	}
 
 	return print_clock;
@@ -733,26 +755,38 @@ tprint_clockid_cpu_begin(int clockid, int pid, bool per_thread)
 void
 tprint_clockid_cpu_end(void)
 {
-	tprint_fn_end();
-	tprint_comment_end();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_fn_end();
+		tprint_comment_end();
+	}
 }
 
 void
 tprint_clockid_aux(int clockid, unsigned int index)
 {
-	const enum xlat_style style = xlat_verbose(xlat_verbosity);
+	if (structured_output) {
+		tprints_object_type("clockid");
+		tprintf_object_field_string("raw", "%#x", clockid);
+		tprints_object_field_string("kind", "aux");
+		tprintf_object_field_string("aux_index", "%u", index);
+	} else {
+		const enum xlat_style style = xlat_verbose(xlat_verbosity);
 
-	if (style != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(clockid);
-	if (style != XLAT_STYLE_RAW) {
-		if (style == XLAT_STYLE_VERBOSE)
-			tprint_comment_begin();
-		print_xlat_ex(clockid - index, "CLOCK_AUX",
-			      XLAT_STYLE_ABBREV);
-		tprint_plus();
-		PRINT_VAL_U(index);
-		if (style == XLAT_STYLE_VERBOSE)
-			tprint_comment_end();
+		if (style != XLAT_STYLE_ABBREV)
+			PRINT_VAL_X(clockid);
+		if (style != XLAT_STYLE_RAW) {
+			if (style == XLAT_STYLE_VERBOSE)
+				tprint_comment_begin();
+			print_xlat_ex(clockid - index, "CLOCK_AUX",
+				      XLAT_STYLE_ABBREV);
+			tprint_plus();
+			PRINT_VAL_U(index);
+			if (style == XLAT_STYLE_VERBOSE)
+				tprint_comment_end();
+		}
 	}
 }
 
