@@ -1465,53 +1465,111 @@ tprint_wait_status(int status, const struct xlat *events)
 	 * are no wait status constructors it will have to do.
 	 */
 	tprint_indirect_begin();
-	tprint_flags_begin();
-	if (WIFSTOPPED(status)) {
-		int sig = WSTOPSIG(status);
-		tprintf_string("{WIFSTOPPED(s) && WSTOPSIG(s) == %s%s}",
-			       sprintsigname(sig & 0x7f),
-			       sig & 0x80 ? " | 0x80" : "");
-		status &= ~W_STOPCODE(sig);
-	} else if (WIFSIGNALED(status)) {
-		tprintf_string("{WIFSIGNALED(s) && WTERMSIG(s) == %s%s}",
-			       sprintsigname(WTERMSIG(status)),
-			       WCOREDUMP(status) ? " && WCOREDUMP(s)" : "");
-		status &= ~(W_EXITCODE(0, WTERMSIG(status)) | WCOREFLAG);
-	} else if (WIFEXITED(status)) {
-		tprintf_string("{WIFEXITED(s) && WEXITSTATUS(s) == %d}",
-			       WEXITSTATUS(status));
-		status &= ~W_EXITCODE(WEXITSTATUS(status), 0);
-	}
+	if (structured_output) {
+		tprints_object_type("wait_status");
+		tprintf_object_field_string("raw", "%#x", status);
+		if (WIFSTOPPED(status)) {
+			int sig = WSTOPSIG(status);
+			tprints_object_field_string("status", "stopped");
+			tprints_object_field_begin("signal");
+			tprint_object_begin();
+			tprint_signal(sig & 0x7f, signame(sig & 0x7f));
+			tprint_object_end();
+			tprint_object_field_end();
+			if (sig & 0x80)
+				tprints_object_field_bool("sig_0x80", true);
+			status &= ~W_STOPCODE(sig);
+		} else if (WIFSIGNALED(status)) {
+			tprints_object_field_string("status", "signaled");
+			tprints_object_field_begin("signal");
+			tprint_object_begin();
+			tprint_signal(WTERMSIG(status),
+				      signame(WTERMSIG(status)));
+			tprint_object_end();
+			tprint_object_field_end();
+			if (WCOREDUMP(status))
+				tprints_object_field_bool("coredumped", true);
+			status &= ~(W_EXITCODE(0, WTERMSIG(status))
+				    | WCOREFLAG);
+		} else if (WIFEXITED(status)) {
+			tprints_object_field_string("status", "exited");
+			tprintf_object_field_string("exit_code", "%d",
+						    WEXITSTATUS(status));
+			status &= ~W_EXITCODE(WEXITSTATUS(status), 0);
+		}
 #ifdef WIFCONTINUED
-	else if (WIFCONTINUED(status)) {
-		tprints_string("{WIFCONTINUED(s)}");
-		status &= ~W_CONTINUED;
-	}
+		else if (WIFCONTINUED(status)) {
+			tprints_object_field_string("status", "continued");
+			status &= ~W_CONTINUED;
+		}
 #endif
-	else {
-		PRINT_VAL_X(status);
-		tprint_flags_end();
-		tprint_indirect_end();
-		return;
-	}
+		else {
+			tprints_object_field_string("status", "unknown");
+			status = 0;
+		}
 
-	if (status) {
 		unsigned int event = (unsigned int) status >> 16;
 		if (event) {
-			tprint_flags_or();
-			tprint_shift_begin();
+			tprints_object_field_begin("ptrace_event");
+			tprint_object_begin();
 			printxval(events, event, "PTRACE_EVENT_???");
-			tprint_shift();
-			PRINT_VAL_U(16);
-			tprint_shift_end();
+			tprint_object_end();
+			tprint_object_field_end();
 			status &= 0xffff;
 		}
-		if (status) {
-			tprint_flags_or();
-			PRINT_VAL_X(status);
+		if (status)
+			tprintf_object_field_string("remainder", "%#x",
+						    status);
+	} else {
+		tprint_flags_begin();
+		if (WIFSTOPPED(status)) {
+			int sig = WSTOPSIG(status);
+			tprintf_string("{WIFSTOPPED(s) && WSTOPSIG(s) == %s%s}",
+				       sprintsigname(sig & 0x7f),
+				       sig & 0x80 ? " | 0x80" : "");
+			status &= ~W_STOPCODE(sig);
+		} else if (WIFSIGNALED(status)) {
+			tprintf_string("{WIFSIGNALED(s)"
+				       " && WTERMSIG(s) == %s%s}",
+				       sprintsigname(WTERMSIG(status)),
+				       WCOREDUMP(status)
+				       ? " && WCOREDUMP(s)" : "");
+			status &= ~(W_EXITCODE(0, WTERMSIG(status))
+				    | WCOREFLAG);
+		} else if (WIFEXITED(status)) {
+			tprintf_string("{WIFEXITED(s) && WEXITSTATUS(s) == %d}",
+				       WEXITSTATUS(status));
+			status &= ~W_EXITCODE(WEXITSTATUS(status), 0);
 		}
+#ifdef WIFCONTINUED
+		else if (WIFCONTINUED(status)) {
+			tprints_string("{WIFCONTINUED(s)}");
+			status &= ~W_CONTINUED;
+		}
+#endif
+		else {
+			PRINT_VAL_X(status);
+			status = 0;
+		}
+
+		if (status) {
+			unsigned int event = (unsigned int) status >> 16;
+			if (event) {
+				tprint_flags_or();
+				tprint_shift_begin();
+				printxval(events, event, "PTRACE_EVENT_???");
+				tprint_shift();
+				PRINT_VAL_U(16);
+				tprint_shift_end();
+				status &= 0xffff;
+			}
+			if (status) {
+				tprint_flags_or();
+				PRINT_VAL_X(status);
+			}
+		}
+		tprint_flags_end();
 	}
-	tprint_flags_end();
 	tprint_indirect_end();
 }
 
