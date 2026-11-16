@@ -907,6 +907,180 @@ void print_itimerspec64(struct tcb *tcp, kernel_ulong_t addr)
     /* Print itimerspec64 from tracee memory */
 ```
 
+## Structured Output
+
+Every printer in `src/print_fields.[ch]` serves two backends: the
+traditional text output and the structured output.  A decoder describes
+what it prints, and the printer decides how each backend renders it.
+The rules below keep both renderings correct.
+
+### Ground Rules
+
+1. Decoders never test `structured_output`.  When the two backends need
+   different behaviour, add a printer to `src/print_fields.[ch]` that
+   hides the difference, and call it from the decoder.
+2. Traditional output stays byte-identical.  When a decoder change would
+   alter it, add a printer that keeps the traditional rendering and gives
+   the structured backend what it needs.
+3. Prefer the high-level printers: `PRINT_FIELD_*`, `printxval*`,
+   `printflags*`, `printfd`, `printaddr`, `printsignal`, `print_dev_t`,
+   `print_time_t`, `print_ticks`, `print_array*`, `printstr*`.  They
+   already emit typed values (for example, a `time_t` with its raw seconds,
+   or a const with its raw value and symbol).  `PRINT_VAL_*` and
+   `tprints_string` emit plain numbers and text, so use them only for
+   values that have no better type.
+4. Print every delimiter, even the ones that print nothing in traditional
+   output, such as `tprint_flags_begin()` and `tprint_array_index_end()`.
+   The structured backend uses them to open and close objects.
+
+### Argument Names and Positions
+
+The structured backend records each syscall argument with its name and
+its position in the syscall's parameter list.  By default, the position
+comes from a counter that advances with each argument name printed, so a
+decoder that prints its arguments in parameter order needs nothing more
+than:
+
+```c
+void tprints_arg_name(const char *name)
+    /* First argument */
+
+void tprints_arg_next_name(const char *name)
+    /* Comma, then the next argument */
+```
+
+Under `-N` (`--arg-names`) these also print `name=` in traditional output.
+Print each argument name exactly once per syscall: when an argument is
+decoded on exiting, name it on exiting only, and return from the
+entering half without naming it.
+
+When a decoder prints arguments out of parameter order, prints them on
+different halves of the syscall, or depends on the architecture for the
+order, give each argument its position explicitly:
+
+```c
+void tprints_arg_name_at(unsigned int index, const char *name)
+void tprints_arg_next_name_at(unsigned int index, const char *name)
+void tprints_arg_name_unconditionally_at(unsigned int index,
+                                         const char *name)
+void tprints_arg_next_name_unconditionally_at(unsigned int index,
+                                              const char *name)
+    /* Same as above, with the 0-based parameter position given */
+```
+
+To leave a parameter out of the output, call `tprint_arg_skip()` so the
+counter stays in step with the parameter list.
+
+### Values Changed by the Kernel
+
+When a decoder prints the entering value of an argument and then the
+value the kernel wrote back, use the printers that describe the change
+rather than printing ` => ` by hand.  Traditional output keeps its
+`old => new` rendering, while the structured backend reports the new
+value together with a changed marker.
+
+```c
+void tprints_arg_inout_entering_u(unsigned int index, const char *name,
+                                  unsigned long long val)
+void tprint_arg_inout_exiting_u(unsigned long long entering_val,
+                                unsigned long long exiting_val)
+    /* An in/out integer argument passed by reference: [val] or
+     * [old => new] */
+
+void tprint_val_exiting_u(unsigned long long entering_val,
+                          unsigned long long exiting_val)
+void tprints_field_inout_u(const char *name,
+                           unsigned long long entering_val,
+                           unsigned long long exiting_val)
+    /* An in/out value or structure field */
+
+void tprint_arg_exiting_changed_begin(unsigned int index,
+                                      const char *name)
+    /* Start an argument printed again on exiting with a new value */
+
+void tprints_arg_exiting_name(unsigned int index, const char *name)
+    /* Name an argument printed on exiting, in structured output only */
+```
+
+The `_d` variants take signed values.
+
+### Split Structures
+
+Some structures are partly printed on entering and finished on exiting,
+for example a structure whose input fields the kernel reads and whose
+output fields it fills in.  Traditional output prints the two halves as
+one line, possibly interrupted by `<unfinished ...>`.  The structured
+backend emits two separate objects, one in the entering event and one
+in the exiting event, so the decoder must say where each half begins
+and ends:
+
+```c
+void tprint_struct_mark_split(void)
+    /* Mark the innermost open structure as split */
+
+void tprint_struct_entering_end(void)
+    /* Close the entering half; traditional output keeps it open */
+
+void tprint_struct_exiting_begin(unsigned int index, const char *name)
+    /* Open the exiting half as argument INDEX named NAME */
+
+void tprint_struct_exiting_next(void)
+    /* Separator before the first exiting field */
+
+bool tprints_field_exiting_value(const char *name, bool on_entering,
+                                 bool changed)
+    /* Name a field printed again on exiting.  Returns whether the
+     * caller must print its value: traditional output prints a field
+     * that was printed on entering only when its value changed. */
+
+void tprint_struct_exiting_abandon(void)
+void tprint_struct_exiting_abandon_more_data(void)
+    /* The exiting half cannot be printed, for example when the
+     * syscall failed: close the traditional structure, optionally
+     * after "..." */
+```
+
+A typical decoder:
+
+```c
+if (entering(tcp)) {
+	if (umove_or_printaddr(tcp, addr, &desc))
+		return 0;
+	tprint_struct_begin();
+	PRINT_FIELD_ID(desc, entry_number);
+	/* save desc.entry_number for exiting */
+	tprint_struct_mark_split();
+	tprint_struct_entering_end();
+} else {
+	if (syserror(tcp) || umove(tcp, addr, &desc)) {
+		tprint_struct_exiting_abandon_more_data();
+		return 0;
+	}
+	tprint_struct_exiting_begin(0, "u_info");
+	if (tprints_field_exiting_value("entry_number", true,
+					saved != desc.entry_number))
+		PRINT_VAL_ID(desc.entry_number);
+	tprint_struct_next();
+	PRINT_FIELD_0X(desc, base_addr);
+	/* ... */
+	tprint_struct_end();
+}
+```
+
+See `src/ldt.c` (`print_user_desc`) for the complete version.
+`src/file_handle.c`, `src/userfaultfd.c` and `src/v4l2.c` show further
+examples.
+
+### Writing a New Printer
+
+When no existing printer fits, add one to `src/print_fields.[ch]`
+instead of composing the output in the decoder.  Implement both
+renderings in one function, with a single
+`if (structured_output) { ... } else { ... }` and no early return.
+Put the traditional rendering in the `else` branch, unchanged.
+Give the printer the values it needs (numbers, strings, xlat
+tables) rather than `struct tcb`.
+
 ## Common Patterns
 
 For decoder implementation patterns and examples, see
@@ -947,3 +1121,5 @@ SYS_FUNC(getpid)
 4. Use `PRINT_FIELD_*` macros instead of manual formatting
 5. Call `tprint_struct_next()` between structure fields
 6. Call `tprint_arg_next()` between syscall arguments
+7. Never test `structured_output` in a decoder; see
+   [Structured Output](#structured-output)
