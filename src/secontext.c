@@ -204,36 +204,36 @@ out:
 }
 
 static void
-print_context(char *secontext, char *expected)
+print_context(char *secontext, char *expected, bool process)
 {
-	if (!secontext)
-		return;
-
 	unsigned int style = QUOTE_OMIT_LEADING_TRAILING_QUOTES
 			     | QUOTE_OVERWRITE_HEXSTR |
 			     (xflag == HEXSTR_NONE
 			      ? QUOTE_HEXSTR_NONE
 			      : QUOTE_HEXSTR_NON_ASCII_CHARS);
 
-	char *ctx_str;
-	ssize_t ctx_len = parse_secontext(secontext, &ctx_str);
+	char *ctx_str = NULL;
+	ssize_t ctx_len = secontext ? parse_secontext(secontext, &ctx_str) : 0;
 
-	print_quoted_string_ex(ctx_str, ctx_len, style, "[]!");
+	char *exp_str = NULL;
+	ssize_t exp_len = 0;
 
-	if (!expected)
-		goto freecon_secontext;
-
-	char *exp_str;
-	ssize_t exp_len = parse_secontext(expected, &exp_str);
-
-	if (ctx_len != exp_len || strncmp(ctx_str, exp_str, ctx_len)) {
-		tprints_string("!!");
-		print_quoted_string_ex(exp_str, exp_len, style, "[]!");
+	if (secontext && expected) {
+		exp_len = parse_secontext(expected, &exp_str);
+		if (ctx_len == exp_len && !strncmp(ctx_str, exp_str, ctx_len))
+			exp_str = NULL;
 	}
 
-	freecon(expected);
-freecon_secontext:
-	freecon(secontext);
+	if (process)
+		tprint_secontext_pid(ctx_str, ctx_len, style);
+	else
+		tprint_secontext(ctx_str, ctx_len, exp_str, exp_len, style);
+
+	if (secontext) {
+		if (expected)
+			freecon(expected);
+		freecon(secontext);
+	}
 }
 
 void
@@ -245,10 +245,7 @@ selinux_printfdcon(pid_t pid, int fd)
 	if (selinux_getfdcon(pid, fd, &ctx, &exp) < 0)
 		return;
 
-	tprint_space();
-	tprint_attribute_begin();
-	print_context(ctx, exp);
-	tprint_attribute_end();
+	print_context(ctx, exp, false);
 }
 
 void
@@ -260,10 +257,7 @@ selinux_printfilecon(struct tcb *tcp, const char *path)
 	if (selinux_getfilecon(tcp, path, &ctx, &exp) < 0)
 		return;
 
-	tprint_space();
-	tprint_attribute_begin();
-	print_context(ctx, exp);
-	tprint_attribute_end();
+	print_context(ctx, exp, false);
 }
 
 void
@@ -274,8 +268,5 @@ selinux_printpidcon(struct tcb *tcp)
 	if (selinux_getpidcon(tcp, &ctx) < 0)
 		return;
 
-	tprint_attribute_begin();
-	print_context(ctx, NULL);
-	tprint_attribute_end();
-	tprint_space();
+	print_context(ctx, NULL, true);
 }

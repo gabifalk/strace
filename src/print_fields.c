@@ -796,6 +796,31 @@ tprint_addr(unsigned long long addr)
 }
 
 void
+tprint_secontext(const char *ctx, unsigned int ctx_len,
+		 const char *expected, unsigned int expected_len,
+		 unsigned int style)
+{
+	tprint_space();
+	tprint_attribute_begin();
+	print_quoted_string_ex(ctx, ctx_len, style, "[]!");
+	if (expected) {
+		tprints_string("!!");
+		print_quoted_string_ex(expected, expected_len, style, "[]!");
+	}
+	tprint_attribute_end();
+}
+
+void
+tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
+		     unsigned int style)
+{
+	tprint_attribute_begin();
+	print_quoted_string_ex(ctx, ctx_len, style, "[]!");
+	tprint_attribute_end();
+	tprint_space();
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {
