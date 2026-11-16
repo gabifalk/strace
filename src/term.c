@@ -485,7 +485,7 @@ term_ioctl_decode_command_number(struct tcb *tcp,
 	   (136 <= finfo->dev.major && finfo->dev.major <= 143))) {
 	   const char *str = xlookup(term_cmds_overlapping, code);
 	   if (str) {
-		   tprints_string(str);
+		   tprints_ioctl_cmd(str);
 		   return IOCTL_NUMBER_STOP_LOOKUP;
 	   }
    }
