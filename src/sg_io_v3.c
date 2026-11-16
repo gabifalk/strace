@@ -91,6 +91,8 @@ decode_request(struct tcb *const tcp, const kernel_ulong_t arg)
 	struct_sg_io_hdr *entering_sg_io = xobjdup(&sg_io);
 	set_tcb_priv_data(tcp, entering_sg_io, free);
 
+	tprint_struct_mark_split();
+	tprint_struct_entering_end();
 	return 0;
 }
 
@@ -99,14 +101,17 @@ decode_response(struct tcb *const tcp, const kernel_ulong_t arg)
 {
 	struct_sg_io_hdr *entering_sg_io = get_tcb_priv_data(tcp);
 	struct_sg_io_hdr sg_io;
+	bool print_buffer = false;
+
+	tprint_struct_exiting_begin(2, "argp");
 
 	if (umove(tcp, arg, &sg_io) < 0) {
 		/* print i/o fields fetched on entering syscall */
+		tprint_struct_exiting_next();
 		if (entering_sg_io->dxfer_direction == SG_DXFER_FROM_DEV) {
-			tprint_struct_next();
 			PRINT_FIELD_PTR(*entering_sg_io, dxferp);
+			tprint_struct_next();
 		}
-		tprint_struct_next();
 		PRINT_FIELD_PTR(*entering_sg_io, sbp);
 		return RVAL_IOCTL_DECODED;
 	}
@@ -120,17 +125,16 @@ decode_response(struct tcb *const tcp, const kernel_ulong_t arg)
 	if (sg_io.dxfer_direction == SG_DXFER_FROM_DEV ||
 	    sg_io.dxfer_direction == SG_DXFER_TO_FROM_DEV) {
 		uint32_t din_len = sg_io.dxfer_len;
-		bool print_buffer = false;
 
 		if (sg_io.resid > 0 && (unsigned int) sg_io.resid <= din_len)
 			din_len -= sg_io.resid;
 
 		if (sg_io.dxfer_direction == SG_DXFER_FROM_DEV) {
-			tprint_struct_next();
+			tprint_struct_exiting_next();
 			tprints_field_name("dxferp");
 			print_buffer = true;
 		} else if (din_len) {
-			tprint_value_changed();
+			tprints_field_exiting_name("dxferp");
 			print_buffer = true;
 		}
 
@@ -139,7 +143,10 @@ decode_response(struct tcb *const tcp, const kernel_ulong_t arg)
 					   din_len, sg_io.iovec_count);
 		}
 	}
-	tprint_struct_next();
+	if (print_buffer)
+		tprint_struct_next();
+	else
+		tprint_struct_exiting_next();
 	PRINT_FIELD_X(sg_io, status);
 	tprint_struct_next();
 	PRINT_FIELD_X(sg_io, masked_status);
