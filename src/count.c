@@ -963,7 +963,7 @@ call_summary_pers(FILE *outf)
 		.indices_size = indices_size,
 		.stats = &stats,
 	};
-	tprint_summary(rows, nrows, &total, column_names,
+	tprint_summary(current_personality, rows, nrows, &total, column_names,
 		       print_summary_table, &data);
 
 	free(rows);

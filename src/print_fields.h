@@ -71,7 +71,8 @@ struct summary_row {
 	uint64_t errors;
 };
 extern void tprint_summary_personality(FILE *outf, const char *name);
-extern void tprint_summary(const struct summary_row *rows, size_t nrows,
+extern void tprint_summary(unsigned int personality,
+			   const struct summary_row *rows, size_t nrows,
 			   const struct summary_row *total,
 			   const char *const *columns,
 			   void (*print_table)(void *), void *data);

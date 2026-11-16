@@ -4146,15 +4146,56 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 void
 tprint_summary_personality(FILE *outf, const char *name)
 {
-	fprintf(outf, "System call usage summary for %s mode:\n", name);
+	if (!structured_output)
+		fprintf(outf, "System call usage summary for %s mode:\n",
+			name);
+}
+
+static void
+tprint_summary_row(unsigned int personality, const struct summary_row *row,
+		   const char *const *columns)
+{
+	tprintf_event_start(row->syscall ? "summary" : "summary_total");
+	tprints_object_field_begin("personality");
+	STRACE_PRINTF("%u", personality);
+	tprint_object_field_end();
+	tprints_object_field_begin("columns");
+	tprint_list_begin();
+	for (size_t i = 0; columns[i]; ++i) {
+		tprint_list_element_begin();
+		tprints_string_value(columns[i]);
+		tprint_list_element_end();
+	}
+	tprint_list_end();
+	tprint_object_field_end();
+	if (row->syscall)
+		tprints_object_field_string("syscall", row->syscall);
+	tprintf_object_field_string("calls", "%" PRIu64, row->calls);
+	tprintf_object_field_string("errors", "%" PRIu64, row->errors);
+	tprintf_object_field_string("time_percent", "%.2f",
+				    row->time_percent);
+	tprintf_object_field_string("total_time", "%.6f", row->total_time);
+	tprintf_object_field_string("avg_time", "%.9f", row->avg_time);
+	tprintf_object_field_string("min_time", "%.6f", row->min_time);
+	tprintf_object_field_string("max_time", "%.6f", row->max_time);
+	tprint_event_end();
+	tprint_newline();
+	line_ended();
 }
 
 void
-tprint_summary(const struct summary_row *rows, size_t nrows,
-	       const struct summary_row *total, const char *const *columns,
+tprint_summary(unsigned int personality, const struct summary_row *rows,
+	       size_t nrows, const struct summary_row *total,
+	       const char *const *columns,
 	       void (*print_table)(void *), void *data)
 {
-	print_table(data);
+	if (structured_output) {
+		for (size_t i = 0; i < nrows; ++i)
+			tprint_summary_row(personality, &rows[i], columns);
+		tprint_summary_row(personality, total, columns);
+	} else {
+		print_table(data);
+	}
 }
 
 /*
