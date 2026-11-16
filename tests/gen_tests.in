@@ -579,6 +579,7 @@ jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-memfd_secret	-e trace=memfd_secret
+jsonl-merged-mincore	-e trace=mincore
 jsonl-merged-mlockall	-e trace=mlockall
 jsonl-merged-move_pages	-s3 -e trace=move_pages
 jsonl-merged-mseal	-e trace=mseal
@@ -632,6 +633,7 @@ jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-memfd_secret	-e trace=memfd_secret
+jsonl-split-mincore	-e trace=mincore
 jsonl-split-mlockall	-e trace=mlockall
 jsonl-split-move_pages	-s3 -e trace=move_pages
 jsonl-split-mseal	-e trace=mseal

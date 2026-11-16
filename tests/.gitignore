@@ -560,6 +560,7 @@ jsonl-ip_mreq
 jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-memfd_secret
+jsonl-mincore
 jsonl-mlockall
 jsonl-move_pages
 jsonl-mseal

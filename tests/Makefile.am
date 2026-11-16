@@ -303,6 +303,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-memfd_secret \
+	jsonl-mincore \
 	jsonl-mlockall \
 	jsonl-move_pages \
 	jsonl-mseal \
@@ -1004,6 +1005,7 @@ EXTRA_DIST = \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-memfd_secret.c \
+	jsonl-mincore.c \
 	jsonl-mlockall.c \
 	jsonl-move_pages.c \
 	jsonl-mseal.c \
