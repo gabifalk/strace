@@ -432,11 +432,28 @@ tprints_assoc_type_string(const char *type, const char *str, size_t len,
 void
 tprints_pid_info(const char *comm, int strace_pid)
 {
-	if (comm[0])
-		tprints_assoc_type_string("pid_info", comm, strlen(comm),
-					  false);
-	if (strace_pid)
-		tprintf_comment("%d in strace's PID NS", strace_pid);
+	if (structured_output) {
+		if (comm[0] || strace_pid) {
+			tprints_object_field_begin("pid_info");
+			tprint_object_begin();
+			if (comm[0]) {
+				tprints_object_field_bytes("comm", comm,
+							   strlen(comm));
+			}
+			if (strace_pid) {
+				tprintf_object_field_string("strace_pid", "%d",
+							    strace_pid);
+			}
+			tprint_object_end();
+			tprint_object_field_end();
+		}
+	} else {
+		if (comm[0])
+			tprints_assoc_type_string("pid_info", comm,
+						  strlen(comm), false);
+		if (strace_pid)
+			tprintf_comment("%d in strace's PID NS", strace_pid);
+	}
 }
 
 void

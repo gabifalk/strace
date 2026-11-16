@@ -332,6 +332,13 @@ tprint_sysret_interrupted(void)
 			sign_extend_unsigned_to_ll(val_));		\
 	} while (0)
 
+# define PRINT_VAL_D_AS(type_, val_)					\
+	do {								\
+		tprints_object_type(type_);				\
+		tprintf_object_field_string("raw", "%lld",		\
+			sign_extend_unsigned_to_ll(val_));		\
+	} while (0)
+
 # define PRINT_VAL_U(val_)						\
 	do {								\
 		tprints_object_type("unsigned");			\

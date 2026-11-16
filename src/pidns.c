@@ -575,10 +575,24 @@ printpid_translation(struct tcb *tcp, int pid, enum pid_type type)
 	}
 }
 
+static const char *
+pid_type_name(enum pid_type type)
+{
+	static const char *const names[] = {
+		[PT_TID] = "tid",
+		[PT_TGID] = "tgid",
+		[PT_PGID] = "pgid",
+		[PT_SID] = "sid",
+	};
+
+	return (unsigned int) type < ARRAY_SIZE(names) ? names[type]
+						       : "decimal";
+}
+
 void
 printpid(struct tcb *tcp, int pid, enum pid_type type)
 {
-	PRINT_VAL_D(pid);
+	PRINT_VAL_D_AS(pid_type_name(type), pid);
 	printpid_translation(tcp, pid, type);
 }
 
