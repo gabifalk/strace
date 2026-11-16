@@ -547,6 +547,7 @@ jsonl-bpf
 jsonl-chdir
 jsonl-clock_gettime
 jsonl-clone3
+jsonl-clone_untraced
 jsonl-close_range
 jsonl-connect-sockaddr
 jsonl-copy_file_range

@@ -565,6 +565,7 @@ jsonl-merged-aio	-e trace=io_submit
 jsonl-merged-chdir	-e trace=chdir
 jsonl-merged-clock_gettime	-e trace=clock_gettime
 jsonl-merged-clone3	-e trace=clone3 -e inject=clone3:retval=42
+jsonl-merged-clone_untraced	+jsonl-clone_untraced.sh -f -qq -e signal=none --seccomp-bpf -e trace=clone
 jsonl-merged-close_range	-e trace=close_range
 jsonl-merged-connect-sockaddr	-e trace=connect
 jsonl-merged-copy_file_range	-e trace=copy_file_range
@@ -764,6 +765,7 @@ jsonl-split-aio	-e trace=io_submit
 jsonl-split-chdir	-e trace=chdir
 jsonl-split-clock_gettime	-e trace=clock_gettime
 jsonl-split-clone3	-e trace=clone3 -e inject=clone3:retval=42
+jsonl-split-clone_untraced	+jsonl-clone_untraced.sh -f -qq -e signal=none --seccomp-bpf -e trace=clone
 jsonl-split-close_range	-e trace=close_range
 jsonl-split-connect-sockaddr	-e trace=connect
 jsonl-split-copy_file_range	-e trace=copy_file_range

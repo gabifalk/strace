@@ -290,6 +290,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-chdir \
 	jsonl-clock_gettime \
 	jsonl-clone3 \
+	jsonl-clone_untraced \
 	jsonl-close_range \
 	jsonl-connect-sockaddr \
 	jsonl-copy_file_range \
@@ -1142,6 +1143,7 @@ EXTRA_DIST = \
 	jsonl-chdir.c \
 	jsonl-clock_gettime.c \
 	jsonl-clone3.c \
+	jsonl-clone_untraced.c \
 	jsonl-close_range.c \
 	jsonl-connect-sockaddr.c \
 	jsonl-copy_file_range.c \
@@ -1332,6 +1334,7 @@ EXTRA_DIST = \
 	jsonl-writev.c \
 	jsonl-xattr.c \
 	jsonl.h \
+	jsonl-clone_untraced.sh \
 	jsonl-ioctl.sh \
 	jsonl-timestamps.sh \
 	jsonl.sh \
