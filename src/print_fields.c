@@ -2112,7 +2112,22 @@ void
 tprint_ip_addr(const char *var_name, bool v6, const void *addr,
 	       unsigned int len, const char *str)
 {
-	if (!v6) {
+	if (structured_output) {
+		if (var_name)
+			tprints_field_name(var_name);
+
+		tprints_object_type("ip_addr");
+		tprints_object_field_begin("family");
+		tprint_object_begin();
+		tprints_object_type("const");
+		tprintf_object_field_string("raw", "%#x",
+					    v6 ? AF_INET6 : AF_INET);
+		tprints_object_field_string("sym",
+					    v6 ? "AF_INET6" : "AF_INET");
+		tprint_object_end();
+		tprint_object_field_end();
+		tprints_object_field_string("addr", str);
+	} else if (!v6) {
 		if (var_name)
 			tprints_field_name(var_name);
 
