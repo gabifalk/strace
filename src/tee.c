@@ -88,15 +88,16 @@ tee_print_param_fn(struct tcb *tcp, void *elem_buf, size_t elem_size, void *data
 
 	tprint_struct_begin();
 	tprints_field_name("attr");
-	tprint_flags_begin();
+	tprint_flags_value_begin(param->attr);
 	printxval(tee_ioctl_param_attr_types,
 		    param->attr & ~TEE_IOCTL_PARAM_ATTR_META,
 		    "TEE_IOCTL_PARAM_ATTR_");
 	if (param->attr & TEE_IOCTL_PARAM_ATTR_META) {
-		tprint_flags_or();
-		tprints_string("TEE_IOCTL_PARAM_ATTR_META");
+		tprint_flags_value_or();
+		tprints_flags_value_const(TEE_IOCTL_PARAM_ATTR_META,
+					  "TEE_IOCTL_PARAM_ATTR_META");
 	}
-	tprint_flags_end();
+	tprint_flags_value_end();
 
 	switch (param->attr) {
 	case TEE_IOCTL_PARAM_ATTR_TYPE_NONE:
