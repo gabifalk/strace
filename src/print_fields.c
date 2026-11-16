@@ -9,6 +9,7 @@
 #include "defs.h"
 #include "hyperlink.h"
 #include "print_fields.h"
+#include "print_utils.h"
 
 void
 tprint_struct_begin(void)
@@ -408,6 +409,12 @@ tprints_sysret_string(const char *name, const char *str)
 {
 	tprints_sysret_next(name);
 	STRACE_PRINTF("(%s)", str);
+}
+
+void
+tprint_char(unsigned char c)
+{
+	print_char(c, SCF_QUOTES | SCF_ESC_WS);
 }
 
 void

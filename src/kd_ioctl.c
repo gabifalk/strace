@@ -451,11 +451,11 @@ print_kbdiacr_array_member(struct tcb *tcp, void *elem_buf,
 	struct kbdiacr *val = elem_buf;
 
 	tprint_struct_begin();
-	PRINT_FIELD_CHAR(*val, diacr, SCF_QUOTES | SCF_ESC_WS);
+	PRINT_FIELD_CHAR(*val, diacr);
 	tprint_struct_next();
-	PRINT_FIELD_CHAR(*val, base, SCF_QUOTES | SCF_ESC_WS);
+	PRINT_FIELD_CHAR(*val, base);
 	tprint_struct_next();
-	PRINT_FIELD_CHAR(*val, result, SCF_QUOTES | SCF_ESC_WS);
+	PRINT_FIELD_CHAR(*val, result);
 	tprint_struct_end();
 
 	return true;

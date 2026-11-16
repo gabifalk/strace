@@ -162,6 +162,7 @@ extern void tprints_xlat_dflt(const char *dflt);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);
+extern void tprint_char(unsigned char c);
 extern void tprint_sysret_end(void);
 
 static inline void
@@ -666,10 +667,10 @@ tprint_sysret_interrupted(void)
 		print_dirfd((tcp_), (where_).field_);			\
 	} while (0)
 
-# define PRINT_FIELD_CHAR(where_, field_, flags_)		\
+# define PRINT_FIELD_CHAR(where_, field_)				\
 	do {								\
 		tprints_field_name(#field_);				\
-		print_char((where_).field_, (flags_));			\
+		tprint_char((where_).field_);				\
 	} while (0)
 
 # define PRINT_FIELD_TGID(where_, field_, tcp_)				\
