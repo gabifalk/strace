@@ -198,7 +198,7 @@ SYS_FUNC(sendmmsg)
 static void
 print_recvmmsg_timeout(struct tcb *const tcp, const unsigned long long val)
 {
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("recvmmsg_result", val);
 	tprints_sysret_result_note("Timeout");
 	tprint_sysret_result_end();
 }
@@ -208,7 +208,7 @@ print_recvmmsg_result(struct tcb *const tcp, const unsigned long long val)
 {
 	const struct mmsgvec_data *const data = get_tcb_priv_data(tcp);
 
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("recvmmsg_result", val);
 	tprints_sysret_result_field("left", true);
 	data->print_ts(tcp, tcp->u_arg[4]);
 	tprint_sysret_result_end();

@@ -2756,12 +2756,29 @@ tprint_sysret_printer_val(unsigned long long val,
 }
 
 static bool sysret_result_open;
+static bool sysret_result_field_open;
 
 void
-tprint_sysret_result_begin(unsigned long long val)
+tprint_sysret_result_begin(const char *type, unsigned long long val)
 {
-	sysret_result_open = false;
-	PRINT_VAL_U(val);
+	if (structured_output) {
+		sysret_result_field_open = false;
+		tprints_object_type(type);
+		tprintf_object_field_string("raw", "%llu", val);
+	} else {
+		sysret_result_open = false;
+		PRINT_VAL_U(val);
+	}
+}
+
+static void
+tprint_sysret_result_field_close(void)
+{
+	if (sysret_result_field_open) {
+		tprint_object_end();
+		tprint_object_field_end();
+		sysret_result_field_open = false;
+	}
 }
 
 static void
@@ -2779,37 +2796,58 @@ tprint_sysret_result_sep(void)
 void
 tprints_sysret_result_field(const char *name, bool labeled)
 {
-	tprint_sysret_result_sep();
-	if (labeled) {
-		STRACE_PRINTS(name);
-		STRACE_PRINTS(" ");
+	if (structured_output) {
+		tprint_sysret_result_field_close();
+		tprints_object_field_begin(name);
+		tprint_object_begin();
+		sysret_result_field_open = true;
+	} else {
+		tprint_sysret_result_sep();
+		if (labeled) {
+			STRACE_PRINTS(name);
+			STRACE_PRINTS(" ");
+		}
 	}
 }
 
 void
 tprints_sysret_result_note(const char *note)
 {
-	tprint_sysret_result_sep();
-	STRACE_PRINTS(note);
+	if (!structured_output) {
+		tprint_sysret_result_sep();
+		STRACE_PRINTS(note);
+	}
 }
 
 void
 tprints_sysret_result_sym(const char *sym)
 {
-	tprints_sysret_result_note(sym);
+	if (structured_output) {
+		tprint_sysret_result_field_close();
+		tprints_object_field_string("sym", sym);
+	} else {
+		tprints_sysret_result_note(sym);
+	}
 }
 
 void
 tprint_sysret_result_end(void)
 {
-	if (sysret_result_open)
+	if (structured_output)
+		tprint_sysret_result_field_close();
+	else if (sysret_result_open)
 		STRACE_PRINTS(")");
 }
 
 void
 tprint_fd_num(int fd)
 {
-	PRINT_VAL_D(fd);
+	if (structured_output) {
+		tprints_object_type("fd");
+		tprintf_object_field_string("raw", "%d", fd);
+	} else {
+		PRINT_VAL_D(fd);
+	}
 }
 
 void

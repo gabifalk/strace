@@ -69,7 +69,7 @@ struct poll_result {
 static void
 print_poll_timeout(struct tcb *const tcp, const unsigned long long val)
 {
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("poll_result", val);
 	tprints_sysret_result_note("Timeout");
 	tprint_sysret_result_end();
 }
@@ -79,7 +79,7 @@ print_poll_result(struct tcb *const tcp, const unsigned long long val)
 {
 	const struct poll_result *const r = get_tcb_priv_data(tcp);
 
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("poll_result", val);
 	if (r->n || r->tail != POLL_RESULT_END) {
 		tprints_sysret_result_field("fds", false);
 		tprint_array_begin();

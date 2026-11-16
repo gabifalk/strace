@@ -808,7 +808,7 @@ print_rt_sigtimedwait_result(struct tcb *const tcp,
 {
 	const char *const name = signame(val);
 
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("signal", val);
 	if (name)
 		tprints_sysret_result_sym(name);
 	tprint_sysret_result_end();

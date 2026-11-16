@@ -124,7 +124,7 @@ decode_select_result(struct tcb *const tcp, const kernel_ulong_t *const args,
 static void
 print_select_timeout(struct tcb *const tcp, const unsigned long long val)
 {
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("select_result", val);
 	tprints_sysret_result_note("Timeout");
 	tprint_sysret_result_end();
 }
@@ -135,7 +135,7 @@ print_select_result(struct tcb *const tcp, const unsigned long long val)
 	const struct select_result *const r = get_tcb_priv_data(tcp);
 	bool printed = false;
 
-	tprint_sysret_result_begin(val);
+	tprint_sysret_result_begin("select_result", val);
 	for (unsigned int i = 0; i < 3; ++i) {
 		if (r->sets[i].nfds) {
 			tprints_sysret_result_field(select_result_names[i],
