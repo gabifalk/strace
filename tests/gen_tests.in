@@ -688,6 +688,7 @@ jsonl-merged-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-merged-ppoll	-e trace=ppoll
 jsonl-merged-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-merged-seccomp-filter	-e trace=seccomp -v
+jsonl-merged-sock_filter	-e trace=setsockopt,getsockopt -v
 jsonl-merged-prctl-dumpable	-e trace=prctl
 jsonl-merged-prctl-mce-kill	-e trace=prctl
 jsonl-merged-prctl-no-args	-e trace=prctl
@@ -862,6 +863,7 @@ jsonl-split-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-split-ppoll	-e trace=ppoll
 jsonl-split-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-split-seccomp-filter	-e trace=seccomp -v
+jsonl-split-sock_filter	-e trace=setsockopt,getsockopt -v
 jsonl-split-prctl-dumpable	-e trace=prctl
 jsonl-split-prctl-mce-kill	-e trace=prctl
 jsonl-split-prctl-no-args	-e trace=prctl

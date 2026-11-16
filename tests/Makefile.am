@@ -412,6 +412,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ppoll \
 	jsonl-prctl \
 	jsonl-seccomp-filter \
+	jsonl-sock_filter \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
 	jsonl-prctl-no-args \
@@ -1238,6 +1239,7 @@ EXTRA_DIST = \
 	jsonl-ppoll.c \
 	jsonl-prctl.c \
 	jsonl-seccomp-filter.c \
+	jsonl-sock_filter.c \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
 	jsonl-prctl-no-args.c \
