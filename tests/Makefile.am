@@ -309,6 +309,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-move_pages \
 	jsonl-mseal \
 	jsonl-net-packet_mreq \
+	jsonl-netlink_crypto \
 	jsonl-netlink_kobject_uevent \
 	jsonl-netlink_netfilter \
 	jsonl-netlink_protocol \
@@ -1025,6 +1026,7 @@ EXTRA_DIST = \
 	jsonl-move_pages.c \
 	jsonl-mseal.c \
 	jsonl-net-packet_mreq.c \
+	jsonl-netlink_crypto.c \
 	jsonl-netlink_kobject_uevent.c \
 	jsonl-netlink_netfilter.c \
 	jsonl-netlink_protocol.c \

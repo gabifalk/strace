@@ -566,6 +566,7 @@ jsonl-mlockall
 jsonl-move_pages
 jsonl-mseal
 jsonl-net-packet_mreq
+jsonl-netlink_crypto
 jsonl-netlink_kobject_uevent
 jsonl-netlink_netfilter
 jsonl-netlink_protocol
