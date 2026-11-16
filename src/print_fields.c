@@ -852,14 +852,22 @@ tprint_ticks(unsigned long long val, long freq, unsigned int precision)
 void
 tprint_ticks_d(long long val, long freq, unsigned int precision)
 {
-	PRINT_VAL_D(val);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
-	    && freq > 1 && val != 0) {
-		const unsigned long long magnitude =
-			val < 0 ? -(unsigned long long) val
-				: (unsigned long long) val;
+	if (structured_output) {
+		tprints_object_type("ticks");
+		tprintf_object_field_string("raw", "%lld", val);
+		tprintf_object_field_string("hz", "%ld", freq);
+		tprintf_object_field_string("precision", "%u", precision);
+	} else {
+		PRINT_VAL_D(val);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
+		    && freq > 1 && val != 0) {
+			const unsigned long long magnitude =
+				val < 0 ? -(unsigned long long) val
+					: (unsigned long long) val;
 
-		print_ticks_comment(magnitude, freq, precision, val < 0);
+			print_ticks_comment(magnitude, freq, precision,
+					    val < 0);
+		}
 	}
 }
 
