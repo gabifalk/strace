@@ -30,118 +30,120 @@
 #include "xlat/ebpf_op_jmp.h"
 #include "xlat/ebpf_size.h"
 
+static void
+print_bpf_filter_code_part(const struct xlat *const xlat,
+			   const struct xlat *const xlat2,
+			   const uint16_t val, const bool first)
+{
+	if (!first)
+		tprint_flags_groups_next();
+	tprint_flags_group_begin(val);
+	printxvals(val, "BPF_???", xlat, xlat2, NULL);
+	tprint_flags_group_end();
+}
+
+static void
+print_bpf_filter_code_rest(const uint16_t val)
+{
+	tprint_flags_groups_next();
+	tprint_flags_group_begin(val);
+	tprint_xval_dflt(val, "BPF_???");
+	tprint_flags_group_end();
+}
+
 void
 print_bpf_filter_code(const uint16_t code, bool extended)
 {
 	const struct xlat *mode = extended ? ebpf_mode : bpf_mode;
 	uint16_t i = code & ~BPF_CLASS(code);
 
-	tprint_flags_begin();
-	printxval(extended ? ebpf_class : bpf_class, BPF_CLASS(code),
-		  "BPF_???");
+	tprint_flags_groups_begin(code);
+	print_bpf_filter_code_part(extended ? ebpf_class : bpf_class, NULL,
+				   BPF_CLASS(code), true);
 	switch (BPF_CLASS(code)) {
 	case BPF_ST:
 	case BPF_STX:
 		if (!extended) {
-			if (i) {
-				tprint_flags_or();
-				PRINT_VAL_X(i);
-				tprints_comment("BPF_???");
-			}
+			if (i)
+				print_bpf_filter_code_rest(i);
 			break;
 		}
 		ATTRIBUTE_FALLTHROUGH; /* extended == true */
 
 	case BPF_LD:
 	case BPF_LDX:
-		tprint_flags_or();
-		printxvals(BPF_SIZE(code), "BPF_???",
-			   bpf_size, extended ? ebpf_size : NULL, NULL);
-		tprint_flags_or();
-		printxval(mode, BPF_MODE(code), "BPF_???");
+		print_bpf_filter_code_part(bpf_size,
+					   extended ? ebpf_size : NULL,
+					   BPF_SIZE(code), false);
+		print_bpf_filter_code_part(mode, NULL, BPF_MODE(code), false);
 		break;
 
 	case BPF_MISC: /* BPF_ALU64 in eBPF */
 		if (!extended) {
-			tprint_flags_or();
-			printxval(bpf_miscop, BPF_MISCOP(code), "BPF_???");
+			print_bpf_filter_code_part(bpf_miscop, NULL,
+						   BPF_MISCOP(code), false);
 			i &= ~BPF_MISCOP(code);
-			if (i) {
-				tprint_flags_or();
-				PRINT_VAL_X(i);
-				tprints_comment("BPF_???");
-			}
+			if (i)
+				print_bpf_filter_code_rest(i);
 			break;
 		}
 		ATTRIBUTE_FALLTHROUGH; /* extended == true */
 
 	case BPF_ALU:
-		tprint_flags_or();
-		printxval(bpf_src, BPF_SRC(code), "BPF_???");
-		tprint_flags_or();
-		printxvals(BPF_OP(code), "BPF_???",
-			   bpf_op_alu,
-			   extended ? ebpf_op_alu : NULL, NULL);
+		print_bpf_filter_code_part(bpf_src, NULL, BPF_SRC(code), false);
+		print_bpf_filter_code_part(bpf_op_alu,
+					   extended ? ebpf_op_alu : NULL,
+					   BPF_OP(code), false);
 		break;
 
 	case BPF_JMP:
-		tprint_flags_or();
-		printxval(bpf_src, BPF_SRC(code), "BPF_???");
-		tprint_flags_or();
-		printxvals(BPF_OP(code), "BPF_???",
-			   bpf_op_jmp, extended ? ebpf_op_jmp : NULL, NULL);
+		print_bpf_filter_code_part(bpf_src, NULL, BPF_SRC(code), false);
+		print_bpf_filter_code_part(bpf_op_jmp,
+					   extended ? ebpf_op_jmp : NULL,
+					   BPF_OP(code), false);
 		break;
 
 	case BPF_RET: /* Reserved in eBPF */
 		if (!extended) {
-			tprint_flags_or();
-			printxval(bpf_rval, BPF_RVAL(code), "BPF_???");
+			print_bpf_filter_code_part(bpf_rval, NULL,
+						   BPF_RVAL(code), false);
 			i &= ~BPF_RVAL(code);
 		}
 
-		if (i) {
-			tprint_flags_or();
-			PRINT_VAL_X(i);
-			tprints_comment("BPF_???");
-		}
+		if (i)
+			print_bpf_filter_code_rest(i);
 
 		break;
 	}
-	tprint_flags_end();
+	tprint_flags_groups_end();
 }
 
 static void
 print_bpf_filter_stmt(const struct bpf_filter_block *const filter,
 		      const print_bpf_filter_fn print_k)
 {
-	tprints_fn_begin("BPF_STMT");
+	tprint_bpf_insn_begin(false);
 
 	print_bpf_filter_code(filter->code, false);
-	tprint_fn_next();
+	tprint_bpf_insn_k();
 
 	if (!print_k || !print_k(filter))
 		PRINT_VAL_X(filter->k);
 
-	tprint_fn_end();
+	tprint_bpf_insn_end(false, 0, 0);
 }
 
 static void
 print_bpf_filter_jump(const struct bpf_filter_block *const filter)
 {
-	tprints_fn_begin("BPF_JUMP");
+	tprint_bpf_insn_begin(true);
 
 	print_bpf_filter_code(filter->code, false);
-	tprint_fn_next();
+	tprint_bpf_insn_k();
 
 	PRINT_VAL_X(filter->k);
-	tprint_fn_next();
 
-	PRINT_VAL_X(filter->jt);
-	tprint_fn_next();
-
-	PRINT_VAL_X(filter->jf);
-
-	tprint_fn_end();
+	tprint_bpf_insn_end(true, filter->jt, filter->jf);
 }
 
 struct bpf_filter_block_data {

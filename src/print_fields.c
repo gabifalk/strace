@@ -508,6 +508,37 @@ tprint_bitset_words_end(void)
 }
 
 void
+tprint_xval_dflt(unsigned long long val, const char *dflt)
+{
+	PRINT_VAL_X(val);
+	tprints_comment(dflt);
+}
+
+void
+tprint_bpf_insn_begin(bool jump)
+{
+	tprints_fn_begin(jump ? "BPF_JUMP" : "BPF_STMT");
+}
+
+void
+tprint_bpf_insn_k(void)
+{
+	tprint_fn_next();
+}
+
+void
+tprint_bpf_insn_end(bool jump, unsigned int jt, unsigned int jf)
+{
+	if (jump) {
+		tprint_fn_next();
+		PRINT_VAL_X(jt);
+		tprint_fn_next();
+		PRINT_VAL_X(jf);
+	}
+	tprint_fn_end();
+}
+
+void
 tprint_comment_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_COMMENT);
