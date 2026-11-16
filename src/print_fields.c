@@ -392,6 +392,19 @@ tprint_fd_info_dev(const char *path, const char *kind, unsigned int major,
 }
 
 void
+tprint_fd_info_pidfd(int pid)
+{
+	tprint_associated_info_begin();
+	STRACE_PRINTS("pid:");
+	/*
+	 * The pid translation is not needed because
+	 * the pid is in strace's namespace.
+	 */
+	printpid(NULL, pid, PT_TID);
+	tprint_associated_info_end();
+}
+
+void
 tprints_assoc_type_string(const char *type, const char *str, size_t len,
 			  bool deleted)
 {

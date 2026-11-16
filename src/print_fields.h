@@ -211,6 +211,7 @@ extern void tprints_fd_info_string(const char *type, const char *str);
 extern void tprint_fd_info_dev(const char *path, const char *kind,
 			       unsigned int major, unsigned int minor,
 			       int tty_index, const char *tun_backend);
+extern void tprint_fd_info_pidfd(int pid);
 extern void tprints_assoc_type_string(const char *type, const char *str,
 				      size_t len, bool deleted);
 extern void tprint_more_data_follows(void);

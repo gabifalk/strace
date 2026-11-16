@@ -928,18 +928,10 @@ printpidfd(pid_t pid_of_fd, int fd, const char *path)
 		return false;
 
 	pid_t pid = pidfd_get_pid(pid_of_fd, fd);
-	if (pid > 0) {
-		tprint_associated_info_begin();
-		tprints_string("pid:");
-		/*
-		 * The pid translation is not needed because
-		 * the pid is in strace's namespace.
-		 */
-		printpid(NULL, pid, PT_TID);
-		tprint_associated_info_end();
-	} else {
+	if (pid > 0)
+		tprint_fd_info_pidfd(pid);
+	else
 		print_fd_info_type_string("pidfd", path);
-	}
 
 	return true;
 }
