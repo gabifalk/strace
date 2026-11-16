@@ -58,14 +58,26 @@ while read -r name arg0 args; do {
 	# Replace the file atomically so the reader keeps its original contents.
 	tmp_output="$output.$$"
 	# A jsonl-<fmt>-<syscall> name selects a JSONL test; the shared
-	# jsonl.sh body derives the format and the program from the name.
+	# jsonl.sh body, or the +script given instead, derives the format
+	# and the program from the name.
 	case "$name" in
 	jsonl-*)
-		cat <<-EOF
-		$hdr
-		set -- $arg0 $args
-		. "\${srcdir=.}/jsonl.sh"
-		EOF
+		case "$arg0" in
+		+*)
+			cat <<-EOF
+			$hdr
+			set -- $args
+			. "\${srcdir=.}/${arg0#+}"
+			EOF
+			;;
+		*)
+			cat <<-EOF
+			$hdr
+			set -- $arg0 $args
+			. "\${srcdir=.}/jsonl.sh"
+			EOF
+			;;
+		esac
 		;;
 	*)
 	case "$arg0" in

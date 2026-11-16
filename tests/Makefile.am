@@ -298,6 +298,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getgid \
 	jsonl-getresuid \
 	jsonl-getsockname \
+	jsonl-ioctl \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-memfd_secret \
@@ -1015,6 +1016,7 @@ EXTRA_DIST = \
 	jsonl-utime.c \
 	jsonl-vfork-f.c \
 	jsonl.h \
+	jsonl-ioctl.sh \
 	jsonl.sh \
 	kernel_old_timespec.h \
 	kernel_old_timex.h \

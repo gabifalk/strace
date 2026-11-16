@@ -555,6 +555,7 @@ jsonl-geteuid
 jsonl-getgid
 jsonl-getresuid
 jsonl-getsockname
+jsonl-ioctl
 jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-memfd_secret

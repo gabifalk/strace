@@ -574,6 +574,7 @@ jsonl-merged-geteuid	-e trace=geteuid
 jsonl-merged-getgid	-e trace=getgid
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-getsockname	-e trace=getsockname
+jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-memfd_secret	-e trace=memfd_secret
@@ -616,6 +617,7 @@ jsonl-split-geteuid	-e trace=geteuid
 jsonl-split-getgid	-e trace=getgid
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-getsockname	-e trace=getsockname
+jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-memfd_secret	-e trace=memfd_secret
