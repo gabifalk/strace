@@ -441,6 +441,8 @@ extern void tprint_ticks(unsigned long long val, long freq,
 extern void tprint_pit_count(unsigned long long count, unsigned int freq);
 extern void tprint_kd_tone(unsigned int ticks, unsigned int count,
 			   unsigned int freq);
+extern void tprint_kd_io_port(unsigned long long port, bool gp,
+			      unsigned long long gp_index);
 extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
 extern void tprint_kernel_version(unsigned long version);
 extern void tprint_ioctl_op_begin(unsigned int code);

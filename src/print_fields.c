@@ -2345,6 +2345,20 @@ tprint_kd_tone(unsigned int ticks, unsigned int count, unsigned int freq)
 	}
 }
 
+/*
+ * Print the I/O port number `port' of KDADDIO and KDDELIO; when `gp' is set,
+ * the port is the graphics port `gp_index' counting from GPFIRST.
+ */
+void
+tprint_kd_io_port(unsigned long long port, bool gp,
+		  unsigned long long gp_index)
+{
+	PRINT_VAL_X(port);
+
+	if (gp && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW)
+		tprintf_comment("GPFIRST + %llu", gp_index);
+}
+
 void
 tprint_ticks_d(long long val, long freq, unsigned int precision)
 {

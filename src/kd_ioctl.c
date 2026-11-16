@@ -165,11 +165,7 @@ kd_io(struct tcb *const tcp, kernel_ulong_t arg)
 	enum { GPFIRST = 0x3b4, GPLAST = 0x3df };
 
 	tprints_arg_next_name("argp");
-	PRINT_VAL_X(arg);
-
-	if (arg >= GPFIRST && arg <= GPLAST
-	    && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW)
-		tprintf_comment("GPFIRST + %" PRI_klu, arg - GPFIRST);
+	tprint_kd_io_port(arg, arg >= GPFIRST && arg <= GPLAST, arg - GPFIRST);
 
 	return RVAL_IOCTL_DECODED;
 }
