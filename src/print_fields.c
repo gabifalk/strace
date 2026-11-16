@@ -1250,13 +1250,25 @@ tprint_sockaddr_end(void)
 		tprint_struct_end();
 }
 
+static void
+tprints_object_field_hton_u(const char *field, unsigned int val,
+			    unsigned int size)
+{
+	tprints_object_field_begin(field);
+	tprint_object_begin();
+	PRINT_VAL_U(val);
+	tprint_fn_hton_end(size);
+	tprint_object_end();
+	tprint_object_field_end();
+}
+
 void
 tprint_sockaddr_in(const char *addr, unsigned int port,
 		   void (*print_struct_fields)(const void *), const void *data)
 {
 	if (structured_output) {
 		tprints_object_field_string("addr", addr);
-		tprintf_object_field_string("port", "%u", port);
+		tprints_object_field_hton_u("port", port, 2);
 	} else {
 		print_struct_fields(data);
 	}
@@ -1270,8 +1282,8 @@ tprint_sockaddr_in6(const char *addr, unsigned int port,
 {
 	if (structured_output) {
 		tprints_object_field_string("addr", addr);
-		tprintf_object_field_string("port", "%u", port);
-		tprintf_object_field_string("flowinfo", "%u", flowinfo);
+		tprints_object_field_hton_u("port", port, 2);
+		tprints_object_field_hton_u("flowinfo", flowinfo, 4);
 		if (has_scope_id) {
 			tprintf_object_field_string("scope_id", "%u",
 						    scope_id);
