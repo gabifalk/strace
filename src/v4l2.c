@@ -540,17 +540,23 @@ print_v4l2_buffer_flags(uint32_t val)
 		return;
 	}
 
-	tprint_flags_begin();
+	tprint_flags_groups_begin(val);
 	if (flags) {
+		tprint_flags_group_begin(flags);
 		printflags_in(v4l2_buf_flags, flags, "V4L2_BUF_FLAG_???");
-		tprint_flags_or();
+		tprint_flags_group_end();
+		tprint_flags_groups_next();
 	}
+	tprint_flags_group_begin(ts_type);
 	printxval(v4l2_buf_flags_ts_type, ts_type,
 		  "V4L2_BUF_FLAG_TIMESTAMP_???");
-	tprint_flags_or();
+	tprint_flags_group_end();
+	tprint_flags_groups_next();
+	tprint_flags_group_begin(ts_src);
 	printxval(v4l2_buf_flags_ts_src, ts_src,
 		  "V4L2_BUF_FLAG_TSTAMP_SRC_???");
-	tprint_flags_end();
+	tprint_flags_group_end();
+	tprint_flags_groups_end();
 }
 
 #define PRINT_FIELD_V4L2_BUFFER_FLAGS(where_, field_)		\
