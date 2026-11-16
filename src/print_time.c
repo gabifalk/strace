@@ -14,6 +14,17 @@ typedef kernel_ulong_t kernel_time_t;
 
 #include MPERS_DEFS
 
+static void
+print_time_result(struct tcb *const tcp, const unsigned long long val)
+{
+	const char *const str = sprinttime((kernel_time_t) tcp->u_rval);
+
+	tprint_sysret_result_begin("time_t", val);
+	if (str)
+		tprints_sysret_result_note(str);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(time)
 {
 	if (exiting(tcp)) {
@@ -28,9 +39,8 @@ SYS_FUNC(time)
 		}
 
 		if (!syserror(tcp)) {
-			tcp->auxstr = sprinttime((kernel_time_t) tcp->u_rval);
-
-			return RVAL_STR;
+			tcp->rval_result_printer = print_time_result;
+			return RVAL_RESULT;
 		}
 	}
 
