@@ -14,7 +14,7 @@
 static void
 print_futex2_flags(unsigned int flags)
 {
-	if (!tprint_xlat_flags_value_begin(flags))
+	if (!tprint_xlat_flags_value_begin(flags, XLAT_STYLE_DEFAULT))
 		return;
 
 	printxvals_ex(flags & FUTEX2_SIZE_MASK, NULL, XLAT_STYLE_ABBREV,
@@ -27,7 +27,7 @@ print_futex2_flags(unsigned int flags)
 			      futex2_flags, NULL);
 	}
 
-	tprint_xlat_flags_value_end();
+	tprint_xlat_flags_value_end(XLAT_STYLE_DEFAULT);
 }
 
 struct print_waiter_data {

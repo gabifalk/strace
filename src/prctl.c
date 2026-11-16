@@ -72,157 +72,96 @@ print_prctl_args(struct tcb *tcp, const unsigned int first)
 	}
 }
 
-static char *
-sprint_sve_val(kernel_ulong_t arg, bool aux)
+static void
+print_vl_val(const unsigned long long arg, const enum xlat_style style,
+	     const unsigned long long len_mask, const struct xlat *xlat)
 {
-	static char out[sizeof("0x /* PR_SVE_SET_VL_ONEXEC|PR_SVE_VL_INHERIT"
-			       "|0x|0x */") + sizeof(kernel_ulong_t) * 2 * 3];
+	const unsigned long long vl = arg & len_mask;
+	const unsigned long long flags = arg & ~len_mask;
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
-		if (aux)
-			return NULL;
-
-		xsprintf(out, "%#" PRI_klx, arg);
-
-		return out;
+	if (!flags) {
+		PRINT_VAL_X(arg);
+	} else if (tprint_xlat_flags_value_begin(arg, style)) {
+		printflags_ex(flags, NULL, XLAT_STYLE_ABBREV, xlat, NULL);
+		tprint_flags_value_or();
+		PRINT_VAL_X(vl);
+		tprint_xlat_flags_value_end(style);
 	}
-
-	kernel_ulong_t vl = arg & PR_SVE_VL_LEN_MASK;
-	kernel_ulong_t flags = arg & ~PR_SVE_VL_LEN_MASK;
-
-	if (!flags && aux)
-		return NULL;
-
-	const char *flags_str = sprintflags_ex("", pr_sve_vl_flags, flags, '\0',
-					       XLAT_STYLE_ABBREV);
-
-	if (!aux && flags && xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-	{
-		xsprintf(out, "%#" PRI_klx " /* %s%s%#" PRI_klx " */",
-			 arg, flags_str ?: "", flags_str ? "|" : "", vl);
-	} else {
-		xsprintf(out, "%s%s%#" PRI_klx,
-			 flags_str ?: "", flags_str ? "|" : "", vl);
-	}
-
-	return out;
 }
 
-static char *
-sprint_sme_val(kernel_ulong_t arg, bool aux)
+static void
+print_sve_val(const unsigned long long arg, const enum xlat_style style)
 {
-	static char out[sizeof("0x /* PR_SME_SET_VL_ONEXEC|PR_SME_VL_INHERIT"
-			       "|0x|0x */") + sizeof(kernel_ulong_t) * 2 * 3];
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW) {
-		if (aux)
-			return NULL;
-
-		xsprintf(out, "%#" PRI_klx, arg);
-
-		return out;
-	}
-
-	kernel_ulong_t vl = arg & PR_SME_VL_LEN_MASK;
-	kernel_ulong_t flags = arg & ~PR_SME_VL_LEN_MASK;
-
-	if (!flags && aux)
-		return NULL;
-
-	const char *flags_str = sprintflags_ex("", pr_sme_vl_flags, flags, '\0',
-					       XLAT_STYLE_ABBREV);
-
-	if (!aux && flags && xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-	{
-		xsprintf(out, "%#" PRI_klx " /* %s%s%#" PRI_klx " */",
-			 arg, flags_str ?: "", flags_str ? "|" : "", vl);
-	} else {
-		xsprintf(out, "%s%s%#" PRI_klx,
-			 flags_str ?: "", flags_str ? "|" : "", vl);
-	}
-
-	return out;
+	print_vl_val(arg, style, PR_SVE_VL_LEN_MASK, pr_sve_vl_flags);
 }
 
-static char *
-sprint_tagged_addr_val(const kernel_ulong_t arg, bool rval)
+static void
+print_sme_val(const unsigned long long arg, const enum xlat_style style)
 {
-	static char out[sizeof("0x /* !PR_TAGGED_ADDR_ENABLE|PR_MTE_TCF_ASYNC"
-			"|0xffff<<PR_MTE_TAG_SHIFT|0x */") +
-			sizeof(kernel_ulong_t) * 2 * 2];
+	print_vl_val(arg, style, PR_SME_VL_LEN_MASK, pr_sme_vl_flags);
+}
 
-	const kernel_ulong_t enabled = arg & PR_TAGGED_ADDR_ENABLE;
-	const kernel_ulong_t mte_tcf = arg & PR_MTE_TCF_MASK;
-	const kernel_ulong_t mte_tag = arg & PR_MTE_TAG_MASK;
-	const kernel_ulong_t rest = arg &
-		~((kernel_ulong_t) PR_TAGGED_ADDR_ENABLE | PR_MTE_TCF_MASK
+static void
+print_tagged_addr_val(const unsigned long long arg, const enum xlat_style style)
+{
+	const unsigned long long enabled = arg & PR_TAGGED_ADDR_ENABLE;
+	const unsigned long long mte_tcf = arg & PR_MTE_TCF_MASK;
+	const unsigned long long mte_tag = arg & PR_MTE_TAG_MASK;
+	const unsigned long long rest = arg &
+		~((unsigned long long) PR_TAGGED_ADDR_ENABLE | PR_MTE_TCF_MASK
 		  | PR_MTE_TAG_MASK);
-	char *pos = out;
 
-	if (!rval && (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV))
-		pos = xappendstr(out, pos, "%#" PRI_klx, arg);
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return rval ? NULL : out;
-	if (!rval && (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE))
-		pos = xappendstr(out, pos, " /* ");
+	if (!tprint_xlat_flags_value_begin(arg, style))
+		return;
 
-	pos = xappendstr(out, pos, "%s|",
-			 sprintflags_ex("", pr_tagged_addr_enable, enabled,
-					'\0', XLAT_STYLE_ABBREV));
-	pos += sprintxval_ex(pos, sizeof(out) - (pos - out),
-			     pr_tagged_addr_mte_tcf, mte_tcf, NULL,
-			     XLAT_STYLE_ABBREV);
+	printflags_ex(enabled, NULL, XLAT_STYLE_ABBREV,
+		      pr_tagged_addr_enable, NULL);
+	tprint_flags_value_or();
+	printxvals_ex(mte_tcf, NULL, XLAT_STYLE_ABBREV,
+		      pr_tagged_addr_mte_tcf, NULL);
 	if (mte_tag) {
-		pos = xappendstr(out, pos, "|%#" PRI_klx "<<PR_MTE_TAG_SHIFT",
-				 mte_tag >> PR_MTE_TAG_SHIFT);
+		tprint_flags_value_or();
+		tprint_shift_value_begin(mte_tag);
+		PRINT_VAL_X(mte_tag >> PR_MTE_TAG_SHIFT);
+		tprints_shift_value_end("PR_MTE_TAG_SHIFT");
 	}
-	if (rest)
-		pos = xappendstr(out, pos, "|%#" PRI_klx, rest);
+	if (rest) {
+		tprint_flags_value_or();
+		PRINT_VAL_X(rest);
+	}
 
-	if (!rval && (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE))
-		pos = xappendstr(out, pos, " */");
-
-	return out;
+	tprint_xlat_flags_value_end(style);
 }
 
-static char *
-sprint_riscv_v_ctrl_val(const kernel_ulong_t arg, bool rval)
+static void
+print_riscv_v_ctrl_val(const unsigned long long arg,
+		       const enum xlat_style style)
 {
-	static char out[sizeof("0x /* PR_RISCV_V_VSTATE_CTRL_DEFAULT"
-			"|PR_RISCV_V_VSTATE_CTRL_DEFAULT<<2"
-			"|!PR_RISCV_V_VSTATE_CTRL_INHERIT|0x */") +
-			sizeof(kernel_ulong_t) * 2 * 2];
+	const unsigned long long inherit = arg & PR_RISCV_V_VSTATE_CTRL_INHERIT;
+	const unsigned long long next_bits =
+		arg & PR_RISCV_V_VSTATE_CTRL_NEXT_MASK;
+	const unsigned long long cur = arg & PR_RISCV_V_VSTATE_CTRL_CUR_MASK;
+	const unsigned long long rest =
+		arg & ~((unsigned long long) PR_RISCV_V_VSTATE_CTRL_MASK);
 
-	const kernel_ulong_t inherit = arg & PR_RISCV_V_VSTATE_CTRL_INHERIT;
-	const kernel_ulong_t next =
-			(arg & PR_RISCV_V_VSTATE_CTRL_NEXT_MASK) >> 2;
-	const kernel_ulong_t cur = arg & PR_RISCV_V_VSTATE_CTRL_CUR_MASK;
-	const kernel_ulong_t rest =
-			arg & ~((kernel_ulong_t) PR_RISCV_V_VSTATE_CTRL_MASK);
-	char *pos = out;
+	if (!tprint_xlat_flags_value_begin(arg, style))
+		return;
 
-	if (!rval && (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV))
-		pos = xappendstr(out, pos, "%#" PRI_klx, arg);
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return rval ? NULL : out;
-	if (!rval && (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE))
-		pos = xappendstr(out, pos, " /* ");
+	printxvals_ex(cur, NULL, XLAT_STYLE_ABBREV, pr_riscv_v_states, NULL);
+	tprint_flags_value_or();
+	tprint_shift_value_begin(next_bits);
+	printxvals_ex(next_bits >> 2, NULL, XLAT_STYLE_ABBREV,
+		      pr_riscv_v_states, NULL);
+	tprint_shift_value_end_u(2);
+	tprint_flags_value_or();
+	printflags_ex(inherit, NULL, XLAT_STYLE_ABBREV,
+		      pr_riscv_v_inherit, NULL);
+	if (rest) {
+		tprint_flags_value_or();
+		PRINT_VAL_X(rest);
+	}
 
-	pos += sprintxval_ex(pos, sizeof(out) - (pos - out),
-			     pr_riscv_v_states, cur, NULL, XLAT_STYLE_ABBREV);
-	pos = xappendstr(out, pos, "|");
-	pos += sprintxval_ex(pos, sizeof(out) - (pos - out),
-			     pr_riscv_v_states, next, NULL, XLAT_STYLE_ABBREV);
-	pos = xappendstr(out, pos, "<<2|%s",
-			 sprintflags_ex("", pr_riscv_v_inherit, inherit,
-					'\0', XLAT_STYLE_ABBREV));
-	if (rest)
-		pos = xappendstr(out, pos, "|%#" PRI_klx, rest);
-
-	if (!rval && (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE))
-		pos = xappendstr(out, pos, " */");
-
-	return out;
+	tprint_xlat_flags_value_end(style);
 }
 
 static int
@@ -528,7 +467,7 @@ SYS_FUNC(prctl)
 	case PR_SVE_SET_VL:			/*  50 */
 		if (entering(tcp)) {
 			tprints_arg_next_name("value");
-			tprints_string(sprint_sve_val(arg2, false));
+			print_sve_val(arg2, XLAT_STYLE_DEFAULT);
 			return 0;
 		}
 		ATTRIBUTE_FALLTHROUGH;
@@ -539,9 +478,12 @@ SYS_FUNC(prctl)
 		if (syserror(tcp) || tcp->u_rval == 0)
 			return 0;
 
-		tcp->auxstr = sprint_sve_val(tcp->u_rval, true);
+		if (!(tcp->u_rval & ~PR_SVE_VL_LEN_MASK))
+			return RVAL_HEX;
 
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_printer = print_sve_val;
+
+		return RVAL_PRINTER;
 
 	case PR_GET_SPECULATION_CTRL:		/*  52 */
 		if (entering(tcp)) {
@@ -593,7 +535,7 @@ SYS_FUNC(prctl)
 
 	case PR_SET_TAGGED_ADDR_CTRL:		/*  55 */
 		tprints_arg_next_name("mode");
-		tprints_string(sprint_tagged_addr_val(arg2, false));
+		print_tagged_addr_val(arg2, XLAT_STYLE_DEFAULT);
 		print_prctl_args(tcp, 2);
 		return RVAL_DECODED;
 
@@ -604,9 +546,9 @@ SYS_FUNC(prctl)
 		}
 		if (syserror(tcp))
 			return 0;
-		tcp->auxstr = sprint_tagged_addr_val(tcp->u_rval, true);
+		tcp->rval_printer = print_tagged_addr_val;
 
-		return RVAL_HEX | RVAL_STR;
+		return RVAL_PRINTER;
 
 	/* PR_SET_IO_FLUSHER - group 4		    57 */
 	/* PR_GET_IO_FLUSHER - group 5		    58 */
@@ -687,7 +629,7 @@ SYS_FUNC(prctl)
 	case PR_SME_SET_VL:			/*  63 */
 		if (entering(tcp)) {
 			tprints_arg_next_name("arg");
-			tprints_string(sprint_sme_val(arg2, false));
+			print_sme_val(arg2, XLAT_STYLE_DEFAULT);
 			return 0;
 		}
 		ATTRIBUTE_FALLTHROUGH;
@@ -698,9 +640,12 @@ SYS_FUNC(prctl)
 		if (syserror(tcp) || tcp->u_rval == 0)
 			return 0;
 
-		tcp->auxstr = sprint_sme_val(tcp->u_rval, true);
+		if (!(tcp->u_rval & ~PR_SME_VL_LEN_MASK))
+			return RVAL_HEX;
 
-		return RVAL_HEX | RVAL_STR;
+		tcp->rval_printer = print_sme_val;
+
+		return RVAL_PRINTER;
 
 	case PR_SET_MDWE:			/*  65 */
 		tprints_arg_next_name("mask");
@@ -723,7 +668,7 @@ SYS_FUNC(prctl)
 
 	case PR_RISCV_V_SET_CONTROL:		/*  69 */
 		tprints_arg_next_name("arg");
-		tprints_string(sprint_riscv_v_ctrl_val(arg2, false));
+		print_riscv_v_ctrl_val(arg2, XLAT_STYLE_DEFAULT);
 		/*
 		 * PR_RISCV_V_[GS]ET_CONTROL are modern options
 		 * that do not check unused arguments for being zero.
@@ -735,9 +680,9 @@ SYS_FUNC(prctl)
 			break;
 		if (syserror(tcp))
 			return 0;
-		tcp->auxstr = sprint_riscv_v_ctrl_val(tcp->u_rval, true);
+		tcp->rval_printer = print_riscv_v_ctrl_val;
 
-		return RVAL_HEX | RVAL_STR;
+		return RVAL_PRINTER;
 
 	case PR_RISCV_SET_ICACHE_FLUSH_CTX:	/*  71 */
 		tprints_arg_next_name("ctx");

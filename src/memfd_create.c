@@ -29,7 +29,7 @@ SYS_FUNC(memfd_create)
 		return RVAL_DECODED | RVAL_FD;
 	}
 
-	if (!tprint_xlat_flags_value_begin(flags))
+	if (!tprint_xlat_flags_value_begin(flags, XLAT_STYLE_DEFAULT))
 		return RVAL_DECODED | RVAL_FD;
 
 	const unsigned int mask = MFD_HUGE_MASK << MFD_HUGE_SHIFT;
@@ -48,7 +48,7 @@ SYS_FUNC(memfd_create)
 				    "MFD_HUGE_SHIFT");
 	}
 
-	tprint_xlat_flags_value_end();
+	tprint_xlat_flags_value_end(XLAT_STYLE_DEFAULT);
 
 	return RVAL_DECODED | RVAL_FD;
 }

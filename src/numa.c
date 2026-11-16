@@ -87,13 +87,13 @@ print_mode(struct tcb *const tcp, const kernel_ulong_t mode_arg)
 		return;
 	}
 
-	if (!tprint_xlat_flags_value_begin(mode_arg))
+	if (!tprint_xlat_flags_value_begin(mode_arg, XLAT_STYLE_DEFAULT))
 		return;
 
 	tprints_flags_value_const(mode, mode_str);
 	tprint_flags_value_or();
 	printflags_ex(flags, NULL, XLAT_STYLE_ABBREV, mpol_mode_flags, NULL);
-	tprint_xlat_flags_value_end();
+	tprint_xlat_flags_value_end(XLAT_STYLE_DEFAULT);
 }
 
 SYS_FUNC(mbind)

@@ -44,6 +44,7 @@
 # include "number_set.h"
 # include "string_to_uint.h"
 # include "sysent.h"
+# include "xlat.h"
 # include "xmalloc.h"
 
 # ifndef HAVE_STRERROR
@@ -283,6 +284,8 @@ struct tcb {
 	const char *auxstr;	/* Auxiliary info from syscall (see RVAL_STR) */
 	const struct xlat *rval_xlat;	/* Return value xlat (see RVAL_XLAT,
 					   RVAL_FLAGS) */
+	/* Return value printer (see RVAL_PRINTER) */
+	void (*rval_printer)(unsigned long long val, enum xlat_style style);
 	void *_priv_data;	/* Private data for syscall decoding functions */
 	void (*_free_priv_data)(void *); /* Callback for freeing priv_data */
 	const struct_sysent *s_ent; /* sysent[scno] or a stub struct for bad
@@ -415,8 +418,6 @@ extern const struct_sysent stub_sysent;
 # define tcp_sysent(tcp) (tcp->s_ent ?: &stub_sysent)
 # define n_args(tcp) MIN(tcp_sysent(tcp)->nargs, MAX_ARGS)
 
-# include "xlat.h"
-
 extern const struct xlat addrfams[];
 extern const struct xlat arp_hardware_types[];
 extern const struct xlat at_flags[];
@@ -485,6 +486,7 @@ extern const struct xlat whence_codes[];
 				   `rval_xlat' table */
 # define RVAL_FLAGS	01000	/* Return value is a set of flags from the
 				   `rval_xlat' table */
+# define RVAL_PRINTER	02000	/* Return value is printed by `rval_printer' */
 
 # define IOCTL_NUMBER_UNKNOWN 0
 # define IOCTL_NUMBER_HANDLED 1

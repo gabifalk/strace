@@ -949,18 +949,21 @@ tprint_flags_value_end(void)
 }
 
 bool
-tprint_xlat_flags_value_begin(unsigned long long raw)
+tprint_xlat_flags_value_begin(unsigned long long raw, enum xlat_style style)
 {
 	if (structured_output) {
 		tprint_flags_value_begin(raw);
 	} else {
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		if (xlat_verbose(style) == XLAT_STYLE_DEFAULT)
+			style = xlat_verbosity;
+
+		if (xlat_verbose(style) != XLAT_STYLE_ABBREV)
 			PRINT_VAL_X(raw);
 
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+		if (xlat_verbose(style) == XLAT_STYLE_RAW)
 			return false;
 
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		if (xlat_verbose(style) == XLAT_STYLE_VERBOSE)
 			tprint_comment_begin();
 
 		tprint_flags_begin();
@@ -969,14 +972,17 @@ tprint_xlat_flags_value_begin(unsigned long long raw)
 }
 
 void
-tprint_xlat_flags_value_end(void)
+tprint_xlat_flags_value_end(enum xlat_style style)
 {
 	if (structured_output) {
 		tprint_flags_value_end();
 	} else {
 		tprint_flags_end();
 
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		if (xlat_verbose(style) == XLAT_STYLE_DEFAULT)
+			style = xlat_verbosity;
+
+		if (xlat_verbose(style) == XLAT_STYLE_VERBOSE)
 			tprint_comment_end();
 	}
 }
@@ -1049,6 +1055,20 @@ tprint_shift_value_end_u(unsigned int amount)
 	} else {
 		tprint_shift();
 		PRINT_VAL_U(amount);
+		tprint_shift_end();
+	}
+}
+
+void
+tprints_shift_value_end(const char *shift)
+{
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+		tprints_object_field_string("shift", shift);
+	} else {
+		tprint_shift();
+		tprints_string(shift);
 		tprint_shift_end();
 	}
 }
@@ -2715,6 +2735,20 @@ tprint_sysret_flags_val(unsigned long long val, const struct xlat *xlat)
 		printflags_ex(val, NULL, XLAT_STYLE_DEFAULT, xlat, NULL);
 	else
 		PRINT_VAL_X(val);
+}
+
+void
+tprint_sysret_printer_val(unsigned long long val,
+			  void (*printer)(unsigned long long val,
+					  enum xlat_style style))
+{
+	PRINT_VAL_X(val);
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		tprints_sysret_next("retstr");
+		STRACE_PRINTS("(");
+		printer(val, XLAT_STYLE_ABBREV);
+		STRACE_PRINTS(")");
+	}
 }
 
 void

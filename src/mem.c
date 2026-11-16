@@ -57,7 +57,7 @@ SYS_FUNC(brk)
 static void
 print_mmap_flags(kernel_ulong_t flags)
 {
-	if (!tprint_xlat_flags_value_begin(flags))
+	if (!tprint_xlat_flags_value_begin(flags, XLAT_STYLE_DEFAULT))
 		return;
 
 	printxvals_ex(flags & MAP_TYPE, "MAP_???", XLAT_STYLE_ABBREV,
@@ -81,7 +81,7 @@ print_mmap_flags(kernel_ulong_t flags)
 				    "MAP_HUGE_SHIFT");
 	}
 
-	tprint_xlat_flags_value_end();
+	tprint_xlat_flags_value_end(XLAT_STYLE_DEFAULT);
 }
 
 static void

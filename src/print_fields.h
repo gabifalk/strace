@@ -40,8 +40,12 @@ extern void tprint_sysret_xlat_val(unsigned long long val, bool hex,
 				   const struct xlat *xlat);
 extern void tprint_sysret_flags_val(unsigned long long val,
 				    const struct xlat *xlat);
-extern bool tprint_xlat_flags_value_begin(unsigned long long raw);
-extern void tprint_xlat_flags_value_end(void);
+extern void tprint_sysret_printer_val(unsigned long long val,
+				      void (*printer)(unsigned long long val,
+						      enum xlat_style style));
+extern bool tprint_xlat_flags_value_begin(unsigned long long raw,
+					  enum xlat_style style);
+extern void tprint_xlat_flags_value_end(enum xlat_style style);
 extern void tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,
 					  const struct xlat *xlat,
 					  const char *dflt);
@@ -345,6 +349,7 @@ extern void tprints_shift_value_xlat_u(unsigned long long raw,
 				      unsigned int amount, const char *shift);
 extern void tprint_shift_value_begin(unsigned long long raw);
 extern void tprint_shift_value_end_u(unsigned int amount);
+extern void tprints_shift_value_end(const char *shift);
 extern void tprint_mac_addr(const void *addr, unsigned int size,
 			    const char *str);
 extern void tprint_fn_hton_begin(unsigned int size);
