@@ -100,17 +100,27 @@ tprint_array_element_fetch_failed(unsigned long long addr)
 void
 tprint_array_index_begin(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("[");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprints_object_field_begin("index");
+		tprint_object_begin();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("[");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
 tprint_array_index_equal(void)
 {
-	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
-	STRACE_PRINTS("]=");
-	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
+		STRACE_PRINTS("]=");
+		STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
+	}
 }
 
 void
