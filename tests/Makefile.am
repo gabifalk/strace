@@ -291,7 +291,9 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-copy_file_range \
 	jsonl-dup-y \
 	jsonl-dup-yy \
+	jsonl-execve \
 	jsonl-fcntl-getlease \
+	jsonl-file_setattr \
 	jsonl-fork-f \
 	jsonl-fsconfig \
 	jsonl-get_mempolicy \
@@ -313,8 +315,10 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-lsm_set_self_attr \
+	jsonl-memfd_create \
 	jsonl-memfd_secret \
 	jsonl-mincore \
+	jsonl-mknodat \
 	jsonl-mlockall \
 	jsonl-move_pages \
 	jsonl-mseal \
@@ -385,6 +389,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-process_vm_readv \
 	jsonl-process_vm_writev \
 	jsonl-pwritev \
+	jsonl-rt_sigprocmask \
 	jsonl-rt_tgsigqueueinfo \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
@@ -1061,7 +1066,9 @@ EXTRA_DIST = \
 	jsonl-copy_file_range.c \
 	jsonl-dup-y.c \
 	jsonl-dup-yy.c \
+	jsonl-execve.c \
 	jsonl-fcntl-getlease.c \
+	jsonl-file_setattr.c \
 	jsonl-fork-f.c \
 	jsonl-fsconfig.c \
 	jsonl-get_mempolicy.c \
@@ -1082,8 +1089,10 @@ EXTRA_DIST = \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-lsm_set_self_attr.c \
+	jsonl-memfd_create.c \
 	jsonl-memfd_secret.c \
 	jsonl-mincore.c \
+	jsonl-mknodat.c \
 	jsonl-mlockall.c \
 	jsonl-move_pages.c \
 	jsonl-mseal.c \
@@ -1154,6 +1163,7 @@ EXTRA_DIST = \
 	jsonl-process_vm_readv.c \
 	jsonl-process_vm_writev.c \
 	jsonl-pwritev.c \
+	jsonl-rt_sigprocmask.c \
 	jsonl-rt_tgsigqueueinfo.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \

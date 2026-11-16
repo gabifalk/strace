@@ -567,7 +567,9 @@ jsonl-merged-close_range	-e trace=close_range
 jsonl-merged-copy_file_range	-e trace=copy_file_range
 jsonl-merged-dup-y	-y -e trace=dup
 jsonl-merged-dup-yy	-yy -e trace=dup
+jsonl-merged-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
 jsonl-merged-fcntl-getlease	-e trace=fcntl
+jsonl-merged-file_setattr	-e trace=file_setattr
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-merged-get_mempolicy	-s3 -e trace=get_mempolicy
@@ -589,8 +591,10 @@ jsonl-merged-kill	-e signal=none -e trace=kill
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-lsm_set_self_attr	-e trace=lsm_set_self_attr
+jsonl-merged-memfd_create	-e trace=memfd_create
 jsonl-merged-memfd_secret	-e trace=memfd_secret
 jsonl-merged-mincore	-e trace=mincore
+jsonl-merged-mknodat	-e trace=mknodat,umask
 jsonl-merged-mlockall	-e trace=mlockall
 jsonl-merged-move_pages	-s3 -e trace=move_pages
 jsonl-merged-mseal	-e trace=mseal
@@ -661,6 +665,7 @@ jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-merged-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-merged-pwritev	-s7 -e trace=pwritev
+jsonl-merged-rt_sigprocmask	-e trace=rt_sigprocmask
 jsonl-merged-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
@@ -686,7 +691,9 @@ jsonl-split-close_range	-e trace=close_range
 jsonl-split-copy_file_range	-e trace=copy_file_range
 jsonl-split-dup-y	-y -e trace=dup
 jsonl-split-dup-yy	-yy -e trace=dup
+jsonl-split-execve	-e trace=execve --trace-path=/nonexistent/jsonl_execve_xyz
 jsonl-split-fcntl-getlease	-e trace=fcntl
+jsonl-split-file_setattr	-e trace=file_setattr
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-split-get_mempolicy	-s3 -e trace=get_mempolicy
@@ -708,8 +715,10 @@ jsonl-split-kill	-e signal=none -e trace=kill
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-lsm_set_self_attr	-e trace=lsm_set_self_attr
+jsonl-split-memfd_create	-e trace=memfd_create
 jsonl-split-memfd_secret	-e trace=memfd_secret
 jsonl-split-mincore	-e trace=mincore
+jsonl-split-mknodat	-e trace=mknodat,umask
 jsonl-split-mlockall	-e trace=mlockall
 jsonl-split-move_pages	-s3 -e trace=move_pages
 jsonl-split-mseal	-e trace=mseal
@@ -780,6 +789,7 @@ jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-process_vm_readv	-s5 -e trace=process_vm_readv
 jsonl-split-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-split-pwritev	-s7 -e trace=pwritev
+jsonl-split-rt_sigprocmask	-e trace=rt_sigprocmask
 jsonl-split-rt_tgsigqueueinfo	-e signal=none -e trace=rt_tgsigqueueinfo
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp

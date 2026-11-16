@@ -548,7 +548,9 @@ jsonl-close_range
 jsonl-copy_file_range
 jsonl-dup-y
 jsonl-dup-yy
+jsonl-execve
 jsonl-fcntl-getlease
+jsonl-file_setattr
 jsonl-fork-f
 jsonl-fsconfig
 jsonl-get_mempolicy
@@ -570,8 +572,10 @@ jsonl-kill
 jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-lsm_set_self_attr
+jsonl-memfd_create
 jsonl-memfd_secret
 jsonl-mincore
+jsonl-mknodat
 jsonl-mlockall
 jsonl-move_pages
 jsonl-mseal
@@ -642,6 +646,7 @@ jsonl-printsignal
 jsonl-process_vm_readv
 jsonl-process_vm_writev
 jsonl-pwritev
+jsonl-rt_sigprocmask
 jsonl-rt_tgsigqueueinfo
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
