@@ -12,16 +12,22 @@
 
 
 static void
-print_personality(unsigned int pers)
+print_personality(const unsigned int pers)
 {
-	tprint_flags_begin();
-	printxval(personality_types, pers & PER_MASK, "PER_???");
-	pers &= ~PER_MASK;
-	if (pers) {
-		tprint_flags_or();
-		printflags_in(personality_flags, pers, NULL);
+	const unsigned int type = pers & PER_MASK;
+	const unsigned int flags = pers & ~PER_MASK;
+
+	tprint_flags_groups_begin(pers);
+	tprint_flags_group_begin(type);
+	printxval(personality_types, type, "PER_???");
+	tprint_flags_group_end();
+	if (flags) {
+		tprint_flags_groups_next();
+		tprint_flags_group_begin(flags);
+		printflags_in(personality_flags, flags, NULL);
+		tprint_flags_group_end();
 	}
-	tprint_flags_end();
+	tprint_flags_groups_end();
 }
 
 static void
