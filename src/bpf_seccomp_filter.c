@@ -22,13 +22,21 @@ print_seccomp_filter_k(const struct bpf_filter_block *const fp)
 		unsigned int action = SECCOMP_RET_ACTION_FULL & fp->k;
 		unsigned int data = fp->k & ~action;
 
-		tprint_flags_begin();
-		printxval(seccomp_ret_action, action, "SECCOMP_RET_???");
 		if (data) {
-			tprint_flags_or();
+			tprint_flags_groups_begin(fp->k);
+			tprint_flags_group_begin(action);
+			printxval(seccomp_ret_action, action,
+				  "SECCOMP_RET_???");
+			tprint_flags_group_end();
+			tprint_flags_groups_next();
+			tprint_flags_group_begin(data);
 			PRINT_VAL_X(data);
+			tprint_flags_group_end();
+			tprint_flags_groups_end();
+		} else {
+			printxval(seccomp_ret_action, action,
+				  "SECCOMP_RET_???");
 		}
-		tprint_flags_end();
 
 		return true;
 	}
