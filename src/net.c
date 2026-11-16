@@ -359,6 +359,9 @@ SYS_FUNC(recvfrom)
 
 		if (fetch_socklen(tcp, &ulen, tcp->u_arg[4], tcp->u_arg[5])) {
 			set_tcb_priv_ulong(tcp, ulen);
+
+			/* addrlen */
+			tprints_arg_inout_entering_d(5, "addrlen", ulen);
 		}
 	} else {
 		/* buf */
@@ -412,13 +415,7 @@ SYS_FUNC(recvfrom)
 
 		/* addrlen */
 		tprints_arg_next_name("addrlen");
-		tprint_indirect_begin();
-		if (ulen != rlen) {
-			PRINT_VAL_D(ulen);
-			tprint_value_changed();
-		}
-		PRINT_VAL_D(rlen);
-		tprint_indirect_end();
+		tprint_arg_inout_exiting_d(ulen, rlen);
 	}
 	return 0;
 }
