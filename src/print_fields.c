@@ -800,14 +800,26 @@ tprint_secontext(const char *ctx, unsigned int ctx_len,
 		 const char *expected, unsigned int expected_len,
 		 unsigned int style)
 {
-	tprint_space();
-	tprint_attribute_begin();
-	print_quoted_string_ex(ctx, ctx_len, style, "[]!");
-	if (expected) {
-		tprints_string("!!");
-		print_quoted_string_ex(expected, expected_len, style, "[]!");
+	if (structured_output) {
+		tprints_object_field_begin("secontext");
+		tprint_object_begin();
+		tprints_object_field_bytes("context", ctx, ctx_len);
+		if (expected)
+			tprints_object_field_bytes("expected", expected,
+						   expected_len);
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_space();
+		tprint_attribute_begin();
+		print_quoted_string_ex(ctx, ctx_len, style, "[]!");
+		if (expected) {
+			tprints_string("!!");
+			print_quoted_string_ex(expected, expected_len, style,
+					       "[]!");
+		}
+		tprint_attribute_end();
 	}
-	tprint_attribute_end();
 }
 
 void
