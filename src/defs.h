@@ -1312,9 +1312,6 @@ printpathn(struct tcb *, kernel_ulong_t addr, unsigned int n);
 extern int
 printpath(struct tcb *, kernel_ulong_t addr);
 
-# define TIMESPEC_TEXT_BUFSIZE \
-		(sizeof(long long) * 3 * 2 + sizeof("{tv_sec=-, tv_nsec=}"))
-
 /**
  * Returns the pid associated with pidfd of the process with ID pid_of_fd
  */

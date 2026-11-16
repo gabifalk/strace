@@ -72,13 +72,15 @@ free_mmsgvec_data(void *ptr)
 
 struct mmsgvec_data {
 	char *timeout;
+	print_obj_by_addr_fn print_ts;
 	unsigned int count;
 	int namelen[0];
 };
 
 static void
 save_mmsgvec_namelen(struct tcb *const tcp, kernel_ulong_t addr,
-		     unsigned int len, const char *const timeout)
+		     unsigned int len, const char *const timeout,
+		     const print_obj_by_addr_fn print_ts)
 {
 	if (len > IOV_MAX)
 		len = IOV_MAX;
@@ -87,6 +89,7 @@ save_mmsgvec_namelen(struct tcb *const tcp, kernel_ulong_t addr,
 				 + sizeof(int) * len;
 	struct mmsgvec_data *const data = xmalloc(data_size);
 	data->timeout = xstrdup(timeout);
+	data->print_ts = print_ts;
 
 	unsigned int i, fetched;
 
@@ -193,6 +196,25 @@ SYS_FUNC(sendmmsg)
 	return 0;
 }
 
+static void
+print_recvmmsg_timeout(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_result_begin(val);
+	tprints_sysret_result_note("Timeout");
+	tprint_sysret_result_end();
+}
+
+static void
+print_recvmmsg_result(struct tcb *const tcp, const unsigned long long val)
+{
+	const struct mmsgvec_data *const data = get_tcb_priv_data(tcp);
+
+	tprint_sysret_result_begin(val);
+	tprints_sysret_result_field("left", true);
+	data->print_ts(tcp, tcp->u_arg[4]);
+	tprint_sysret_result_end();
+}
+
 static int
 do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 	    const sprint_obj_by_addr_fn sprint_ts)
@@ -204,7 +226,8 @@ do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 
 		if (verbose(tcp)) {
 			save_mmsgvec_namelen(tcp, tcp->u_arg[1], tcp->u_arg[2],
-					     sprint_ts(tcp, tcp->u_arg[4]));
+					     sprint_ts(tcp, tcp->u_arg[4]),
+					     print_ts);
 		} else {
 			/* msgvec */
 			tprints_arg_next_name("msgvec");
@@ -245,16 +268,14 @@ do_recvmmsg(struct tcb *const tcp, const print_obj_by_addr_fn print_ts,
 		if (syserror(tcp))
 			return 0;
 		if (tcp->u_rval == 0) {
-			tcp->auxstr = "Timeout";
-			return RVAL_STR;
+			tcp->rval_result_printer = print_recvmmsg_timeout;
+			return RVAL_RESULT;
 		}
 		if (!verbose(tcp) || !tcp->u_arg[4])
 			return 0;
 		/* timeout on exit */
-		static char str[sizeof("left") + TIMESPEC_TEXT_BUFSIZE];
-		xsprintf(str, "left %s", sprint_ts(tcp, tcp->u_arg[4]));
-		tcp->auxstr = str;
-		return RVAL_STR;
+		tcp->rval_result_printer = print_recvmmsg_result;
+		return RVAL_RESULT;
 	}
 }
 
