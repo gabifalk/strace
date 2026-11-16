@@ -577,6 +577,7 @@ jsonl-signal
 jsonl-status-none
 jsonl-stopped
 jsonl-sysinfo
+jsonl-utime
 jsonl-vfork-f
 kcmp
 kcmp-y
