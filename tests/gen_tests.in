@@ -570,6 +570,7 @@ jsonl-merged-dup-yy	-yy -e trace=dup
 jsonl-merged-fcntl-getlease	-e trace=fcntl
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-fsconfig	-s300 -y -e trace=fsconfig
+jsonl-merged-get_mempolicy	-s3 -e trace=get_mempolicy
 jsonl-merged-getcpu	-e trace=getcpu
 jsonl-merged-getegid	-e trace=getegid
 jsonl-merged-geteuid	-e trace=geteuid
@@ -674,6 +675,7 @@ jsonl-split-dup-yy	-yy -e trace=dup
 jsonl-split-fcntl-getlease	-e trace=fcntl
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-fsconfig	-s300 -y -e trace=fsconfig
+jsonl-split-get_mempolicy	-s3 -e trace=get_mempolicy
 jsonl-split-getcpu	-e trace=getcpu
 jsonl-split-getegid	-e trace=getegid
 jsonl-split-geteuid	-e trace=geteuid
