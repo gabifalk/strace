@@ -37,8 +37,7 @@ fetch_lsm_ctx_header(struct tcb *const tcp, struct lsm_ctx *const ctx,
 		return true;
 
 	if (is_sequence) {
-		tprint_more_data_follows();
-		printaddr_comment(addr);
+		tprint_array_element_fetch_failed(addr);
 	} else {
 		printaddr(addr);
 	}
@@ -110,7 +109,9 @@ decode_lsm_ctx_sequence(struct tcb *const tcp, kernel_ulong_t addr, uint32_t len
 			is_sequence = true;
 		}
 
+		tprint_object_begin();
 		decode_lsm_ctx(tcp, &ctx, addr, len);
+		tprint_object_end();
 
 		if (!next_addr)
 			break;
@@ -139,15 +140,17 @@ SYS_FUNC(lsm_get_self_attr)
 		tprints_arg_name("attr");
 		printxval(lsm_attrs, attr, "LSM_ATTR_???");
 
-		tprints_arg_next_name("ctx");
+		tprint_arg_next();
 		if (!tfetch_obj(tcp, p_size, &size) ||
 		    (single && !tfetch_obj(tcp, p_ctx, &ctx))) {
+			tprints_arg_name("ctx");
 			printaddr(p_ctx);
 			return print_args_size_flags(tcp, p_size, flags, false);
 		}
 		set_tcb_priv_ulong(tcp, size);
 
 		if (single) {
+			tprints_arg_name("ctx");
 			tprint_struct_begin();
 			PRINT_FIELD_XVAL(ctx, id, lsm_ids, NULL);
 			tprint_struct_end();
@@ -159,14 +162,18 @@ SYS_FUNC(lsm_get_self_attr)
 	}
 
 	if (!tfetch_obj_ignore_syserror(tcp, p_size, &size)) {
-		if (!single)
+		if (!single) {
+			tprints_arg_name("ctx");
 			printaddr(p_ctx);
+		}
 
 		return print_args_size_flags(tcp, p_size, flags, false);
 	}
 
 	if (single)
-		tprint_value_changed();
+		tprint_arg_exiting_changed_begin(1, "ctx");
+	else
+		tprints_arg_name("ctx");
 	decode_lsm_ctx_sequence(tcp, p_ctx, size);
 
 	const uint32_t saved_size = get_tcb_priv_ulong(tcp);
