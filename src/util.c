@@ -1093,7 +1093,7 @@ printeventfd(pid_t pid_of_fd, int fd, const char *path)
 		tprint_struct_end();
 		tprint_associated_info_end();
 	} else
-		print_fd_info_type_string("eventfd", path);
+		print_fd_info_type_string("path", path);
 
 	return true;
 }

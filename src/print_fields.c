@@ -11,6 +11,22 @@
 #include "print_fields.h"
 #include "print_utils.h"
 
+static void
+tprints_object_field_bytes(const char *field, const char *raw, size_t len)
+{
+	const unsigned char *bytes = (const unsigned char *) raw;
+
+	tprints_object_field_begin(field);
+	tprint_list_begin();
+	for (size_t i = 0; i < len; ++i) {
+		tprint_list_element_begin();
+		STRACE_PRINTF("%u", bytes[i]);
+		tprint_list_element_end();
+	}
+	tprint_list_end();
+	tprint_object_field_end();
+}
+
 void
 tprint_struct_begin(void)
 {
@@ -321,22 +337,45 @@ tprint_associated_info_end(void)
 void
 tprints_fd_info_string(const char *type, const char *str)
 {
-	tprint_associated_info_begin();
-	STRACE_PRINTS(str);
-	tprint_associated_info_end();
+	if (structured_output) {
+		tprints_object_field_begin("fd_info");
+		tprint_object_begin();
+		tprints_object_type(type);
+		tprints_object_field_bytes(strcmp(type, "socket") ? "path"
+								  : "details",
+					   str, strlen(str));
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		STRACE_PRINTS(str);
+		tprint_associated_info_end();
+	}
 }
 
 void
 tprints_assoc_type_string(const char *type, const char *str, size_t len,
 			  bool deleted)
 {
-	tprint_associated_info_begin();
-	print_quoted_string_ex(str, len,
-			       QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
-	tprint_associated_info_end();
+	if (structured_output && !strcmp(type, "fd_info")) {
+		tprints_object_field_begin(type);
+		tprint_object_begin();
+		tprints_object_type("path");
+		tprints_object_field_bytes("path", str, len);
+		if (deleted)
+			tprints_object_field_bool("deleted", true);
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		print_quoted_string_ex(str, len,
+				       QUOTE_OMIT_LEADING_TRAILING_QUOTES,
+				       "<>");
+		tprint_associated_info_end();
 
-	if (deleted)
-		STRACE_PRINTS("(deleted)");
+		if (deleted)
+			STRACE_PRINTS("(deleted)");
+	}
 }
 
 void
@@ -443,23 +482,12 @@ void
 tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
 		      bool nul_terminated)
 {
-	if (structured_output) {
-		const unsigned char *bytes = (const unsigned char *) raw;
-
-		tprints_object_field_begin("value");
-		tprint_list_begin();
-		for (unsigned int i = 0; i < size; ++i) {
-			if (nul_terminated && !bytes[i])
-				break;
-			tprint_list_element_begin();
-			STRACE_PRINTF("%u", bytes[i]);
-			tprint_list_element_end();
-		}
-		tprint_list_end();
-		tprint_object_field_end();
-	} else {
+	if (structured_output)
+		tprints_object_field_bytes("value", raw,
+					   nul_terminated ? strnlen(raw, size)
+							  : size);
+	else
 		STRACE_PRINTS(quoted);
-	}
 }
 
 void
