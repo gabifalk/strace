@@ -706,16 +706,23 @@ tprint_syscall_nr(unsigned long long nr, const char *name,
 {
 	const enum xlat_style style = xlat_verbose(xlat_verbosity);
 
-	if (style != XLAT_STYLE_ABBREV || !nr_prefix)
-		PRINT_VAL_U(nr);
-	if (style != XLAT_STYLE_RAW && name) {
-		if (!nr_prefix || style == XLAT_STYLE_VERBOSE)
-			tprint_comment_begin();
-		if (nr_prefix)
-			tprints_string(nr_prefix);
-		tprints_string(name);
-		if (!nr_prefix || style == XLAT_STYLE_VERBOSE)
-			tprint_comment_end();
+	if (structured_output) {
+		tprints_object_type("syscall");
+		if (name)
+			tprints_object_field_string("name", name);
+		tprintf_object_field_string("scno", "%llu", nr);
+	} else {
+		if (style != XLAT_STYLE_ABBREV || !nr_prefix)
+			PRINT_VAL_U(nr);
+		if (style != XLAT_STYLE_RAW && name) {
+			if (!nr_prefix || style == XLAT_STYLE_VERBOSE)
+				tprint_comment_begin();
+			if (nr_prefix)
+				tprints_string(nr_prefix);
+			tprints_string(name);
+			if (!nr_prefix || style == XLAT_STYLE_VERBOSE)
+				tprint_comment_end();
+		}
 	}
 }
 
