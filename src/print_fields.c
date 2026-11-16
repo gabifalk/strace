@@ -357,21 +357,38 @@ void
 tprint_fd_info_dev(const char *path, const char *kind, unsigned int major,
 		   unsigned int minor, int tty_index, const char *tun_backend)
 {
-	tprint_associated_info_begin();
-	print_quoted_string_ex(path, strlen(path),
-			       QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
-	tprint_associated_info_begin();
-	STRACE_PRINTF("%s %u:%u", kind, major, minor);
-	if (tty_index >= 0) {
-		STRACE_PRINTF(" @/dev/pts/%d", tty_index);
-	} else if (tun_backend[0]) {
-		STRACE_PRINTS(" @");
-		print_quoted_string_ex(tun_backend, strlen(tun_backend),
+	if (structured_output) {
+		tprints_object_field_begin("fd_info");
+		tprint_object_begin();
+		tprints_object_type("dev_t");
+		tprints_object_field_bytes("path", path, strlen(path));
+		tprints_object_field_string("kind", kind);
+		tprintf_object_field_string("major", "%u", major);
+		tprintf_object_field_string("minor", "%u", minor);
+		if (tty_index >= 0) {
+			tprintf_object_field_string("tty_index", "%d",
+						    tty_index);
+		}
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		print_quoted_string_ex(path, strlen(path),
 				       QUOTE_OMIT_LEADING_TRAILING_QUOTES,
 				       "<>");
+		tprint_associated_info_begin();
+		STRACE_PRINTF("%s %u:%u", kind, major, minor);
+		if (tty_index >= 0) {
+			STRACE_PRINTF(" @/dev/pts/%d", tty_index);
+		} else if (tun_backend[0]) {
+			STRACE_PRINTS(" @");
+			print_quoted_string_ex(
+				tun_backend, strlen(tun_backend),
+				QUOTE_OMIT_LEADING_TRAILING_QUOTES, "<>");
+		}
+		tprint_associated_info_end();
+		tprint_associated_info_end();
 	}
-	tprint_associated_info_end();
-	tprint_associated_info_end();
 }
 
 void
