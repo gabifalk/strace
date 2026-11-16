@@ -1439,7 +1439,7 @@ print_quoted_string_ex(const char *str, unsigned int size,
 	}
 
 	rc = string_quote(str, outstr, size, style, escape_chars);
-	tprints_string(outstr);
+	tprints_quoted_string(outstr, str, size, style & QUOTE_0_TERMINATED);
 
 	if (((style & (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0))
 	     == (QUOTE_0_TERMINATED | QUOTE_EXPECT_TRAILING_0)) && rc) {

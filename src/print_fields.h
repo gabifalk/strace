@@ -12,6 +12,7 @@
 # include "gcc_compat.h"
 # include "static_assert.h"
 # include <stdarg.h>
+# include <stdbool.h>
 # include <string.h>
 
 # ifdef IN_STRACE
@@ -106,6 +107,26 @@ tprint_type_const(void)
 }
 
 static inline void
+tprint_list_begin(void)
+{
+}
+
+static inline void
+tprint_list_element_begin(void)
+{
+}
+
+static inline void
+tprint_list_element_end(void)
+{
+}
+
+static inline void
+tprint_list_end(void)
+{
+}
+
+static inline void
 tprints_object_field_begin(const char *field)
 {
 	(void) field;
@@ -173,6 +194,8 @@ extern void tprint_newline(void);
 extern void tprints_field_name(const char *name);
 extern void tprints_xlat_sym(const char *str);
 extern void tprints_xlat_dflt(const char *dflt);
+extern void tprints_quoted_string(const char *quoted, const char *raw,
+				  unsigned int size, bool nul_terminated);
 extern void tprint_sysret_begin(void);
 extern void tprints_sysret_next(const char *name);
 extern void tprints_sysret_string(const char *name, const char *str);

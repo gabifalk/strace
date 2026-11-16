@@ -401,6 +401,29 @@ tprints_xlat_dflt(const char *dflt)
 }
 
 void
+tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
+		      bool nul_terminated)
+{
+	if (structured_output) {
+		const unsigned char *bytes = (const unsigned char *) raw;
+
+		tprints_object_field_begin("value");
+		tprint_list_begin();
+		for (unsigned int i = 0; i < size; ++i) {
+			if (nul_terminated && !bytes[i])
+				break;
+			tprint_list_element_begin();
+			STRACE_PRINTF("%u", bytes[i]);
+			tprint_list_element_end();
+		}
+		tprint_list_end();
+		tprint_object_field_end();
+	} else {
+		STRACE_PRINTS(quoted);
+	}
+}
+
+void
 tprint_sysret_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);
