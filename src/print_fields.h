@@ -46,6 +46,8 @@ extern void tprint_wait_status(int status, const struct xlat *events);
 extern void tprint_net_xval(const void *raw, unsigned int size,
 			    const struct xlat *xlat, unsigned long long val,
 			    const char *dflt);
+extern void tprint_ax25_addr(const void *call, unsigned int size,
+			     enum xlat_style style, const char *str);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
 			  unsigned int class, unsigned int level);

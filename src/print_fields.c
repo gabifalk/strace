@@ -2312,6 +2312,24 @@ tprint_fn_hton_end(unsigned int size)
 }
 
 void
+tprint_ax25_addr(const void *call, unsigned int size, enum xlat_style style,
+		 const char *str)
+{
+	if (style != XLAT_STYLE_ABBREV) {
+		tprint_struct_begin();
+		tprints_field_name("ax25_call");
+		tprints_object_type("bytes");
+		print_quoted_string(call, size, QUOTE_FORCE_HEX);
+		tprint_struct_end();
+	}
+
+	if (style == XLAT_STYLE_VERBOSE)
+		tprints_comment(str);
+	else if (style == XLAT_STYLE_ABBREV)
+		tprints_string(str);
+}
+
+void
 tprint_net_port(const void *raw, unsigned int port)
 {
 	if (structured_output) {

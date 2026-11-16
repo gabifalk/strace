@@ -380,14 +380,6 @@ ax25_addr2str(const ax25_address *addr)
 	return buf;
 }
 
-static void
-print_ax25_addr_raw(const ax25_address *addr)
-{
-	tprint_struct_begin();
-	PRINT_FIELD_HEX_ARRAY(*addr, ax25_call);
-	tprint_struct_end();
-}
-
 void
 print_ax25_addr(const void /* ax25_address */ *addr_void)
 {
@@ -397,15 +389,8 @@ print_ax25_addr(const void /* ax25_address */ *addr_void)
 	if (xs == XLAT_STYLE_DEFAULT)
 		xs = xlat_verbose(xlat_verbosity);
 
-	if (xs != XLAT_STYLE_ABBREV)
-		print_ax25_addr_raw(addr);
-
-	if (xs == XLAT_STYLE_RAW)
-		return;
-
-	const char *addr_str = ax25_addr2str(addr);
-
-	(xs == XLAT_STYLE_VERBOSE ? tprints_comment : tprints_string)(addr_str);
+	tprint_ax25_addr(addr->ax25_call, sizeof(addr->ax25_call), xs,
+			 xs == XLAT_STYLE_RAW ? NULL : ax25_addr2str(addr));
 }
 
 static bool
