@@ -377,7 +377,9 @@ tprint_sysret_interrupted(void)
 				tprint_array_next();			\
 			else						\
 				tprint_array_begin();			\
+			tprint_object_begin();				\
 			print_val_((where_).field_[i_]);		\
+			tprint_object_end();				\
 		}							\
 		tprint_array_end();					\
 	} while (0)
@@ -401,6 +403,7 @@ tprint_sysret_interrupted(void)
 				tprint_array_next();			\
 			else						\
 				tprint_array_begin();			\
+			tprint_object_begin();				\
 			for (size_t j_ = 0;				\
 			     j_ < ARRAY_SIZE((where_).field_[i_]);	\
 			     ++j_) {					\
@@ -408,9 +411,12 @@ tprint_sysret_interrupted(void)
 					tprint_array_next();		\
 				else					\
 					tprint_array_begin();		\
+				tprint_object_begin();			\
 				print_val_((where_).field_[i_][j_]);	\
+				tprint_object_end();			\
 			}						\
 			tprint_array_end();				\
+			tprint_object_end();				\
 		}							\
 		tprint_array_end();					\
 	} while (0)
