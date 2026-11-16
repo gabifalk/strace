@@ -748,8 +748,8 @@ decode_diag_sockopt(struct tcb *const tcp,
 	if (!abbrev(tcp) || sockopt.unused) {
 		delim_f();
 		delim_f = tprint_struct_next;
-		PRINT_FIELD_X_CAST(sockopt, unused, uint8_t);
-		tprints_comment("bits 3..8");
+		tprints_field_name("unused");
+		tprint_unused_bits(sockopt.unused, 3, 8);
 	}
 
 	if (delim_f == tprint_struct_begin)

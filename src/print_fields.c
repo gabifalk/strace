@@ -2693,6 +2693,14 @@ tprint_sigmask_member(unsigned int sig, const char *name)
 }
 
 void
+tprint_unused_bits(unsigned long long val, unsigned int first,
+		   unsigned int last)
+{
+	PRINT_VAL_X(val);
+	tprintf_comment("bits %u..%u", first, last);
+}
+
+void
 tprint_syscall_duration(long long sec, long nsec)
 {
 	if (structured_output) {
