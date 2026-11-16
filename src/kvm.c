@@ -344,21 +344,32 @@ kvm_ioctl_run_umove(struct tcb *const tcp, struct vcpu_info *info,
 }
 
 # include "xlat/kvm_exit_reason.h"
+static struct kvm_run vcpu_run_struct;
+
 static void
-kvm_ioctl_run_attach_auxstr(struct tcb *const tcp,
-			    struct vcpu_info *info)
-
+print_kvm_run_result(struct tcb *const tcp, const unsigned long long val)
 {
-	static struct kvm_run vcpu_run_struct;
+	const unsigned int reason = vcpu_run_struct.exit_reason;
+	const char *const str = xlookup(kvm_exit_reason, reason);
 
+	tprint_sysret_result_begin("kvm_run_result", val);
+	tprints_sysret_result_field("exit_reason", false);
+	if (str)
+		print_xlat_ex(reason, str, XLAT_STYLE_ABBREV);
+	else
+		tprints_xlat_dflt_only(reason, "KVM_EXIT_???");
+	tprint_sysret_result_end();
+}
+
+static bool
+kvm_ioctl_run_fetch(struct tcb *const tcp, struct vcpu_info *info)
+{
 	if (!kvm_ioctl_run_umove(tcp, info, &vcpu_run_struct))
-		return;
+		return false;
 
-	tcp->auxstr = xlookup(kvm_exit_reason, vcpu_run_struct.exit_reason);
-	if (!tcp->auxstr)
-		tcp->auxstr = "KVM_EXIT_???";
 	if (decode_kvm_run_structure > DECODE_KVM_RUN_STRUCTURE_EXIT_REASON)
 		tcp->vcpu_leaving = &vcpu_run_struct;
+	return true;
 }
 
 static int
@@ -388,14 +399,12 @@ kvm_ioctl_decode_run(struct tcb *const tcp)
 		return r;
 
 	if (decode_kvm_run_structure) {
-		tcp->auxstr = NULL;
 		int fd = tcp->u_arg[0];
 		struct vcpu_info *info = vcpu_get_info(tcp, fd);
 
-		if (info) {
-			kvm_ioctl_run_attach_auxstr(tcp, info);
-			if (tcp->auxstr)
-				r |= RVAL_STR;
+		if (info && kvm_ioctl_run_fetch(tcp, info)) {
+			tcp->rval_result_printer = print_kvm_run_result;
+			r |= RVAL_RESULT;
 		}
 	}
 
@@ -580,8 +589,10 @@ kvm_run_structure_decode(struct tcb * tcp)
 			tprintf_string(" VCPU:%d> ", info->cpuid);
 		else
 			tprints_string(" VCPU> ");
+		const char *str = xlookup(kvm_exit_reason,
+					  tcp->vcpu_leaving->exit_reason);
 		kvm_run_structure_decode_main(tcp, tcp->vcpu_leaving, info,
-					      tcp->auxstr);
+					      str ?: "KVM_EXIT_???");
 	}
 
 	tcp->vcpu_leaving = NULL;

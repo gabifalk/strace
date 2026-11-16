@@ -2906,6 +2906,12 @@ tprints_namespace(const char *link)
 }
 
 void
+tprints_xlat_dflt_only(unsigned long long val, const char *dflt)
+{
+	tprints_string(dflt);
+}
+
+void
 tprint_fd_num(int fd)
 {
 	if (structured_output) {
