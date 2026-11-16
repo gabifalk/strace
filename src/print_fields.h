@@ -247,6 +247,7 @@ extern void tprint_cpu_set_next(void);
 extern void tprint_cpu_set_cpu(int cpu);
 extern void tprint_cpu_set_end(void);
 extern bool tprint_bitset_mask_begin(const void *buf, unsigned int size);
+extern void tprint_bitset_raw_begin(unsigned int raw, bool inverted);
 extern void tprint_bitset_mask_next(void);
 extern void tprint_bitset_mask_end(void);
 extern bool tprint_bitset_words_begin(const void *buf, unsigned int size);

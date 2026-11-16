@@ -854,10 +854,10 @@ print_icmp_filter(struct tcb *const tcp, const kernel_ulong_t addr, int len)
 		      "struct icmp_filter.data is not 32-bit long");
 
 	/* check whether more than half of the bits are set */
-	if (popcount32(&data32, 1) > sizeof(data32) * 8 / 2) {
+	const bool inverted = popcount32(&data32, 1) > sizeof(data32) * 8 / 2;
+	if (inverted) {
 		/* show those bits that are NOT in the set */
 		data32 = ~data32;
-		tprints_string("~");
 	}
 
 	/* next_set_bit operates on current_wordsize words */
@@ -870,19 +870,21 @@ print_icmp_filter(struct tcb *const tcp, const kernel_ulong_t addr, int len)
 		p = &data32;
 	}
 
-	tprint_bitset_begin();
+	tprint_bitset_raw_begin(filter.data, inverted);
 	bool next = false;
 	for (int i = 0;; ++i) {
 		i = next_set_bit(p, i, sizeof(data32) * 8);
 		if (i < 0)
 			break;
 		if (next)
-			tprint_bitset_next();
+			tprint_bitset_mask_next();
 		else
 			next = true;
+		tprint_object_begin();
 		printxval(icmp_filter_flags, i, "ICMP_???");
+		tprint_object_end();
 	}
-	tprint_bitset_end();
+	tprint_bitset_mask_end();
 }
 
 #include "xlat/tcp_ao_keyf_flags.h"
