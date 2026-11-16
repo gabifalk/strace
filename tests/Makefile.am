@@ -323,6 +323,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nfnetlink_nftables \
 	jsonl-nfnetlink_osf \
 	jsonl-nfnetlink_queue \
+	jsonl-nfnetlink_ulog \
 	jsonl-nlattr \
 	jsonl-nlattr_ndmsg \
 	jsonl-pause \
@@ -1038,6 +1039,7 @@ EXTRA_DIST = \
 	jsonl-nfnetlink_nftables.c \
 	jsonl-nfnetlink_osf.c \
 	jsonl-nfnetlink_queue.c \
+	jsonl-nfnetlink_ulog.c \
 	jsonl-nlattr.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-pause.c \
