@@ -1185,8 +1185,14 @@ tprints_arg_inout_entering_u(unsigned int index, const char *name,
 void
 tprint_indirect_inout_entering_u(unsigned long long val)
 {
-	tprint_indirect_begin();
-	PRINT_VAL_U(val);
+	if (structured_output) {
+		PRINT_VAL_U(val);
+		tprint_indirect_end();
+		tprint_arg_inout();
+	} else {
+		tprint_indirect_begin();
+		PRINT_VAL_U(val);
+	}
 }
 
 void
@@ -1194,11 +1200,21 @@ tprint_indirect_inout_exiting_u(unsigned int index, const char *name,
 				bool fetched, unsigned long long entering_val,
 				unsigned long long exiting_val)
 {
-	if (fetched) {
-		tprint_value_changed();
-		PRINT_VAL_U(exiting_val);
+	if (structured_output) {
+		if (fetched) {
+			tprints_arg_next_name_at(index, name);
+			PRINT_VAL_U(exiting_val);
+			tprint_indirect_end();
+			if (entering_val != exiting_val)
+				tprint_arg_changed();
+		}
+	} else {
+		if (fetched) {
+			tprint_value_changed();
+			PRINT_VAL_U(exiting_val);
+		}
+		tprint_indirect_end();
 	}
-	tprint_indirect_end();
 }
 
 void
