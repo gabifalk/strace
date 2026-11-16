@@ -1318,31 +1318,38 @@ tprint_time_t(long long sec, const char *str)
 void
 tprint_kernel_version(unsigned long version)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(version);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
 	const unsigned long ver_major = version >> 16;
 	const unsigned long ver_minor = (version >> 8) & 0xFF;
 	const unsigned long ver_patch = version & 0xFF;
 
-	tprints_fn_begin("KERNEL_VERSION");
-	PRINT_VAL_U(ver_major);
+	if (structured_output) {
+		tprints_object_type("kernel_version");
+		tprintf_object_field_string("raw", "%lu", version);
+		tprintf_object_field_string("major", "%lu", ver_major);
+		tprintf_object_field_string("minor", "%lu", ver_minor);
+		tprintf_object_field_string("patch", "%lu", ver_patch);
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			PRINT_VAL_X(version);
 
-	tprint_fn_next();
-	PRINT_VAL_U(ver_minor);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+				tprint_comment_begin();
 
-	tprint_fn_next();
-	PRINT_VAL_U(ver_patch);
-	tprint_fn_end();
+			tprints_fn_begin("KERNEL_VERSION");
+			PRINT_VAL_U(ver_major);
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+			tprint_fn_next();
+			PRINT_VAL_U(ver_minor);
+
+			tprint_fn_next();
+			PRINT_VAL_U(ver_patch);
+			tprint_fn_end();
+
+			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+				tprint_comment_end();
+		}
+	}
 }
 
 void
