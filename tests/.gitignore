@@ -588,6 +588,7 @@ jsonl-ioctl_perf
 jsonl-ioctl_ptp
 jsonl-ioctl_scsi
 jsonl-ioctl_seccomp
+jsonl-ioctl_termios
 jsonl-ioprio_get
 jsonl-ip_mreq
 jsonl-keyctl
