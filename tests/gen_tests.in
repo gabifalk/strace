@@ -613,6 +613,7 @@ jsonl-merged-nlattr_ndmsg	-e trace=sendto
 jsonl-merged-nlattr_netconfmsg	-e trace=sendto
 jsonl-merged-nlattr_nlmsgerr	-e trace=sendto
 jsonl-merged-nlattr_rtgenmsg	-e trace=sendto
+jsonl-merged-nlattr_unix_diag_msg	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-prctl-dumpable	-e trace=prctl
@@ -691,6 +692,7 @@ jsonl-split-nlattr_ndmsg	-e trace=sendto
 jsonl-split-nlattr_netconfmsg	-e trace=sendto
 jsonl-split-nlattr_nlmsgerr	-e trace=sendto
 jsonl-split-nlattr_rtgenmsg	-e trace=sendto
+jsonl-split-nlattr_unix_diag_msg	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-prctl-dumpable	-e trace=prctl
