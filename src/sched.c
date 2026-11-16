@@ -72,6 +72,15 @@ print_sched_param(struct tcb * const tcp, const kernel_ulong_t addr)
 	tprint_struct_end();
 }
 
+static void
+print_policy_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("");
+	print_xlat_ex(val, sprint_policy(tcp->u_rval), XLAT_STYLE_ABBREV);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(sched_getscheduler)
 {
 	if (entering(tcp)) {
@@ -79,8 +88,10 @@ SYS_FUNC(sched_getscheduler)
 		tprints_arg_name("pid");
 		printpid(tcp, tcp->u_arg[0], PT_TGID);
 	} else if (!syserror(tcp)) {
-		tcp->auxstr = sprint_policy(tcp->u_rval);
-		return RVAL_HEX | RVAL_STR;
+		if (!sprint_policy(tcp->u_rval))
+			return RVAL_HEX;
+		tcp->rval_result_printer = print_policy_result;
+		return RVAL_RESULT;
 	}
 	return 0;
 }
