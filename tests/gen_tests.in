@@ -657,6 +657,7 @@ jsonl-merged-prctl-sched-core	-e trace=prctl
 jsonl-merged-prctl-tsc	-e trace=prctl
 jsonl-merged-printsignal	-e signal=none -e trace=kill
 jsonl-merged-process_vm_readv	-s5 -e trace=process_vm_readv
+jsonl-merged-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-merged-pwritev	-s7 -e trace=pwritev
 jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
@@ -772,6 +773,7 @@ jsonl-split-prctl-sched-core	-e trace=prctl
 jsonl-split-prctl-tsc	-e trace=prctl
 jsonl-split-printsignal	-e signal=none -e trace=kill
 jsonl-split-process_vm_readv	-s5 -e trace=process_vm_readv
+jsonl-split-process_vm_writev	-s5 -e trace=process_vm_writev
 jsonl-split-pwritev	-s7 -e trace=pwritev
 jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_priority_max
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
