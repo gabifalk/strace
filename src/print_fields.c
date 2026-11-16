@@ -2019,6 +2019,13 @@ tprints_quoted_string(const char *quoted, const char *raw, unsigned int size,
 }
 
 void
+tprint_exit_args_lost(void)
+{
+	tprint_space();
+	tprints_string("<unfinished ...>");
+}
+
+void
 tprint_sysret_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);

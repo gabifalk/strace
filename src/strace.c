@@ -3711,8 +3711,7 @@ print_event_exit(struct tcb *tcp)
 		 * The decoder has probably decided to print something
 		 * on exiting syscall which is not going to happen.
 		 */
-		tprint_space();
-		tprints_string("<unfinished ...>");
+		tprint_exit_args_lost();
 	}
 
 	tprint_arg_end();
