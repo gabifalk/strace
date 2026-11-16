@@ -255,9 +255,9 @@ print_sockaddr_data_in6(struct tcb *tcp, const void *const buf,
 
 	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE ||
 	    xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV) {
-		tprints_fn_begin("htonl");
+		tprint_fn_hton_begin(sizeof(sa_in6->sin6_flowinfo));
 		PRINT_VAL_U(ntohl(sa_in6->sin6_flowinfo));
-		tprint_fn_end();
+		tprint_fn_hton_end(sizeof(sa_in6->sin6_flowinfo));
 	}
 
 	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
@@ -537,27 +537,10 @@ print_sockaddr_nl(struct tcb *tcp, const void *const buf, const int addrlen)
 static void
 print_sll_protocol(const struct sockaddr_ll *const sa_ll)
 {
-	int x_style = xlat_verbose(xlat_verbosity);
-
 	tprints_field_name("sll_protocol");
-	if (x_style != XLAT_STYLE_ABBREV)
-		print_quoted_string((const char *) &sa_ll->sll_protocol,
-				    sizeof(sa_ll->sll_protocol),
-				    QUOTE_FORCE_HEX);
-
-	if (x_style == XLAT_STYLE_RAW)
-		return;
-
-	if (x_style == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
-	tprints_fn_begin("htons");
-	printxval_ex(ethernet_protocols, ntohs(sa_ll->sll_protocol),
-		     "ETH_P_???", XLAT_STYLE_ABBREV);
-	tprint_fn_end();
-
-	if (x_style == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+	tprint_net_xval(&sa_ll->sll_protocol, sizeof(sa_ll->sll_protocol),
+			ethernet_protocols, ntohs(sa_ll->sll_protocol),
+			"ETH_P_???");
 }
 
 static void

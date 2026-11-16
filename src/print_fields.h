@@ -43,6 +43,9 @@ extern void tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,
 					  const char *dflt);
 extern void tprint_flags_with_value_end(uint64_t flags);
 extern void tprint_wait_status(int status, const struct xlat *events);
+extern void tprint_net_xval(const void *raw, unsigned int size,
+			    const struct xlat *xlat, unsigned long long val,
+			    const char *dflt);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
 			  unsigned int class, unsigned int level);
@@ -335,6 +338,8 @@ extern void tprint_mac_addr(const void *addr, unsigned int size,
 extern void tprint_fn_hton_begin(unsigned int size);
 extern void tprint_fn_hton_end(unsigned int size);
 extern void tprint_net_port(const void *raw, unsigned int port);
+extern void tprint_hton_xlat(unsigned long long stored, unsigned long long val,
+			     const char *sym, unsigned int size);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_secontext(const char *ctx, unsigned int ctx_len,
 			     const char *expected, unsigned int expected_len,

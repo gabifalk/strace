@@ -2210,14 +2210,19 @@ tprint_mac_addr(const void *addr, unsigned int size, const char *str)
 	}
 }
 
+static const char *
+hton_fn_name(unsigned int size)
+{
+	return size == 2 ? "htons" : size == 4 ? "htonl" : "htobe64";
+}
+
 void
 tprint_fn_hton_begin(unsigned int size)
 {
 	if (structured_output)
 		return;
 
-	tprints_fn_begin(size == 2 ? "htons" : size == 4 ? "htonl"
-							 : "htobe64");
+	tprints_fn_begin(hton_fn_name(size));
 }
 
 void
@@ -2299,6 +2304,37 @@ tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
 	print_quoted_string_ex(ctx, ctx_len, style, "[]!");
 	tprint_attribute_end();
 	tprint_space();
+}
+
+void
+tprint_net_xval(const void *raw, unsigned int size, const struct xlat *xlat,
+		unsigned long long val, const char *dflt)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		print_quoted_string(raw, size, QUOTE_FORCE_HEX);
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+		return;
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_begin();
+
+	tprint_fn_hton_begin(size);
+	printxval_ex(xlat, val, dflt, XLAT_STYLE_ABBREV);
+	tprint_fn_hton_end(size);
+
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_end();
+}
+
+void
+tprint_hton_xlat(unsigned long long stored, unsigned long long val,
+		 const char *sym, unsigned int size)
+{
+	char *str = xasprintf("%s(%s)", hton_fn_name(size), sym);
+
+	print_xlat_ex(stored, str, XLAT_STYLE_DEFAULT);
+	free(str);
 }
 
 void

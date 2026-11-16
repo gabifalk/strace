@@ -49,9 +49,9 @@ decode_netlink_netfilter(struct tcb *const tcp,
 		tprints_field_name("res_id");
 		if (subsys_id == NFNL_SUBSYS_NFTABLES
 		    && res_id == NFNL_SUBSYS_NFTABLES) {
-			print_xlat_ex(nfmsg.res_id,
-				      "htons(NFNL_SUBSYS_NFTABLES)",
-				      XLAT_STYLE_DEFAULT);
+			tprint_hton_xlat(nfmsg.res_id, res_id,
+					 "NFNL_SUBSYS_NFTABLES",
+					 sizeof(nfmsg.res_id));
 		} else if (subsys_id == NFNL_SUBSYS_NFTABLES
 			   && nfmsg.res_id == NFNL_SUBSYS_NFTABLES) {
 			print_xlat_ex(nfmsg.res_id, "NFNL_SUBSYS_NFTABLES",
