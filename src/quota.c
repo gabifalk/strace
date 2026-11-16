@@ -117,14 +117,14 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 	case Q_XQUOTASYNC:
 		break;
 	case Q_QUOTAON:
-		tprints_arg_next_name("id");
+		tprints_arg_next_name_at(2, "id");
 		printxval(quota_formats, id, "QFMT_???");
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		printpath(tcp, data);
 		break;
 	case Q_GETQUOTA:
 		if (entering(tcp)) {
-			tprints_arg_next_name("id");
+			tprints_arg_next_name_at(2, "id");
 			print_quota_id(type, id);
 
 			return 0;
@@ -136,11 +136,11 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		struct if_dqblk dq;
 
 		if (entering(tcp)) {
-			tprints_arg_next_name("id");
+			tprints_arg_next_name_at(2, "id");
 			print_quota_id(type, id);
 		}
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &dq))
 			break;
 		tprint_struct_begin();
@@ -175,13 +175,13 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		struct if_nextdqblk dq;
 
 		if (entering(tcp)) {
-			tprints_arg_next_name("id");
+			tprints_arg_next_name_at(2, "id");
 			print_quota_id(type, id);
 
 			return 0;
 		}
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &dq))
 			break;
 		tprint_struct_begin();
@@ -218,7 +218,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 	case Q_XGETQUOTA:
 	case Q_XGETNEXTQUOTA:
 		if (entering(tcp)) {
-			tprints_arg_next_name("id");
+			tprints_arg_next_name_at(2, "id");
 			print_quota_id(type, id);
 
 			return 0;
@@ -230,11 +230,11 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		fs_disk_quota_t dq;
 
 		if (entering(tcp)) {
-			tprints_arg_next_name("id");
+			tprints_arg_next_name_at(2, "id");
 			print_quota_id(type, id);
 		}
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &dq))
 			break;
 		tprint_struct_begin();
@@ -291,7 +291,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		if (entering(tcp))
 			return 0;
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &fmt))
 			break;
 		tprint_indirect_begin();
@@ -308,7 +308,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 	{
 		struct if_dqinfo dq;
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &dq))
 			break;
 		tprint_struct_begin();
@@ -329,7 +329,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		if (entering(tcp))
 			return 0;
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (fetch_struct_quotastat(tcp, data, &dq)) {
 			tprint_struct_begin();
 			PRINT_FIELD_D(dq, qs_version);
@@ -370,7 +370,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		if (entering(tcp))
 			return 0;
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &dq))
 			break;
 		tprint_struct_begin();
@@ -412,7 +412,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 	{
 		uint32_t flag;
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &flag))
 			break;
 		tprint_indirect_begin();
@@ -424,7 +424,7 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 	{
 		uint32_t flag;
 
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		if (umove_or_printaddr(tcp, data, &flag))
 			break;
 		tprint_indirect_begin();
@@ -433,9 +433,9 @@ decode_cmd_data(struct tcb *tcp, uint32_t type, uint32_t id, uint32_t cmd,
 		break;
 	}
 	default:
-		tprints_arg_next_name("id");
+		tprints_arg_next_name_at(2, "id");
 		print_quota_id(type, id);
-		tprints_arg_next_name("addr");
+		tprints_arg_next_name_at(3, "addr");
 		printaddr(data);
 		break;
 	}
