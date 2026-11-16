@@ -597,6 +597,7 @@ jsonl-ioctl_seccomp
 jsonl-ioctl_sock_gifconf
 jsonl-ioctl_termios
 jsonl-ioctl_tun_filter
+jsonl-ioctl_unknown
 jsonl-ioprio_get
 jsonl-ip_mreq
 jsonl-keyctl

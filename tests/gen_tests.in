@@ -755,6 +755,7 @@ jsonl-merged-semctl	-e trace=semctl
 jsonl-merged-bpf	-v -e trace=bpf
 jsonl-merged-perf_event_open	-e trace=perf_event_open
 jsonl-merged-io_uring_register	-e trace=io_uring_register
+jsonl-merged-ioctl_unknown	+jsonl-ioctl.sh -v -e trace=ioctl
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
 jsonl-split-access-secontext	--secontext --trace-path=access_sample -e trace=access
@@ -953,6 +954,7 @@ jsonl-split-semctl	-e trace=semctl
 jsonl-split-bpf	-v -e trace=bpf
 jsonl-split-perf_event_open	-e trace=perf_event_open
 jsonl-split-io_uring_register	-e trace=io_uring_register
+jsonl-split-ioctl_unknown	+jsonl-ioctl.sh -v -e trace=ioctl
 kcmp	-a22
 kcmp-y	-a22 -y -e trace=kcmp
 kcmp-y--pidns-translation	test_pidns -a22 -y -e trace=kcmp

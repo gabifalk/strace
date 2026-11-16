@@ -340,6 +340,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_sock_gifconf \
 	jsonl-ioctl_termios \
 	jsonl-ioctl_tun_filter \
+	jsonl-ioctl_unknown \
 	jsonl-ioprio_get \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
@@ -1190,6 +1191,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_sock_gifconf.c \
 	jsonl-ioctl_termios.c \
 	jsonl-ioctl_tun_filter.c \
+	jsonl-ioctl_unknown.c \
 	jsonl-ioprio_get.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
