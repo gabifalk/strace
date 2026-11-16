@@ -70,6 +70,7 @@ static void
 print_scm_security(struct tcb *tcp, const void *cmsg_data,
 		   const unsigned int data_len)
 {
+	tprints_object_type("string");
 	print_quoted_string(cmsg_data, data_len, 0);
 }
 
