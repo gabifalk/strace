@@ -723,6 +723,7 @@ jsonl-sockopt-port_range
 jsonl-status-none
 jsonl-statx
 jsonl-stopped
+jsonl-summary
 jsonl-superseded
 jsonl-swapon
 jsonl-sysinfo

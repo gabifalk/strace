@@ -466,6 +466,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-status-none \
 	jsonl-statx \
 	jsonl-stopped \
+	jsonl-summary \
 	jsonl-superseded \
 	jsonl-swapon \
 	jsonl-sysinfo \
@@ -1320,6 +1321,7 @@ EXTRA_DIST = \
 	jsonl-status-none.c \
 	jsonl-statx.c \
 	jsonl-stopped.c \
+	jsonl-summary.c \
 	jsonl-superseded.c \
 	jsonl-swapon.c \
 	jsonl-sysinfo.c \
@@ -1340,6 +1342,7 @@ EXTRA_DIST = \
 	jsonl.h \
 	jsonl-clone_untraced.sh \
 	jsonl-ioctl.sh \
+	jsonl-summary.sh \
 	jsonl-timestamps.sh \
 	jsonl.sh \
 	jsonl_ioctl.h \

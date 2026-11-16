@@ -735,6 +735,7 @@ jsonl-merged-sockopt-port_range	-e trace=setsockopt
 jsonl-merged-status-none	-e trace=all --status=none
 jsonl-merged-statx	-e trace=statx --trace-fds=9
 jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
+jsonl-merged-summary	+jsonl-summary.sh -q -c -S name -U name,calls,errors -e trace='chdir,getpid,?getgid32'
 jsonl-merged-superseded	-qq -f -e trace=none
 jsonl-merged-swapon	-e trace=swapon
 jsonl-merged-sysinfo	-e trace=sysinfo
@@ -937,6 +938,7 @@ jsonl-split-sockopt-port_range	-e trace=setsockopt
 jsonl-split-status-none	-e trace=all --status=none
 jsonl-split-statx	-e trace=statx --trace-fds=9
 jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
+jsonl-split-summary	+jsonl-summary.sh -q -c -S name -U name,calls,errors -e trace='chdir,getpid,?getgid32'
 jsonl-split-superseded	-qq -f -e trace=none
 jsonl-split-swapon	-e trace=swapon
 jsonl-split-sysinfo	-e trace=sysinfo
