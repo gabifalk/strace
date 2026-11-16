@@ -122,12 +122,19 @@ tprints_arg_exiting_name(unsigned int index, const char *name)
 void
 tprints_arg_exiting_changed_name(unsigned int index, const char *name)
 {
+	if (structured_output) {
+		tprints_arg_next_name_at(index, name);
+		tprint_arg_changed();
+	}
 }
 
 void
 tprint_value_changed_inout(void)
 {
-	tprint_value_changed();
+	if (structured_output)
+		tprint_arg_inout();
+	else
+		tprint_value_changed();
 }
 
 void
