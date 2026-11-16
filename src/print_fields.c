@@ -2738,14 +2738,17 @@ tprint_sysret_flags_val(unsigned long long val, const struct xlat *xlat)
 }
 
 void
-tprint_sysret_printer_val(unsigned long long val,
+tprint_sysret_printer_val(unsigned long long val, bool hex,
 			  void (*printer)(unsigned long long val,
 					  enum xlat_style style))
 {
 	if (structured_output) {
 		printer(val, XLAT_STYLE_DEFAULT);
 	} else {
-		PRINT_VAL_X(val);
+		if (hex)
+			PRINT_VAL_X(val);
+		else
+			PRINT_VAL_U(val);
 		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
 			tprints_sysret_next("retstr");
 			STRACE_PRINTS("(");

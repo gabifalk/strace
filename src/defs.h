@@ -488,7 +488,8 @@ extern const struct xlat whence_codes[];
 				   `rval_xlat' table */
 # define RVAL_FLAGS	01000	/* Return value is a set of flags from the
 				   `rval_xlat' table */
-# define RVAL_PRINTER	02000	/* Return value is printed by `rval_printer' */
+# define RVAL_PRINTER	02000	/* Return value is printed by `rval_printer';
+				   combines with RVAL_HEX */
 # define RVAL_RESULT	04000	/* Return value is printed by
 				   `rval_result_printer' */
 

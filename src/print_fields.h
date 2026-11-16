@@ -40,7 +40,7 @@ extern void tprint_sysret_xlat_val(unsigned long long val, bool hex,
 				   const struct xlat *xlat);
 extern void tprint_sysret_flags_val(unsigned long long val,
 				    const struct xlat *xlat);
-extern void tprint_sysret_printer_val(unsigned long long val,
+extern void tprint_sysret_printer_val(unsigned long long val, bool hex,
 				      void (*printer)(unsigned long long val,
 						      enum xlat_style style));
 extern bool tprint_xlat_flags_value_begin(unsigned long long raw,

@@ -483,7 +483,7 @@ SYS_FUNC(prctl)
 
 		tcp->rval_printer = print_sve_val;
 
-		return RVAL_PRINTER;
+		return RVAL_HEX | RVAL_PRINTER;
 
 	case PR_GET_SPECULATION_CTRL:		/*  52 */
 		if (entering(tcp)) {
@@ -548,7 +548,7 @@ SYS_FUNC(prctl)
 			return 0;
 		tcp->rval_printer = print_tagged_addr_val;
 
-		return RVAL_PRINTER;
+		return RVAL_HEX | RVAL_PRINTER;
 
 	/* PR_SET_IO_FLUSHER - group 4		    57 */
 	/* PR_GET_IO_FLUSHER - group 5		    58 */
@@ -645,7 +645,7 @@ SYS_FUNC(prctl)
 
 		tcp->rval_printer = print_sme_val;
 
-		return RVAL_PRINTER;
+		return RVAL_HEX | RVAL_PRINTER;
 
 	case PR_SET_MDWE:			/*  65 */
 		tprints_arg_next_name("mask");
@@ -682,7 +682,7 @@ SYS_FUNC(prctl)
 			return 0;
 		tcp->rval_printer = print_riscv_v_ctrl_val;
 
-		return RVAL_PRINTER;
+		return RVAL_HEX | RVAL_PRINTER;
 
 	case PR_RISCV_SET_ICACHE_FLUSH_CTX:	/*  71 */
 		tprints_arg_next_name("ctx");
