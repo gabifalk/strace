@@ -801,30 +801,49 @@ tprint_qcmd_begin(unsigned int qcmd)
 {
 	const enum xlat_style style = xlat_verbose(xlat_verbosity);
 
-	if (style != XLAT_STYLE_ABBREV)
-		PRINT_VAL_U(qcmd);
-	if (style != XLAT_STYLE_RAW) {
-		if (style == XLAT_STYLE_VERBOSE)
-			tprint_comment_begin();
-		tprints_fn_begin("QCMD");
+	if (structured_output) {
+		tprints_object_type("qcmd_op");
+		tprintf_object_field_string("raw", "%#x", qcmd);
+		tprints_object_field_begin("cmd");
+		tprint_object_begin();
+	} else {
+		if (style != XLAT_STYLE_ABBREV)
+			PRINT_VAL_U(qcmd);
+		if (style != XLAT_STYLE_RAW) {
+			if (style == XLAT_STYLE_VERBOSE)
+				tprint_comment_begin();
+			tprints_fn_begin("QCMD");
+		}
 	}
 
-	return style != XLAT_STYLE_RAW;
+	return structured_output || style != XLAT_STYLE_RAW;
 }
 
 void
 tprint_qcmd_next(void)
 {
-	tprint_fn_next();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+		tprints_object_field_begin("quota_type");
+		tprint_object_begin();
+	} else {
+		tprint_fn_next();
+	}
 }
 
 void
 tprint_qcmd_end(void)
 {
-	tprint_fn_end();
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_fn_end();
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	}
 }
 
 /*
