@@ -568,6 +568,18 @@ tprint_bpf_insn_end(bool jump, unsigned int jt, unsigned int jf)
 }
 
 void
+tprint_skf_off_begin(unsigned int base, const char *base_name)
+{
+	print_xlat_ex(base, base_name, XLAT_STYLE_DEFAULT);
+	tprint_plus();
+}
+
+void
+tprint_skf_off_end(void)
+{
+}
+
+void
 tprint_comment_begin(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_COMMENT);

@@ -23,20 +23,20 @@ print_sock_filter_k(const struct bpf_filter_block *const fp)
 {
 	if (BPF_CLASS(fp->code) == BPF_LD && BPF_MODE(fp->code) == BPF_ABS) {
 		if (fp->k >= (unsigned int) SKF_AD_OFF) {
-			print_xlat32(SKF_AD_OFF);
-			tprint_plus();
+			tprint_skf_off_begin(SKF_AD_OFF, "SKF_AD_OFF");
 			printxval(skf_ad, fp->k - (unsigned int) SKF_AD_OFF,
 				  "SKF_AD_???");
+			tprint_skf_off_end();
 			return true;
 		} else if (fp->k >= (unsigned int) SKF_NET_OFF) {
-			print_xlat32(SKF_NET_OFF);
-			tprint_plus();
+			tprint_skf_off_begin(SKF_NET_OFF, "SKF_NET_OFF");
 			PRINT_VAL_U(fp->k - (unsigned int) SKF_NET_OFF);
+			tprint_skf_off_end();
 			return true;
 		} else if (fp->k >= (unsigned int) SKF_LL_OFF) {
-			print_xlat32(SKF_LL_OFF);
-			tprint_plus();
+			tprint_skf_off_begin(SKF_LL_OFF, "SKF_LL_OFF");
 			PRINT_VAL_U(fp->k - (unsigned int) SKF_LL_OFF);
+			tprint_skf_off_end();
 			return true;
 		}
 	}
