@@ -4019,14 +4019,21 @@ tprint_sysret_injected(void)
 void
 tprint_sysret_injected_args(bool retval)
 {
-	tprints_sysret_string("inject", retval ? "INJECTED: args, retval"
-					       : "INJECTED: args");
+	if (structured_output) {
+		if (retval)
+			tprints_object_field_bool("injected", true);
+	} else {
+		tprints_sysret_string("inject",
+				      retval ? "INJECTED: args, retval"
+					     : "INJECTED: args");
+	}
 }
 
 void
 tprint_sysret_sanitized(void)
 {
-	tprints_sysret_string("sanitize", "SANITIZED");
+	if (!structured_output)
+		tprints_sysret_string("sanitize", "SANITIZED");
 }
 
 void
@@ -4037,6 +4044,8 @@ tprint_syscall_poked_args(unsigned int poked)
 void
 tprint_value_sanitized(void)
 {
+	if (structured_output)
+		tprints_object_field_bool("sanitized", true);
 }
 
 void
