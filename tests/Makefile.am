@@ -380,6 +380,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prctl-sched-core \
 	jsonl-prctl-tsc \
 	jsonl-printsignal \
+	jsonl-process_vm_readv \
 	jsonl-pwritev \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
@@ -1144,6 +1145,7 @@ EXTRA_DIST = \
 	jsonl-prctl-sched-core.c \
 	jsonl-prctl-tsc.c \
 	jsonl-printsignal.c \
+	jsonl-process_vm_readv.c \
 	jsonl-pwritev.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \

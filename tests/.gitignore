@@ -637,6 +637,7 @@ jsonl-prctl-pdeathsig
 jsonl-prctl-sched-core
 jsonl-prctl-tsc
 jsonl-printsignal
+jsonl-process_vm_readv
 jsonl-pwritev
 jsonl-sched_get_priority_mxx
 jsonl-seccomp_get_notif_sizes
