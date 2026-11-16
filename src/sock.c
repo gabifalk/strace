@@ -334,19 +334,22 @@ MPERS_PRINTER_DECL(int, sock_ioctl,
 			if (umove_or_printaddr(tcp, arg, &ifr))
 				break;
 
-			if (SIOCGIFNAME == code) {
-				tprint_struct_begin();
+			tprint_struct_begin();
+			tprint_struct_mark_split();
+			if (SIOCGIFNAME == code)
 				PRINT_FIELD_D(ifr, ifr_ifindex);
-			} else {
-				tprint_struct_begin();
+			else
 				PRINT_FIELD_CSTRING(ifr, ifr_name);
-			}
+			tprint_struct_entering_end();
 			return 0;
 		} else {
-			if (!syserror(tcp) && !umove(tcp, arg, &ifr)) {
-				tprint_struct_next();
-				print_ifreq(tcp, code, arg, &ifr);
+			if (syserror(tcp) || umove(tcp, arg, &ifr)) {
+				tprint_struct_exiting_abandon();
+				break;
 			}
+			tprint_struct_exiting_begin(2, "argp");
+			tprint_struct_exiting_next();
+			print_ifreq(tcp, code, arg, &ifr);
 			tprint_struct_end();
 			break;
 		}
