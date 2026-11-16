@@ -38,11 +38,8 @@ print_user_desc(struct tcb *const tcp, const kernel_ulong_t addr,
 		if (!addr || !verbose(tcp))
 			return;
 		if (syserror(tcp) || umove(tcp, addr, &desc)) {
-			if (entry_number) {
-				tprint_struct_next();
-				tprint_more_data_follows();
-				tprint_struct_end();
-			}
+			if (entry_number)
+				tprint_struct_exiting_abandon_more_data();
 
 			return;
 		}
@@ -69,6 +66,9 @@ print_user_desc(struct tcb *const tcp, const kernel_ulong_t addr,
 
 			*entry_number = desc.entry_number;
 			set_tcb_priv_data(tcp, entry_number, free);
+
+			tprint_struct_mark_split();
+			tprint_struct_entering_end();
 		}
 	}
 
@@ -79,17 +79,20 @@ print_user_desc(struct tcb *const tcp, const kernel_ulong_t addr,
 		 */
 		if (filter == USER_DESC_EXITING) {
 			if (entry_number) {
-				if (*entry_number != desc.entry_number) {
-					tprint_value_changed();
+				const bool changed =
+					*entry_number != desc.entry_number;
+
+				tprint_struct_exiting_begin(0, "u_info");
+				if (tprints_field_exiting_value("entry_number",
+								true, changed))
 					PRINT_VAL_ID(desc.entry_number);
-				}
 			} else {
 				/*
 				 * This is really strange. If we are here, it
 				 * means that we failed on entering but somehow
 				 * succeeded on exiting.
 				 */
-				tprint_value_changed();
+				tprint_arg_exiting_changed_begin(0, "u_info");
 				tprint_struct_begin();
 				PRINT_FIELD_ID(desc, entry_number);
 			}
