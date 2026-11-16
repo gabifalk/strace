@@ -694,6 +694,29 @@ timescale_to_unit(int scale)
 	}
 }
 
+/*
+ * Print the I/O priority value `ioprio' whose decoded form is `str';
+ * the raw value is printed as a signed decimal number if `signed_raw',
+ * as a hexadecimal number otherwise.
+ */
+void
+tprint_ioprio(unsigned int ioprio, bool signed_raw, const char *str)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
+		if (signed_raw)
+			PRINT_VAL_D((int) ioprio);
+		else
+			PRINT_VAL_X(ioprio);
+	}
+
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprints_comment(str);
+		else
+			tprints_string(str);
+	}
+}
+
 void
 tprint_negated_begin(long long raw)
 {

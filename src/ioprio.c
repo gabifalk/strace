@@ -37,16 +37,7 @@ sprint_ioprio(unsigned int ioprio)
 void
 print_ioprio(unsigned int ioprio)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(ioprio);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-
-	const char *str = sprint_ioprio(ioprio);
-
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-		? tprints_comment : tprints_string)(str);
+	tprint_ioprio(ioprio, false, sprint_ioprio(ioprio));
 }
 
 static void
@@ -100,14 +91,7 @@ SYS_FUNC(ioprio_set)
 
 	/* ioprio */
 	tprints_arg_next_name("ioprio");
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_D((int) tcp->u_arg[2]);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return RVAL_DECODED;
-
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-		? tprints_comment : tprints_string)(sprint_ioprio(tcp->u_arg[2]));
+	tprint_ioprio(tcp->u_arg[2], true, sprint_ioprio(tcp->u_arg[2]));
 
 	return RVAL_DECODED;
 }

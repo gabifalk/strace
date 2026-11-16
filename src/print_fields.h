@@ -28,6 +28,8 @@
  */
 #  define STRACE_PRINTF tprintf_string
 #  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
+extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
+			  const char *str);
 
 # else /* !IN_STRACE */
 
