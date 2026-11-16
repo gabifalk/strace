@@ -224,6 +224,8 @@ extern void tprints_sysret_string(const char *name, const char *str);
 extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);
 extern void tprint_addr(unsigned long long addr);
+extern void tprint_var_count(unsigned long long addr, unsigned int count,
+			     bool unterminated);
 extern void tprint_char(unsigned char c);
 extern void tprint_extra_data_unavailable(void);
 extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);

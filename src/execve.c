@@ -70,22 +70,25 @@ printargv(struct tcb *const tcp, kernel_ulong_t addr)
 }
 
 static void
-printargc(struct tcb *const tcp, kernel_ulong_t addr)
+printargc(struct tcb *const tcp, const kernel_ulong_t start_addr)
 {
-	printaddr(addr);
-
-	if (!addr || !verbose(tcp))
+	if (!start_addr || !verbose(tcp)) {
+		printaddr(start_addr);
 		return;
+	}
 
 	const unsigned int wordsize = current_wordsize;
+	kernel_ulong_t addr = start_addr;
 	kernel_ulong_t prev_addr = 0;
 	unsigned int n;
 
 	for (n = 0; addr > prev_addr; prev_addr = addr, addr += wordsize, ++n) {
 		kernel_ulong_t word = 0;
 		if (umoven(tcp, addr, wordsize, &word)) {
-			if (n == 0)
+			if (n == 0) {
+				printaddr(start_addr);
 				return;
+			}
 
 			addr = 0;
 			break;
@@ -93,9 +96,7 @@ printargc(struct tcb *const tcp, kernel_ulong_t addr)
 		if (word == 0)
 			break;
 	}
-	tprintf_comment("%u var%s%s",
-			n, n == 1 ? "" : "s",
-			addr < prev_addr ? ", unterminated" : "");
+	tprint_var_count(start_addr, n, addr < prev_addr);
 }
 
 static void

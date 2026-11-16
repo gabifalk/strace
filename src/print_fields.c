@@ -506,6 +506,15 @@ tprint_negated_end(void)
 }
 
 void
+tprint_var_count(unsigned long long addr, unsigned int count,
+		 bool unterminated)
+{
+	printaddr64(addr);
+	tprintf_comment("%u var%s%s", count, count == 1 ? "" : "s",
+			unterminated ? ", unterminated" : "");
+}
+
+void
 tprint_char(unsigned char c)
 {
 	if (structured_output) {
