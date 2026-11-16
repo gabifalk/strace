@@ -2294,12 +2294,18 @@ tprint_ticks(unsigned long long val, long freq, unsigned int precision)
 void
 tprint_pit_count(unsigned long long count, unsigned int freq)
 {
-	PRINT_VAL_U(count);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (freq)
-			tprintf_comment("%u Hz", freq);
-		else
-			tprints_comment("off");
+	if (structured_output) {
+		tprints_object_type("pit_count");
+		tprintf_object_field_string("raw", "%llu", count);
+		tprintf_object_field_string("freq_hz", "%u", freq);
+	} else {
+		PRINT_VAL_U(count);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (freq)
+				tprintf_comment("%u Hz", freq);
+			else
+				tprints_comment("off");
+		}
 	}
 }
 
