@@ -28,6 +28,7 @@
  */
 #  define STRACE_PRINTF tprintf_string
 #  define STRACE_PRINTV(fmt_, args_) tvprintf(fmt_, args_)
+extern void tprint_wait_status(int status, const struct xlat *events);
 extern void tprint_ioprio(unsigned int ioprio, bool signed_raw,
 			  const char *str, const struct xlat *class_xlat,
 			  unsigned int class, unsigned int level);

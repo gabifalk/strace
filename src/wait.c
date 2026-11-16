@@ -24,60 +24,7 @@
 void
 print_wait_status(int status)
 {
-	/*
-	 * Here is a tricky presentation problem.  This solution
-	 * is still not entirely satisfactory but since there
-	 * are no wait status constructors it will have to do.
-	 */
-	tprint_indirect_begin();
-	tprint_flags_begin();
-	if (WIFSTOPPED(status)) {
-		int sig = WSTOPSIG(status);
-		tprintf_string("{WIFSTOPPED(s) && WSTOPSIG(s) == %s%s}",
-			       sprintsigname(sig & 0x7f),
-			       sig & 0x80 ? " | 0x80" : "");
-		status &= ~W_STOPCODE(sig);
-	} else if (WIFSIGNALED(status)) {
-		tprintf_string("{WIFSIGNALED(s) && WTERMSIG(s) == %s%s}",
-			       sprintsigname(WTERMSIG(status)),
-			       WCOREDUMP(status) ? " && WCOREDUMP(s)" : "");
-		status &= ~(W_EXITCODE(0, WTERMSIG(status)) | WCOREFLAG);
-	} else if (WIFEXITED(status)) {
-		tprintf_string("{WIFEXITED(s) && WEXITSTATUS(s) == %d}",
-			       WEXITSTATUS(status));
-		status &= ~W_EXITCODE(WEXITSTATUS(status), 0);
-	}
-#ifdef WIFCONTINUED
-	else if (WIFCONTINUED(status)) {
-		tprints_string("{WIFCONTINUED(s)}");
-		status &= ~W_CONTINUED;
-	}
-#endif
-	else {
-		PRINT_VAL_X(status);
-		tprint_flags_end();
-		tprint_indirect_end();
-		return;
-	}
-
-	if (status) {
-		unsigned int event = (unsigned int) status >> 16;
-		if (event) {
-			tprint_flags_or();
-			tprint_shift_begin();
-			printxval(ptrace_events, event, "PTRACE_EVENT_???");
-			tprint_shift();
-			PRINT_VAL_U(16);
-			tprint_shift_end();
-			status &= 0xffff;
-		}
-		if (status) {
-			tprint_flags_or();
-			PRINT_VAL_X(status);
-		}
-	}
-	tprint_flags_end();
-	tprint_indirect_end();
+	tprint_wait_status(status, ptrace_events);
 }
 
 static int
