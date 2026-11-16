@@ -463,7 +463,7 @@ printpair_ ## name(struct tcb *const tcp, const kernel_ulong_t addr,	\
 	type pair[2];							\
 	if (umove_or_printaddr(tcp, addr, &pair))			\
 		return false;						\
-	tprint_array_begin();						\
+	tprint_pair_begin();						\
 	tprint_object_begin();						\
 	tprints_object_type(vtype);					\
 	tprintf_object_field_string("raw", fmt, pair[0]);		\

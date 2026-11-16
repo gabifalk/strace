@@ -91,6 +91,12 @@ tprint_array_begin(void)
 }
 
 void
+tprint_pair_begin(void)
+{
+	tprint_array_begin();
+}
+
+void
 tprint_array_next(void)
 {
 	STRACE_PRINT_COLOR_SEQ(COLOR_PUNCT);

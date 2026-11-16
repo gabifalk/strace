@@ -176,6 +176,7 @@ extern void tprint_union_begin(void);
 extern void tprint_union_next(void);
 extern void tprint_union_end(void);
 extern void tprint_array_begin(void);
+extern void tprint_pair_begin(void);
 extern void tprint_array_next(void);
 extern void tprint_array_end(void);
 
