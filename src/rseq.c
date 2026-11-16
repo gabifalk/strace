@@ -31,8 +31,8 @@ print_rseq_cpu_id_u32(const uint32_t cpu_id)
  * On 32-bit ISAs only the low-order bits are the user pointer (kernel documents
  * the rest as zero); normalize with truncate_kulong_to_current_wordsize before
  * fetch.  When addr is zero or tfetch_obj fails, print the full 64-bit value with
- * printaddr64(raw).  After a successful decode, annotate with printaddr_comment(addr)
- * (the address that was read).
+ * printaddr64(raw).  After a successful decode, annotate with
+ * tprint_struct_addr(addr) (the address that was read).
  */
 static void
 decode_rseq_cs(struct tcb *tcp, const uint64_t raw)
@@ -62,7 +62,7 @@ decode_rseq_cs(struct tcb *tcp, const uint64_t raw)
 	tprint_struct_next();
 	PRINT_FIELD_X(cs, abort_ip);
 	tprint_struct_end();
-	printaddr_comment(addr);
+	tprint_struct_addr(addr);
 }
 
 static void
