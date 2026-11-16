@@ -2742,12 +2742,16 @@ tprint_sysret_printer_val(unsigned long long val,
 			  void (*printer)(unsigned long long val,
 					  enum xlat_style style))
 {
-	PRINT_VAL_X(val);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		tprints_sysret_next("retstr");
-		STRACE_PRINTS("(");
-		printer(val, XLAT_STYLE_ABBREV);
-		STRACE_PRINTS(")");
+	if (structured_output) {
+		printer(val, XLAT_STYLE_DEFAULT);
+	} else {
+		PRINT_VAL_X(val);
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			tprints_sysret_next("retstr");
+			STRACE_PRINTS("(");
+			printer(val, XLAT_STYLE_ABBREV);
+			STRACE_PRINTS(")");
+		}
 	}
 }
 
