@@ -836,8 +836,13 @@ tprint_extra_data_end(bool truncated)
 void
 tprint_time_t(long long sec, const char *str)
 {
-	PRINT_VAL_D(sec);
-	tprints_comment(str);
+	if (structured_output) {
+		tprints_object_type("time_t");
+		tprintf_object_field_string("raw", "%lld", sec);
+	} else {
+		PRINT_VAL_D(sec);
+		tprints_comment(str);
+	}
 }
 
 void
