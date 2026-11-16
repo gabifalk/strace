@@ -556,6 +556,7 @@ jsonl-getcpu
 jsonl-getegid
 jsonl-geteuid
 jsonl-getgid
+jsonl-getrandom
 jsonl-getresuid
 jsonl-getsockname
 jsonl-group_req

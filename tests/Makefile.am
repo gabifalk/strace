@@ -299,6 +299,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getegid \
 	jsonl-geteuid \
 	jsonl-getgid \
+	jsonl-getrandom \
 	jsonl-getresuid \
 	jsonl-getsockname \
 	jsonl-group_req \
@@ -1067,6 +1068,7 @@ EXTRA_DIST = \
 	jsonl-getegid.c \
 	jsonl-geteuid.c \
 	jsonl-getgid.c \
+	jsonl-getrandom.c \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
 	jsonl-group_req.c \
