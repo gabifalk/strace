@@ -591,6 +591,7 @@ jsonl-merged-netlink_protocol	-e trace=sendto
 jsonl-merged-netlink_route	-e trace=sendto
 jsonl-merged-nfnetlink_acct	-e trace=sendto
 jsonl-merged-nfnetlink_cthelper	-e trace=sendto
+jsonl-merged-nfnetlink_ctnetlink	-e trace=sendto
 jsonl-merged-nlattr	-e trace=sendto
 jsonl-merged-nlattr_ndmsg	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
@@ -649,6 +650,7 @@ jsonl-split-netlink_protocol	-e trace=sendto
 jsonl-split-netlink_route	-e trace=sendto
 jsonl-split-nfnetlink_acct	-e trace=sendto
 jsonl-split-nfnetlink_cthelper	-e trace=sendto
+jsonl-split-nfnetlink_ctnetlink	-e trace=sendto
 jsonl-split-nlattr	-e trace=sendto
 jsonl-split-nlattr_ndmsg	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
