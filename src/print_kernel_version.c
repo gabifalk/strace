@@ -12,29 +12,5 @@
 void
 print_kernel_version(const unsigned long version)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_X(version);
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
-	const unsigned long ver_major = version >> 16;
-	const unsigned long ver_minor = (version >> 8) & 0xFF;
-	const unsigned long ver_patch = version & 0xFF;
-
-	tprints_fn_begin("KERNEL_VERSION");
-	PRINT_VAL_U(ver_major);
-
-	tprint_fn_next();
-	PRINT_VAL_U(ver_minor);
-
-	tprint_fn_next();
-	PRINT_VAL_U(ver_patch);
-	tprint_fn_end();
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
+	tprint_kernel_version(version);
 }

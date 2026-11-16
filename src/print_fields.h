@@ -271,6 +271,7 @@ extern void tprint_time_t(long long sec, const char *str);
 extern void tprint_ticks(unsigned long long val, long freq,
 			 unsigned int precision);
 extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
+extern void tprint_kernel_version(unsigned long version);
 extern bool tprint_qcmd_begin(unsigned int qcmd);
 extern void tprint_rlim(unsigned long long lim, const char *str,
 			bool infinity);
