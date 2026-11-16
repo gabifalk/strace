@@ -1173,6 +1173,9 @@ SYS_FUNC(getsockopt)
 		if (verbose(tcp) && tcp->u_arg[4]
 		    && umove(tcp, tcp->u_arg[4], &ulen) == 0) {
 			set_tcb_priv_ulong(tcp, ulen);
+
+			/* optlen */
+			tprints_arg_inout_entering_d(4, "optlen", ulen);
 			return 0;
 		} else {
 			/* optval */
@@ -1204,13 +1207,7 @@ SYS_FUNC(getsockopt)
 
 			/* optlen */
 			tprints_arg_next_name("optlen");
-			tprint_indirect_begin();
-			if (ulen != rlen) {
-				PRINT_VAL_D(ulen);
-				tprint_value_changed();
-			}
-			PRINT_VAL_D(rlen);
-			tprint_indirect_end();
+			tprint_arg_inout_exiting_d(ulen, rlen);
 		} else {
 			/* optval */
 			tprints_arg_next_name("optval");
@@ -1219,13 +1216,7 @@ SYS_FUNC(getsockopt)
 
 			/* optlen */
 			tprints_arg_next_name("optlen");
-			tprint_indirect_begin();
-			if (ulen != rlen) {
-				PRINT_VAL_D(ulen);
-				tprint_value_changed();
-			}
-			PRINT_VAL_D(rlen);
-			tprint_indirect_end();
+			tprint_arg_inout_exiting_d(ulen, rlen);
 		}
 	}
 	return 0;
