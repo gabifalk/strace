@@ -319,12 +319,14 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_gpio \
 	jsonl-ioctl_lirc \
 	jsonl-ioctl_random \
+	jsonl-ioprio_get \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
 	jsonl-kill \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-lsm_set_self_attr \
+	jsonl-membarrier \
 	jsonl-memfd_create \
 	jsonl-memfd_secret \
 	jsonl-mincore \
@@ -414,6 +416,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-sched_getscheduler \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-select \
+	jsonl-set_thread_area \
 	jsonl-setgroups \
 	jsonl-setxattr \
 	jsonl-sigchld \
@@ -424,6 +427,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-superseded \
 	jsonl-swapon \
 	jsonl-sysinfo \
+	jsonl-time \
 	jsonl-timespec \
 	jsonl-unshare \
 	jsonl-ustat \
@@ -1122,12 +1126,14 @@ EXTRA_DIST = \
 	jsonl-ioctl_gpio.c \
 	jsonl-ioctl_lirc.c \
 	jsonl-ioctl_random.c \
+	jsonl-ioprio_get.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
 	jsonl-kill.c \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-lsm_set_self_attr.c \
+	jsonl-membarrier.c \
 	jsonl-memfd_create.c \
 	jsonl-memfd_secret.c \
 	jsonl-mincore.c \
@@ -1217,6 +1223,7 @@ EXTRA_DIST = \
 	jsonl-sched_getscheduler.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-select.c \
+	jsonl-set_thread_area.c \
 	jsonl-setgroups.c \
 	jsonl-setxattr.c \
 	jsonl-sigchld.c \
@@ -1227,6 +1234,7 @@ EXTRA_DIST = \
 	jsonl-superseded.c \
 	jsonl-swapon.c \
 	jsonl-sysinfo.c \
+	jsonl-time.c \
 	jsonl-timespec.c \
 	jsonl-unshare.c \
 	jsonl-ustat.c \

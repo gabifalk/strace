@@ -595,12 +595,14 @@ jsonl-merged-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-merged-kill	-e signal=none -e trace=kill
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-lsm_set_self_attr	-e trace=lsm_set_self_attr
+jsonl-merged-membarrier	-e trace=membarrier -e inject=membarrier:retval=3
 jsonl-merged-memfd_create	-e trace=memfd_create
 jsonl-merged-memfd_secret	-e trace=memfd_secret
 jsonl-merged-mincore	-e trace=mincore
@@ -690,6 +692,7 @@ jsonl-merged-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_pr
 jsonl-merged-sched_getscheduler	-e trace=sched_getscheduler
 jsonl-merged-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-merged-select	-e trace=select
+jsonl-merged-set_thread_area	-e trace=sched_yield,set_thread_area QUIRK:START-OF-TEST-OUTPUT:sched_yield
 jsonl-merged-setgroups	-s2 -e trace=setgroups
 jsonl-merged-setxattr	-e trace=setxattr
 jsonl-merged-sigchld	-e trace=none
@@ -700,6 +703,7 @@ jsonl-merged-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-merged-superseded	-qq -f -e trace=none
 jsonl-merged-swapon	-e trace=swapon
 jsonl-merged-sysinfo	-e trace=sysinfo
+jsonl-merged-time	-e trace=time
 jsonl-merged-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
 jsonl-merged-unshare	--namespace=new -e trace=unshare -e inject=unshare:retval=0
 jsonl-merged-ustat	-e trace=ustat
@@ -746,12 +750,14 @@ jsonl-split-ioctl_kd	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
 jsonl-split-kill	-e signal=none -e trace=kill
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-lsm_set_self_attr	-e trace=lsm_set_self_attr
+jsonl-split-membarrier	-e trace=membarrier -e inject=membarrier:retval=3
 jsonl-split-memfd_create	-e trace=memfd_create
 jsonl-split-memfd_secret	-e trace=memfd_secret
 jsonl-split-mincore	-e trace=mincore
@@ -841,6 +847,7 @@ jsonl-split-sched_get_priority_mxx	-e trace=sched_get_priority_min,sched_get_pri
 jsonl-split-sched_getscheduler	-e trace=sched_getscheduler
 jsonl-split-seccomp_get_notif_sizes	-e trace=seccomp
 jsonl-split-select	-e trace=select
+jsonl-split-set_thread_area	-e trace=sched_yield,set_thread_area QUIRK:START-OF-TEST-OUTPUT:sched_yield
 jsonl-split-setgroups	-s2 -e trace=setgroups
 jsonl-split-setxattr	-e trace=setxattr
 jsonl-split-sigchld	-e trace=none
@@ -851,6 +858,7 @@ jsonl-split-stopped	-qq -f -e signal=SIGSTOP -e trace=none
 jsonl-split-superseded	-qq -f -e trace=none
 jsonl-split-swapon	-e trace=swapon
 jsonl-split-sysinfo	-e trace=sysinfo
+jsonl-split-time	-e trace=time
 jsonl-split-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
 jsonl-split-unshare	--namespace=new -e trace=unshare -e inject=unshare:retval=0
 jsonl-split-ustat	-e trace=ustat

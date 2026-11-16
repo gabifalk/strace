@@ -576,12 +576,14 @@ jsonl-ioctl_kd
 jsonl-ioctl_gpio
 jsonl-ioctl_lirc
 jsonl-ioctl_random
+jsonl-ioprio_get
 jsonl-ip_mreq
 jsonl-keyctl
 jsonl-kill
 jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-lsm_set_self_attr
+jsonl-membarrier
 jsonl-memfd_create
 jsonl-memfd_secret
 jsonl-mincore
@@ -671,6 +673,7 @@ jsonl-sched_get_priority_mxx
 jsonl-sched_getscheduler
 jsonl-seccomp_get_notif_sizes
 jsonl-select
+jsonl-set_thread_area
 jsonl-setgroups
 jsonl-setxattr
 jsonl-sigchld
@@ -681,6 +684,7 @@ jsonl-stopped
 jsonl-superseded
 jsonl-swapon
 jsonl-sysinfo
+jsonl-time
 jsonl-timespec
 jsonl-unshare
 jsonl-ustat
