@@ -646,6 +646,7 @@ print_sockaddr_data_tipc(struct tcb *tcp, const void *const buf,
 		break;
 
 	default:
+		tprints_object_type("string");
 		print_quoted_string(addr_buf, addr_len, 0);
 		return;
 	}
