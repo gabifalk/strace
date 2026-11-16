@@ -239,6 +239,7 @@ extern void tprint_negated_begin(long long raw);
 extern void tprint_negated_end(void);
 extern void tprint_dev_t(unsigned long long dev, unsigned int dev_major,
 			 unsigned int dev_minor);
+extern void tprint_err(long long err, bool negated, const char *name);
 extern void tprint_addr(unsigned long long addr);
 extern void tprint_secontext(const char *ctx, unsigned int ctx_len,
 			     const char *expected, unsigned int expected_len,
