@@ -157,6 +157,16 @@ tprints_object_field_null(const char *field)
 }
 
 static inline void
+tprint_arg_inout(void)
+{
+}
+
+static inline void
+tprint_arg_changed(void)
+{
+}
+
+static inline void
 tprint_type_const(void)
 {
 }
@@ -271,7 +281,9 @@ extern void tprint_arg_end(void);
 extern void tprints_arg_name_unconditionally(const char *name);
 extern void tprints_arg_next_name_unconditionally(const char *name);
 extern void tprints_arg_name(const char *name);
+extern void tprints_arg_name_at(unsigned int index, const char *name);
 extern void tprints_arg_next_name(const char *name);
+extern void tprints_arg_next_name_at(unsigned int index, const char *name);
 extern void tprints_arg_inout_entering_d(unsigned int index, const char *name,
 					 int val);
 extern void tprint_arg_inout_exiting_d(int entering_val, int exiting_val);

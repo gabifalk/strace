@@ -246,6 +246,12 @@ tprints_arg_name(const char *name)
 }
 
 void
+tprints_arg_name_at(unsigned int index, const char *name)
+{
+	tprints_arg_name(name);
+}
+
+void
 tprints_arg_next_name(const char *name)
 {
 	tprint_arg_next();
@@ -253,20 +259,42 @@ tprints_arg_next_name(const char *name)
 }
 
 void
+tprints_arg_next_name_at(unsigned int index, const char *name)
+{
+	tprint_arg_next();
+	tprints_arg_name_at(index, name);
+}
+
+void
 tprints_arg_inout_entering_d(unsigned int index, const char *name, int val)
 {
+	if (structured_output) {
+		tprints_arg_next_name_at(index, name);
+		tprint_indirect_begin();
+		PRINT_VAL_D(val);
+		tprint_indirect_end();
+		tprint_arg_inout();
+	}
 }
 
 void
 tprint_arg_inout_exiting_d(int entering_val, int exiting_val)
 {
-	tprint_indirect_begin();
-	if (entering_val != exiting_val) {
-		PRINT_VAL_D(entering_val);
-		tprint_value_changed();
+	if (structured_output) {
+		tprint_indirect_begin();
+		PRINT_VAL_D(exiting_val);
+		tprint_indirect_end();
+		if (entering_val != exiting_val)
+			tprint_arg_changed();
+	} else {
+		tprint_indirect_begin();
+		if (entering_val != exiting_val) {
+			PRINT_VAL_D(entering_val);
+			tprint_value_changed();
+		}
+		PRINT_VAL_D(exiting_val);
+		tprint_indirect_end();
 	}
-	PRINT_VAL_D(exiting_val);
-	tprint_indirect_end();
 }
 
 void
