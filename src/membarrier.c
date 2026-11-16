@@ -11,6 +11,15 @@
 #include "xlat/membarrier_cmds.h"
 #include "xlat/membarrier_flags.h"
 
+static void
+print_membarrier_result(struct tcb *const tcp, const unsigned long long val)
+{
+	tprint_sysret_value_begin(val, true);
+	tprints_sysret_result_note("");
+	printflags(membarrier_cmds, val, NULL);
+	tprint_sysret_result_end();
+}
+
 SYS_FUNC(membarrier)
 {
 	if (entering(tcp)) {
@@ -38,7 +47,6 @@ SYS_FUNC(membarrier)
 	if (syserror(tcp) || !tcp->u_rval)
 		return 0;
 
-	tcp->auxstr = sprintflags("", membarrier_cmds,
-				  (kernel_ulong_t) tcp->u_rval);
-	return RVAL_HEX | RVAL_STR;
+	tcp->rval_result_printer = print_membarrier_result;
+	return RVAL_RESULT;
 }
