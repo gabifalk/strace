@@ -84,7 +84,7 @@ print_hdio_drive_cmd(struct tcb *const tcp, const kernel_ulong_t arg)
 	if ((syserror(tcp) && tcp->u_error != EIO) || umove(tcp, arg, &c))
 		return RVAL_IOCTL_DECODED;
 
-	tprint_value_changed();
+	tprint_arg_exiting_changed_begin(2, "argp");
 	tprint_struct_begin();
 	PRINT_FIELD_X(c, status);
 	tprint_struct_next();
