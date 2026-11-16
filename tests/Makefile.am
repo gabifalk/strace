@@ -330,6 +330,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nfnetlink_ulog \
 	jsonl-nlattr \
 	jsonl-nlattr_crypto_user_alg \
+	jsonl-nlattr_dcbmsg \
 	jsonl-nlattr_ndmsg \
 	jsonl-nlattr_nlmsgerr \
 	jsonl-pause \
@@ -1052,6 +1053,7 @@ EXTRA_DIST = \
 	jsonl-nfnetlink_ulog.c \
 	jsonl-nlattr.c \
 	jsonl-nlattr_crypto_user_alg.c \
+	jsonl-nlattr_dcbmsg.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-nlattr_nlmsgerr.c \
 	jsonl-pause.c \

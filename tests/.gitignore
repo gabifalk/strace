@@ -587,6 +587,7 @@ jsonl-nfnetlink_queue
 jsonl-nfnetlink_ulog
 jsonl-nlattr
 jsonl-nlattr_crypto_user_alg
+jsonl-nlattr_dcbmsg
 jsonl-nlattr_ndmsg
 jsonl-nlattr_nlmsgerr
 jsonl-pause
