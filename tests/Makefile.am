@@ -330,6 +330,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-nfnetlink_ulog \
 	jsonl-nlattr \
 	jsonl-nlattr_br_port_msg \
+	jsonl-nlattr_cachereport \
 	jsonl-nlattr_crypto_user_alg \
 	jsonl-nlattr_dcbmsg \
 	jsonl-nlattr_fib_rule_hdr \
@@ -1072,6 +1073,7 @@ EXTRA_DIST = \
 	jsonl-nfnetlink_ulog.c \
 	jsonl-nlattr.c \
 	jsonl-nlattr_br_port_msg.c \
+	jsonl-nlattr_cachereport.c \
 	jsonl-nlattr_crypto_user_alg.c \
 	jsonl-nlattr_dcbmsg.c \
 	jsonl-nlattr_fib_rule_hdr.c \
