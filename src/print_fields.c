@@ -4144,6 +4144,43 @@ tprint_sysret_errno(unsigned long u_error, const char *sym, const char *str)
 }
 
 void
+tprint_stack_begin(void)
+{
+}
+
+void
+tprint_stack_frame(const char *binary, const char *symbol,
+		   unsigned long offset, unsigned long address,
+		   const char *source_file, int source_line)
+{
+	if (symbol && source_file)
+		tprintf_string(" > %s(%s+0x%lx) [0x%lx] %s:%d\n",
+			       binary, symbol, offset, address,
+			       source_file, source_line);
+	else if (symbol)
+		tprintf_string(" > %s(%s+0x%lx) [0x%lx]\n",
+			       binary, symbol, offset, address);
+	else
+		tprintf_string(" > %s() [0x%lx]\n", binary, address);
+	line_ended();
+}
+
+void
+tprint_stack_error(const char *error, unsigned long address)
+{
+	if (address)
+		tprintf_string(" > %s [0x%lx]\n", error, address);
+	else
+		tprintf_string(" > %s\n", error);
+	line_ended();
+}
+
+void
+tprint_stack_end(void)
+{
+}
+
+void
 tprint_event_trailers(void (*print_fn)(struct tcb *), struct tcb *tcp)
 {
 	if (structured_output)

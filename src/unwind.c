@@ -24,7 +24,13 @@
  */
 struct call_t {
 	struct call_t *next;
-	char *output_line;
+	char *binary_filename;
+	char *symbol_name;
+	unwind_function_offset_t function_offset;
+	unsigned long true_offset;
+	char *source_filename;
+	int source_line;
+	char *error;
 };
 
 struct unwind_queue_t {
@@ -33,8 +39,6 @@ struct unwind_queue_t {
 };
 
 static void queue_drain(struct unwind_queue_t *queue, bool print);
-
-static const char asprintf_error_str[] = "???";
 
 void
 unwind_init(bool with_srcinfo, int stack_trace_limit)
@@ -71,40 +75,39 @@ unwind_tcb_fin(struct tcb *tcp)
 }
 
 /*
- * printing an entry in stack to stream or buffer
+ * printing an entry in stack
  */
-/*
- * we want to keep the format used by backtrace_symbols from the glibc
- *
- * ./a.out() [0x40063d]
- * ./a.out() [0x4006bb]
- * ./a.out() [0x4006c6]
- * /lib64/libc.so.6(__libc_start_main+0xed) [0x7fa2f8a5976d]
- * ./a.out() [0x400569]
- */
-#define STACK_ENTRY_SYMBOL_WITH_SRCINFO_FMT(SYM)\
-	" > %s(%s+0x%lx) [0x%lx] %s:%d\n",	\
-	binary_filename,			\
-	(SYM),					\
-	(unsigned long) function_offset,	\
-	true_offset,				\
-	source_filename,			\
-	source_line
-#define STACK_ENTRY_SYMBOL_FMT(SYM)		\
-	" > %s(%s+0x%lx) [0x%lx]\n",		\
-	binary_filename,			\
-	(SYM),					\
-	(unsigned long) function_offset,	\
-	true_offset
-#define STACK_ENTRY_NOSYMBOL_FMT		\
-	" > %s() [0x%lx]\n",			\
-	binary_filename, true_offset
-#define STACK_ENTRY_BUG_FMT			\
-	" > BUG IN %s\n"
-#define STACK_ENTRY_ERROR_WITH_OFFSET_FMT	\
-	" > %s [0x%lx]\n", error, true_offset
-#define STACK_ENTRY_ERROR_FMT			\
-	" > %s\n", error
+static char *
+demangle_symbol(const char *symbol_name)
+{
+#ifdef USE_DEMANGLE
+	char *demangled_name = cplus_demangle(symbol_name,
+					      DMGL_AUTO | DMGL_PARAMS);
+	if (demangled_name)
+		return demangled_name;
+#endif
+	return xstrdup(symbol_name);
+}
+
+static void
+print_call(const char *binary_filename,
+	   const char *symbol_name,
+	   unwind_function_offset_t function_offset,
+	   unsigned long true_offset,
+	   const char *source_filename,
+	   int source_line,
+	   const char *func)
+{
+	if (symbol_name || binary_filename) {
+		tprint_stack_frame(binary_filename, symbol_name,
+				   function_offset, true_offset,
+				   source_filename, source_line);
+	} else {
+		char *bug = xasprintf("BUG IN %s", func);
+		tprint_stack_error(bug, 0);
+		free(bug);
+	}
+}
 
 static void
 print_call_cb(void *dummy,
@@ -115,33 +118,13 @@ print_call_cb(void *dummy,
 	      const char *source_filename,
 	      int source_line)
 {
-	if (symbol_name && (symbol_name[0] != '\0')) {
-#ifdef USE_DEMANGLE
-		char *demangled_name =
-			cplus_demangle(symbol_name,
-				       DMGL_AUTO | DMGL_PARAMS);
-#endif
-		source_filename
-			? tprintf_string(STACK_ENTRY_SYMBOL_WITH_SRCINFO_FMT(
-#ifdef USE_DEMANGLE
-						      demangled_name ? demangled_name :
-#endif
-						      symbol_name))
-			: tprintf_string(STACK_ENTRY_SYMBOL_FMT(
-#ifdef USE_DEMANGLE
-						      demangled_name ? demangled_name :
-#endif
-						      symbol_name));
-#ifdef USE_DEMANGLE
-		free(demangled_name);
-#endif
-	}
-	else if (binary_filename)
-		tprintf_string(STACK_ENTRY_NOSYMBOL_FMT);
-	else
-		tprintf_string(STACK_ENTRY_BUG_FMT, __func__);
+	char *symbol = NULL;
 
-	line_ended();
+	if (symbol_name && (symbol_name[0] != '\0'))
+		symbol = demangle_symbol(symbol_name);
+	print_call(binary_filename, symbol, function_offset, true_offset,
+		   source_filename, source_line, __func__);
+	free(symbol);
 }
 
 static void
@@ -149,64 +132,7 @@ print_error_cb(void *dummy,
 	       const char *error,
 	       unsigned long true_offset)
 {
-	if (true_offset)
-		tprintf_string(STACK_ENTRY_ERROR_WITH_OFFSET_FMT);
-	else
-		tprintf_string(STACK_ENTRY_ERROR_FMT);
-
-	line_ended();
-}
-
-static char *
-sprint_call_or_error(const char *binary_filename,
-		     const char *symbol_name,
-		     unwind_function_offset_t function_offset,
-		     unsigned long true_offset,
-		     const char *source_filename,
-		     int source_line,
-		     const char *error)
-{
-	char *output_line = NULL;
-	int n;
-
-	if (symbol_name) {
-#ifdef USE_DEMANGLE
-		char *demangled_name =
-			cplus_demangle(symbol_name,
-				       DMGL_AUTO | DMGL_PARAMS);
-#endif
-		n = source_filename
-			? asprintf(&output_line,
-				   STACK_ENTRY_SYMBOL_WITH_SRCINFO_FMT(
-#ifdef USE_DEMANGLE
-						    demangled_name ? demangled_name :
-#endif
-						    symbol_name))
-			: asprintf(&output_line,
-				   STACK_ENTRY_SYMBOL_FMT(
-#ifdef USE_DEMANGLE
-						    demangled_name ? demangled_name :
-#endif
-						    symbol_name));
-#ifdef USE_DEMANGLE
-		free(demangled_name);
-#endif
-	}
-	else if (binary_filename)
-		n = asprintf(&output_line, STACK_ENTRY_NOSYMBOL_FMT);
-	else if (error)
-		n = true_offset
-			? asprintf(&output_line, STACK_ENTRY_ERROR_WITH_OFFSET_FMT)
-			: asprintf(&output_line, STACK_ENTRY_ERROR_FMT);
-	else
-		n = asprintf(&output_line, STACK_ENTRY_BUG_FMT, __func__);
-
-	if (n < 0) {
-		perror_func_msg("asprintf");
-		output_line = (char *) asprintf_error_str;
-	}
-
-	return output_line;
+	tprint_stack_error(error, true_offset);
 }
 
 /*
@@ -225,13 +151,13 @@ queue_put(struct unwind_queue_t *queue,
 	struct call_t *call;
 
 	call = xmalloc(sizeof(*call));
-	call->output_line = sprint_call_or_error(binary_filename,
-						 symbol_name,
-						 function_offset,
-						 true_offset,
-						 source_filename,
-						 source_line,
-						 error);
+	call->binary_filename = xstrdup(binary_filename);
+	call->symbol_name = symbol_name ? demangle_symbol(symbol_name) : NULL;
+	call->function_offset = function_offset;
+	call->true_offset = true_offset;
+	call->source_filename = xstrdup(source_filename);
+	call->source_line = source_line;
+	call->error = xstrdup(error);
 	call->next = NULL;
 
 	if (!queue->head) {
@@ -283,15 +209,24 @@ queue_drain(struct unwind_queue_t *queue, bool print)
 		call = call->next;
 
 		if (print) {
-			tprints_string(tmp->output_line);
-			line_ended();
+			if (tmp->symbol_name || tmp->binary_filename
+			    || !tmp->error)
+				print_call(tmp->binary_filename,
+					   tmp->symbol_name,
+					   tmp->function_offset,
+					   tmp->true_offset,
+					   tmp->source_filename,
+					   tmp->source_line,
+					   "sprint_call_or_error");
+			else
+				tprint_stack_error(tmp->error,
+						   tmp->true_offset);
 		}
 
-		if (tmp->output_line != asprintf_error_str)
-			free(tmp->output_line);
-
-		tmp->output_line = NULL;
-		tmp->next = NULL;
+		free(tmp->binary_filename);
+		free(tmp->symbol_name);
+		free(tmp->source_filename);
+		free(tmp->error);
 		free(tmp);
 	}
 }
@@ -308,12 +243,14 @@ unwind_tcb_print(struct tcb *tcp)
 		return;
 	}
 #endif
+	tprint_stack_begin();
 	if (tcp->unwind_queue->head) {
 		debug_func_msg("head: tcp=%p, queue=%p",
 			       tcp, tcp->unwind_queue->head);
 		queue_drain(tcp->unwind_queue, true);
 	} else
 		unwinder.tcb_walk(tcp, print_call_cb, print_error_cb, NULL);
+	tprint_stack_end();
 }
 
 void
