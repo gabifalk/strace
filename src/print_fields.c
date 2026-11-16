@@ -2353,10 +2353,18 @@ void
 tprint_kd_io_port(unsigned long long port, bool gp,
 		  unsigned long long gp_index)
 {
-	PRINT_VAL_X(port);
+	if (structured_output) {
+		tprints_object_type("kd_io_port");
+		tprintf_object_field_string("raw", "%#llx", port);
+		if (gp)
+			tprintf_object_field_string("gp_index", "%llu",
+						    gp_index);
+	} else {
+		PRINT_VAL_X(port);
 
-	if (gp && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW)
-		tprintf_comment("GPFIRST + %llu", gp_index);
+		if (gp && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW)
+			tprintf_comment("GPFIRST + %llu", gp_index);
+	}
 }
 
 void
