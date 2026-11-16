@@ -12,11 +12,8 @@
 static void
 PRINT_TIMEX_TIME(const typeof_field(TIMEX_T, time) *const p)
 {
-	tprint_struct_begin();
-	PRINT_FIELD_D(*p, tv_sec);
-	tprint_struct_next();
-	PRINT_FIELD_U(*p, tv_usec);
-	tprint_struct_end();
+	tprint_timeval(sign_extend_unsigned_to_ll(p->tv_sec),
+		       zero_extend_signed_to_ull(p->tv_usec));
 }
 
 int

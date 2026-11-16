@@ -706,11 +706,8 @@ print_io_uring_sync_cancel_reg(struct tcb *tcp, const kernel_ulong_t addr,
 
 	tprint_struct_next();
 	tprints_field_name("timeout");
-	tprint_struct_begin();
-        PRINT_FIELD_D(arg.timeout, tv_sec);
-        tprint_struct_next();
-        PRINT_FIELD_D(arg.timeout, tv_nsec);
-        tprint_struct_end();
+	tprint_timespec_signed(sign_extend_unsigned_to_ll(arg.timeout.tv_sec),
+			       sign_extend_unsigned_to_ll(arg.timeout.tv_nsec));
 
 	tprint_struct_next();
 	PRINT_FIELD_XVAL(arg, opcode, uring_ops, "IORING_OP_???");

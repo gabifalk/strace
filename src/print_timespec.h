@@ -11,6 +11,9 @@
 #ifndef TIMESPEC_NSEC
 # define TIMESPEC_NSEC tv_nsec
 #endif
+#ifndef TPRINT_TIMESPEC
+# define TPRINT_TIMESPEC tprint_timespec
+#endif
 
 #ifndef UTIME_NOW
 # define UTIME_NOW ((1l << 30) - 1l)
@@ -29,12 +32,8 @@ static const char timespec_fmt[] =
 static void
 print_timespec_t(const TIMESPEC_T *t)
 {
-	tprint_struct_begin();
-	PRINT_FIELD_D(*t, tv_sec);
-	tprint_struct_next();
-	tprints_field_name(STRINGIFY_VAL(TIMESPEC_NSEC));
-	PRINT_VAL_U(t->TIMESPEC_NSEC);
-	tprint_struct_end();
+	TPRINT_TIMESPEC(sign_extend_unsigned_to_ll(t->tv_sec),
+			zero_extend_signed_to_ull(t->TIMESPEC_NSEC));
 }
 
 #if defined PRINT_TIMESPEC_DATA_SIZE || defined PRINT_TIMESPEC_ARRAY_DATA_SIZE
@@ -129,14 +128,10 @@ print_timespec_t_utime(struct tcb *tcp, void *elem_buf, size_t elem_size,
 	switch (t->TIMESPEC_NSEC) {
 	case UTIME_NOW:
 	case UTIME_OMIT:
-		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-			print_timespec_t(t);
-		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-			break;
-
-		(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-			? tprints_comment : tprints_string)(t->TIMESPEC_NSEC == UTIME_NOW
-				? "UTIME_NOW" : "UTIME_OMIT");
+		tprint_timespec_sym(sign_extend_unsigned_to_ll(t->tv_sec),
+				    zero_extend_signed_to_ull(t->TIMESPEC_NSEC),
+				    t->TIMESPEC_NSEC == UTIME_NOW
+				    ? "UTIME_NOW" : "UTIME_OMIT");
 		break;
 	default:
 		print_timespec_t(t);

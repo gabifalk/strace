@@ -18,11 +18,8 @@
 static void
 print_statx_timestamp(const struct_statx_timestamp *const p)
 {
-	tprint_struct_begin();
-	PRINT_FIELD_D(*p, tv_sec);
-	tprint_struct_next();
-	PRINT_FIELD_U(*p, tv_nsec);
-	tprint_struct_end();
+	tprint_timespec(sign_extend_unsigned_to_ll(p->tv_sec),
+			zero_extend_signed_to_ull(p->tv_nsec));
 	tprints_timestamp_comment(sprinttime_nsec(p->tv_sec,
 		zero_extend_signed_to_ull(p->tv_nsec)));
 }

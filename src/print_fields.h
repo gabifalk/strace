@@ -246,6 +246,11 @@ extern void tprint_secontext_pid(const char *ctx, unsigned int ctx_len,
 extern void tprint_var_count(unsigned long long addr, unsigned int count,
 			     bool unterminated);
 extern void tprint_char(unsigned char c);
+extern void tprint_timespec(long long sec, unsigned long long nsec);
+extern void tprint_timespec_signed(long long sec, long long nsec);
+extern void tprint_timespec_sym(long long sec, unsigned long long nsec,
+				const char *sym);
+extern void tprint_timeval(long long sec, unsigned long long usec);
 extern void tprint_extra_data_unavailable(void);
 extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
 extern void tprint_extra_data_end(bool truncated);

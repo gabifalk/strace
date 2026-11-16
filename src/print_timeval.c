@@ -23,11 +23,8 @@ static const char timeval_fmt[]  = "{tv_sec=%lld, tv_usec=%llu}";
 static void
 print_timeval_t(const timeval_t *t)
 {
-	tprint_struct_begin();
-	PRINT_FIELD_D(*t, tv_sec);
-	tprint_struct_next();
-	PRINT_FIELD_U(*t, tv_usec);
-	tprint_struct_end();
+	tprint_timeval(sign_extend_unsigned_to_ll(t->tv_sec),
+		       zero_extend_signed_to_ull(t->tv_usec));
 }
 
 static bool
@@ -123,11 +120,8 @@ MPERS_PRINTER_DECL(int, print_itimerval,
 void
 print_timeval32_t(const timeval32_t *t)
 {
-	tprint_struct_begin();
-	PRINT_FIELD_D(*t, tv_sec);
-	tprint_struct_next();
-	PRINT_FIELD_U(*t, tv_usec);
-	tprint_struct_end();
+	tprint_timeval(sign_extend_unsigned_to_ll(t->tv_sec),
+		       zero_extend_signed_to_ull(t->tv_usec));
 }
 
 static bool

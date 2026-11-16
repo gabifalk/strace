@@ -9,6 +9,7 @@
 
 #define TIMESPEC_T kernel_timeval64_t
 #define TIMESPEC_NSEC tv_usec
+#define TPRINT_TIMESPEC tprint_timeval
 #define PRINT_TIMESPEC_DATA_SIZE print_timeval64_data_size
 
 #include "kernel_timeval.h"

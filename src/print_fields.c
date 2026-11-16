@@ -874,6 +874,53 @@ tprint_var_count(unsigned long long addr, unsigned int count,
 }
 
 void
+tprint_timespec(long long sec, unsigned long long nsec)
+{
+	tprint_struct_begin();
+	tprints_field_name("tv_sec");
+	PRINT_VAL_D(sec);
+	tprint_struct_next();
+	tprints_field_name("tv_nsec");
+	PRINT_VAL_U(nsec);
+	tprint_struct_end();
+}
+
+void
+tprint_timespec_signed(long long sec, long long nsec)
+{
+	tprint_struct_begin();
+	tprints_field_name("tv_sec");
+	PRINT_VAL_D(sec);
+	tprint_struct_next();
+	tprints_field_name("tv_nsec");
+	PRINT_VAL_D(nsec);
+	tprint_struct_end();
+}
+
+void
+tprint_timespec_sym(long long sec, unsigned long long nsec, const char *sym)
+{
+	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+		tprint_timespec(sec, nsec);
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprints_comment(sym);
+	else if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV)
+		tprints_string(sym);
+}
+
+void
+tprint_timeval(long long sec, unsigned long long usec)
+{
+	tprint_struct_begin();
+	tprints_field_name("tv_sec");
+	PRINT_VAL_D(sec);
+	tprint_struct_next();
+	tprints_field_name("tv_usec");
+	PRINT_VAL_U(usec);
+	tprint_struct_end();
+}
+
+void
 tprint_char(unsigned char c)
 {
 	if (structured_output) {
