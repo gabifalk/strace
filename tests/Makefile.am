@@ -376,6 +376,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-prctl-sched-core \
 	jsonl-prctl-tsc \
 	jsonl-printsignal \
+	jsonl-pwritev \
 	jsonl-sched_get_priority_mxx \
 	jsonl-seccomp_get_notif_sizes \
 	jsonl-setgroups \
@@ -620,6 +621,7 @@ fstat64_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 fstatat64_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 ftruncate_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 ftruncate64_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
+jsonl_pwritev_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
 localtime_LDADD = $(clock_LIBS) $(LDADD)
 looping_threads_LDADD = -lpthread $(LDADD)
 lseek_CPPFLAGS = $(AM_CPPFLAGS) -D_FILE_OFFSET_BITS=64
@@ -1134,6 +1136,7 @@ EXTRA_DIST = \
 	jsonl-prctl-sched-core.c \
 	jsonl-prctl-tsc.c \
 	jsonl-printsignal.c \
+	jsonl-pwritev.c \
 	jsonl-sched_get_priority_mxx.c \
 	jsonl-seccomp_get_notif_sizes.c \
 	jsonl-setgroups.c \
