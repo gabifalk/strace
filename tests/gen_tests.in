@@ -609,6 +609,7 @@ jsonl-merged-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_seccomp	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_sock_gifconf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_termios	+jsonl-ioctl.sh -e trace=ioctl -v
+jsonl-merged-ioctl_tun_filter	+jsonl-ioctl.sh -e trace=ioctl -v
 jsonl-merged-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-merged-ip_mreq	-e trace=setsockopt
 jsonl-merged-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
@@ -686,6 +687,7 @@ jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-merged-ppoll	-e trace=ppoll
 jsonl-merged-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
+jsonl-merged-seccomp-filter	-e trace=seccomp -v
 jsonl-merged-prctl-dumpable	-e trace=prctl
 jsonl-merged-prctl-mce-kill	-e trace=prctl
 jsonl-merged-prctl-no-args	-e trace=prctl
@@ -781,6 +783,7 @@ jsonl-split-ioctl_scsi	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_seccomp	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_sock_gifconf	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_termios	+jsonl-ioctl.sh -e trace=ioctl -v
+jsonl-split-ioctl_tun_filter	+jsonl-ioctl.sh -e trace=ioctl -v
 jsonl-split-ioprio_get	-e trace=ioprio_get -e inject=ioprio_get:retval=0x4004
 jsonl-split-ip_mreq	-e trace=setsockopt
 jsonl-split-keyctl	-s10 -f --signal='!chld' -e trace=keyctl
@@ -858,6 +861,7 @@ jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-pidfd_send_signal	-e trace=pidfd_send_signal
 jsonl-split-ppoll	-e trace=ppoll
 jsonl-split-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
+jsonl-split-seccomp-filter	-e trace=seccomp -v
 jsonl-split-prctl-dumpable	-e trace=prctl
 jsonl-split-prctl-mce-kill	-e trace=prctl
 jsonl-split-prctl-no-args	-e trace=prctl

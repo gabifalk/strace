@@ -333,6 +333,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_seccomp \
 	jsonl-ioctl_sock_gifconf \
 	jsonl-ioctl_termios \
+	jsonl-ioctl_tun_filter \
 	jsonl-ioprio_get \
 	jsonl-ip_mreq \
 	jsonl-keyctl \
@@ -410,6 +411,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-pidfd_send_signal \
 	jsonl-ppoll \
 	jsonl-prctl \
+	jsonl-seccomp-filter \
 	jsonl-prctl-dumpable \
 	jsonl-prctl-mce-kill \
 	jsonl-prctl-no-args \
@@ -1157,6 +1159,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_seccomp.c \
 	jsonl-ioctl_sock_gifconf.c \
 	jsonl-ioctl_termios.c \
+	jsonl-ioctl_tun_filter.c \
 	jsonl-ioprio_get.c \
 	jsonl-ip_mreq.c \
 	jsonl-keyctl.c \
@@ -1234,6 +1237,7 @@ EXTRA_DIST = \
 	jsonl-pidfd_send_signal.c \
 	jsonl-ppoll.c \
 	jsonl-prctl.c \
+	jsonl-seccomp-filter.c \
 	jsonl-prctl-dumpable.c \
 	jsonl-prctl-mce-kill.c \
 	jsonl-prctl-no-args.c \
