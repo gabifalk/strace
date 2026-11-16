@@ -570,6 +570,7 @@ jsonl-netlink_kobject_uevent
 jsonl-netlink_netfilter
 jsonl-netlink_protocol
 jsonl-netlink_route
+jsonl-nfnetlink_acct
 jsonl-nlattr
 jsonl-nlattr_ndmsg
 jsonl-pause

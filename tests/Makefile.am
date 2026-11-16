@@ -313,6 +313,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-netlink_netfilter \
 	jsonl-netlink_protocol \
 	jsonl-netlink_route \
+	jsonl-nfnetlink_acct \
 	jsonl-nlattr \
 	jsonl-nlattr_ndmsg \
 	jsonl-pause \
@@ -1018,6 +1019,7 @@ EXTRA_DIST = \
 	jsonl-netlink_netfilter.c \
 	jsonl-netlink_protocol.c \
 	jsonl-netlink_route.c \
+	jsonl-nfnetlink_acct.c \
 	jsonl-nlattr.c \
 	jsonl-nlattr_ndmsg.c \
 	jsonl-pause.c \
