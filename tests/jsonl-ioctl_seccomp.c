@@ -1,7 +1,8 @@
 /*
  * Check JSONL output of the nr field of struct seccomp_data printed by
  * the SECCOMP_IOCTL_NOTIF_RECV ioctl command: a syscall value carrying
- * the personality the architecture and the number select, if any.
+ * the personality the architecture and the number select, if any; and of
+ * a struct seccomp_notif zero-filled on entering, printed on exiting only.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -81,6 +82,13 @@ main(int argc, char *argv[])
 
 	TAIL_ALLOC_OBJECT_CONST_PTR(struct seccomp_notif, notif);
 	memset(notif, 0, sizeof(*notif));
+
+	jsonl_ioctl_call(SECCOMP_IOCTL_NOTIF_RECV, "SECCOMP_IOCTL_NOTIF_RECV",
+			 NULL, notif);
+	jsonl_ioctl_argp_open("argp", true);
+	jsonl_addr(notif);
+	jsonl_ioctl_argp_close();
+	jsonl_ioctl_end();
 
 	test_notif_recv(notif, 224, "gettid",
 			AUDIT_ARCH_I386, "AUDIT_ARCH_I386", 1);

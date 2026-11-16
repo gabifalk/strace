@@ -1,7 +1,8 @@
 /*
  * Check JSONL output of the PERF_EVENT_IOC_MODIFY_ATTRIBUTES ioctl command:
  * the precise_ip field of struct perf_event_attr is a perf_precise_ip value,
- * and its __reserved_1 field is a reserved_bits value.
+ * and its __reserved_1 field is a reserved_bits value; and of the failing
+ * PERF_EVENT_IOC_QUERY_BPF command, whose split struct has no exiting part.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -76,6 +77,20 @@ main(int argc, char *argv[])
 		jsonl_ioctl_argp_close();
 		jsonl_ioctl_end();
 	}
+
+	TAIL_ALLOC_OBJECT_CONST_PTR(struct perf_event_query_bpf, query);
+	memset(query, 0, sizeof(*query));
+	query->ids_len = 3;
+
+	jsonl_ioctl_call(PERF_EVENT_IOC_QUERY_BPF, "PERF_EVENT_IOC_QUERY_BPF",
+			 NULL, query);
+	jsonl_ioctl_argp_open("argp", false);
+	jsonl_struct_open();
+	jsonl_field_unsigned("ids_len", true, query->ids_len);
+	jsonl_struct_close();
+	printf(", \"split\": true");
+	jsonl_ioctl_argp_close();
+	jsonl_ioctl_end();
 
 	jsonl_exit_event(0);
 	return 0;

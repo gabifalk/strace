@@ -594,6 +594,7 @@ jsonl-merged-getgid	-e trace=getgid
 jsonl-merged-getrandom	-s3 -e trace=getrandom "QUIRK:START-OF-TEST-OUTPUT-REGEX:.buf., [^}]*.raw.: null"
 jsonl-merged-getresuid	-e trace=getresuid
 jsonl-merged-getsockname	-e trace=getsockname
+jsonl-merged-getxattrat	-e trace=getxattrat
 jsonl-merged-group_req	-e trace=setsockopt
 jsonl-merged-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=42 -e inject=vhangup:error=ENOTTY
 jsonl-merged-ioctl	+jsonl-ioctl.sh -e trace=ioctl
@@ -608,6 +609,7 @@ jsonl-merged-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-merged-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_kvm_run	+jsonl-ioctl.sh -e kvm=vcpu+ -e trace=ioctl
 jsonl-merged-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-merged-ioctl_pidfd	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-ioctl_btrfs	+jsonl-ioctl.sh -e trace=ioctl
@@ -627,6 +629,7 @@ jsonl-merged-kill	-e signal=none -e trace=kill
 jsonl-merged-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-merged-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-merged-listmount	-e trace=listmount
+jsonl-merged-lsm_get_self_attr	-e trace=lsm_get_self_attr
 jsonl-merged-lsm_set_self_attr	-e trace=lsm_set_self_attr
 jsonl-merged-membarrier	-e trace=membarrier -e inject=membarrier:retval=3
 jsonl-merged-memfd_create	-e trace=memfd_create
@@ -804,6 +807,7 @@ jsonl-split-getgid	-e trace=getgid
 jsonl-split-getrandom	-s3 -e trace=getrandom "QUIRK:START-OF-TEST-OUTPUT-REGEX:.buf., [^}]*.raw.: null"
 jsonl-split-getresuid	-e trace=getresuid
 jsonl-split-getsockname	-e trace=getsockname
+jsonl-split-getxattrat	-e trace=getxattrat
 jsonl-split-group_req	-e trace=setsockopt
 jsonl-split-injected	-e trace=sched_yield,vhangup -e inject=sched_yield:retval=42 -e inject=vhangup:error=ENOTTY
 jsonl-split-ioctl	+jsonl-ioctl.sh -e trace=ioctl
@@ -818,6 +822,7 @@ jsonl-split-ioctl_kd_uniscrnmap	+jsonl-ioctl.sh -e trace=ioctl -s3
 jsonl-split-ioctl_gpio	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_kvm_run	+jsonl-ioctl.sh -e kvm=vcpu+ -e trace=ioctl
 jsonl-split-ioctl_lirc	+jsonl-ioctl.sh -e trace=ioctl
+jsonl-split-ioctl_pidfd	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_random	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_block	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-ioctl_btrfs	+jsonl-ioctl.sh -e trace=ioctl
@@ -837,6 +842,7 @@ jsonl-split-kill	-e signal=none -e trace=kill
 jsonl-split-killed	-qq -f -e signal=SIGKILL -e trace=none
 jsonl-split-landlock_create_ruleset	-e trace=landlock_create_ruleset
 jsonl-split-listmount	-e trace=listmount
+jsonl-split-lsm_get_self_attr	-e trace=lsm_get_self_attr
 jsonl-split-lsm_set_self_attr	-e trace=lsm_set_self_attr
 jsonl-split-membarrier	-e trace=membarrier -e inject=membarrier:retval=3
 jsonl-split-memfd_create	-e trace=memfd_create

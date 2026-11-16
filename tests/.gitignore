@@ -576,6 +576,7 @@ jsonl-getgid
 jsonl-getrandom
 jsonl-getresuid
 jsonl-getsockname
+jsonl-getxattrat
 jsonl-group_req
 jsonl-injected
 jsonl-io_uring_register
@@ -591,6 +592,7 @@ jsonl-ioctl_kd_uniscrnmap
 jsonl-ioctl_gpio
 jsonl-ioctl_kvm_run
 jsonl-ioctl_lirc
+jsonl-ioctl_pidfd
 jsonl-ioctl_random
 jsonl-ioctl_block
 jsonl-ioctl_btrfs
@@ -611,6 +613,7 @@ jsonl-kill
 jsonl-killed
 jsonl-landlock_create_ruleset
 jsonl-listmount
+jsonl-lsm_get_self_attr
 jsonl-lsm_set_self_attr
 jsonl-membarrier
 jsonl-memfd_create

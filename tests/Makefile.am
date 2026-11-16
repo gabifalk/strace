@@ -319,6 +319,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-getrandom \
 	jsonl-getresuid \
 	jsonl-getsockname \
+	jsonl-getxattrat \
 	jsonl-group_req \
 	jsonl-injected \
 	jsonl-io_uring_register \
@@ -334,6 +335,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-ioctl_gpio \
 	jsonl-ioctl_kvm_run \
 	jsonl-ioctl_lirc \
+	jsonl-ioctl_pidfd \
 	jsonl-ioctl_random \
 	jsonl-ioctl_block \
 	jsonl-ioctl_btrfs \
@@ -354,6 +356,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-killed \
 	jsonl-landlock_create_ruleset \
 	jsonl-listmount \
+	jsonl-lsm_get_self_attr \
 	jsonl-lsm_set_self_attr \
 	jsonl-membarrier \
 	jsonl-memfd_create \
@@ -1188,6 +1191,7 @@ EXTRA_DIST = \
 	jsonl-getrandom.c \
 	jsonl-getresuid.c \
 	jsonl-getsockname.c \
+	jsonl-getxattrat.c \
 	jsonl-group_req.c \
 	jsonl-injected.c \
 	jsonl-io_uring_register.c \
@@ -1202,6 +1206,7 @@ EXTRA_DIST = \
 	jsonl-ioctl_gpio.c \
 	jsonl-ioctl_kvm_run.c \
 	jsonl-ioctl_lirc.c \
+	jsonl-ioctl_pidfd.c \
 	jsonl-ioctl_random.c \
 	jsonl-ioctl_block.c \
 	jsonl-ioctl_btrfs.c \
@@ -1222,6 +1227,7 @@ EXTRA_DIST = \
 	jsonl-killed.c \
 	jsonl-landlock_create_ruleset.c \
 	jsonl-listmount.c \
+	jsonl-lsm_get_self_attr.c \
 	jsonl-lsm_set_self_attr.c \
 	jsonl-membarrier.c \
 	jsonl-memfd_create.c \
