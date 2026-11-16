@@ -394,14 +394,27 @@ tprint_fd_info_dev(const char *path, const char *kind, unsigned int major,
 void
 tprint_fd_info_pidfd(int pid)
 {
-	tprint_associated_info_begin();
-	STRACE_PRINTS("pid:");
-	/*
-	 * The pid translation is not needed because
-	 * the pid is in strace's namespace.
-	 */
-	printpid(NULL, pid, PT_TID);
-	tprint_associated_info_end();
+	if (structured_output) {
+		tprints_object_field_begin("fd_info");
+		tprint_object_begin();
+		tprints_object_type("pidfd");
+		tprints_object_field_begin("pid");
+		tprint_object_begin();
+		printpid(NULL, pid, PT_TID);
+		tprint_object_end();
+		tprint_object_field_end();
+		tprint_object_end();
+		tprint_object_field_end();
+	} else {
+		tprint_associated_info_begin();
+		STRACE_PRINTS("pid:");
+		/*
+		 * The pid translation is not needed because
+		 * the pid is in strace's namespace.
+		 */
+		printpid(NULL, pid, PT_TID);
+		tprint_associated_info_end();
+	}
 }
 
 void
