@@ -1074,6 +1074,8 @@ tprints_field_name(const char *name)
 void
 tprints_unnamed_field_name(const char *name)
 {
+	if (structured_output)
+		tprints_field_name(name);
 }
 
 void
