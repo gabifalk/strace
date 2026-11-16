@@ -46,16 +46,6 @@ jsonl_open(int fd)
 }
 
 static void
-jsonl_addr(const void *p)
-{
-	if (p)
-		printf("\"type\": \"addr\", \"raw\": \"%#lx\"",
-		       (unsigned long) (uintptr_t) p);
-	else
-		printf("\"type\": \"addr\", \"raw\": null");
-}
-
-static void
 jsonl_addrlen(socklen_t len, const char *extra)
 {
 	printf("\"type\": \"decimal\", \"raw\": \"%u\", \"indirect\": true%s",

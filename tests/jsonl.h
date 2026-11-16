@@ -13,6 +13,7 @@
 # include <errno.h>
 # include <inttypes.h>
 # include <stdbool.h>
+# include <stdint.h>
 # include <stdio.h>
 # include <string.h>
 # include <unistd.h>
@@ -242,6 +243,167 @@ jsonl_ticks(uint64_t raw)
 	       "\"hz\": \"%ld\", \"precision\": \"%u\"", raw, hz, precision);
 }
 
+/* The fields of an addr value: a hex "raw", or null for a NULL pointer. */
+static inline void
+jsonl_addr(const void *p)
+{
+	if (p)
+		printf("\"type\": \"addr\", \"raw\": \"%#lx\"",
+		       (unsigned long) (uintptr_t) p);
+	else
+		printf("\"type\": \"addr\", \"raw\": null");
+}
+
+/* The fields of an unsigned value. */
+static inline void
+jsonl_unsigned(uint64_t val)
+{
+	printf("\"type\": \"unsigned\", \"raw\": \"%" PRIu64 "\"", val);
+}
+
+/* The fields of a decimal value. */
+static inline void
+jsonl_decimal(int64_t val)
+{
+	printf("\"type\": \"decimal\", \"raw\": \"%" PRId64 "\"", val);
+}
+
+/* The fields of a hex value. */
+static inline void
+jsonl_hex(uint64_t val)
+{
+	printf("\"type\": \"hex\", \"raw\": ");
+	jsonl_xlat_raw(val);
+}
+
+/* The fields of a bytes value of len bytes, optionally marked truncated. */
+static inline void
+jsonl_bytes_value(const void *p, size_t len, bool truncated)
+{
+	printf("\"type\": \"bytes\", \"value\": ");
+	jsonl_bytes_n(p, len);
+	if (truncated)
+		jsonl_truncated();
+}
+
+/* The fields of a string value of len bytes, optionally marked truncated. */
+static inline void
+jsonl_string_value(const void *p, size_t len, bool truncated)
+{
+	printf("\"type\": \"string\", \"value\": ");
+	jsonl_bytes_n(p, len);
+	if (truncated)
+		jsonl_truncated();
+}
+
+/* The fields of a path value of a NUL-terminated path. */
+static inline void
+jsonl_path_value(const char *path)
+{
+	printf("\"type\": \"path\", \"value\": ");
+	jsonl_bytes(path);
+}
+
+/* The fields of an ifindex value, with an "ifname" when ifname is non-NULL. */
+static inline void
+jsonl_ifindex(unsigned int index, const char *ifname)
+{
+	printf("\"type\": \"ifindex\", \"raw\": \"%u\"", index);
+	if (ifname)
+		printf(", \"ifname\": \"%s\"", ifname);
+}
+
+/* The fields of a mac value: len colon-separated hex octets. */
+static inline void
+jsonl_mac(const void *addr, size_t len)
+{
+	printf("\"type\": \"mac\", \"value\": \"");
+	for (size_t i = 0; i < len; ++i)
+		printf("%s%02x", i ? ":" : "",
+		       ((const unsigned char *) addr)[i]);
+	printf("\"");
+}
+
+/* The fields of an ip_addr value: the family const and the address text. */
+static inline void
+jsonl_ip_addr(int af, const char *af_sym, const char *addr)
+{
+	printf("\"type\": \"ip_addr\", \"family\": {");
+	jsonl_const(af, true, af_sym, NULL);
+	printf("}, \"addr\": \"%s\"", addr);
+}
+
+/* The suffix of a value of size bytes stored in network byte order. */
+static inline void
+jsonl_byteorder_big(size_t size)
+{
+	printf(", \"byteorder\": \"big\", \"size\": %zu", size);
+}
+
+/* Open a struct value up to its first field: "type": "struct", "fields": { */
+static inline void
+jsonl_struct_open(void)
+{
+	printf("\"type\": \"struct\", \"fields\": {");
+}
+
+/* Close the fields object of a struct value. */
+static inline void
+jsonl_struct_close(void)
+{
+	printf("}");
+}
+
+/*
+ * Close the fields object of a struct value whose next field at addr
+ * could not be fetched, and add the address.
+ */
+static inline void
+jsonl_struct_close_fetch_failed(const void *addr)
+{
+	printf("}, \"fetch_failed_addr\": \"%#lx\"",
+	       (unsigned long) (uintptr_t) addr);
+}
+
+/* Open a struct field up to the fields of its value: [, ]"<name>": { */
+static inline void
+jsonl_field_open(const char *name, bool first)
+{
+	printf("%s\"%s\": {", first ? "" : ", ", name);
+}
+
+/* Close a struct field opened by jsonl_field_open. */
+static inline void
+jsonl_field_close(void)
+{
+	printf("}");
+}
+
+/* Open an array value up to its first element: "type": "array", "elems": [ */
+static inline void
+jsonl_array_open(void)
+{
+	printf("\"type\": \"array\", \"elems\": [");
+}
+
+/* Close the elems array of an array value. */
+static inline void
+jsonl_array_close(void)
+{
+	printf("]");
+}
+
+/*
+ * The tail of an array whose next element at addr could not be fetched:
+ * the closing bracket and the address.
+ */
+static inline void
+jsonl_array_fetch_failed(const void *addr)
+{
+	printf("], \"fetch_failed_addr\": \"%#lx\"",
+	       (unsigned long) (uintptr_t) addr);
+}
+
 /*
  * Open a flags value with its single implicit group, up to the elems array:
  * "type": "flags", "raw": "<raw>", "groups": [{"raw": "<raw>",
@@ -285,6 +447,34 @@ static inline void
 jsonl_flags_close(void)
 {
 	printf("]}]");
+}
+
+/*
+ * The fields of a flags value: the entries of the known table that are set
+ * in raw (a zero entry matches a zero raw only), in the order of the table,
+ * followed by a remainder with the leftover bits; dflt is the "sym" of the
+ * remainder when no entry has matched.
+ */
+static inline void
+jsonl_flags(uint64_t raw, const struct strval32 *known, size_t n,
+	    const char *dflt)
+{
+	uint64_t rem = raw;
+	bool first = true;
+
+	jsonl_flags_open(raw);
+	for (size_t i = 0; i < n; ++i) {
+		const uint64_t val = known[i].val;
+
+		if (val ? (raw & val) != val : raw != 0)
+			continue;
+		jsonl_flags_const(val, known[i].str, first);
+		rem &= ~val;
+		first = false;
+	}
+	if (rem)
+		jsonl_flags_remainder(rem, first ? dflt : NULL, first);
+	jsonl_flags_close();
 }
 
 #endif /* !STRACE_TESTS_JSONL_H */

@@ -31,7 +31,7 @@ jsonl_open(void)
 }
 
 static void
-jsonl_flags(const char *side)
+jsonl_arg_flags(const char *side)
 {
 	printf(", ");
 	jsonl_arg_open(2, "flags", side);
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 	jsonl_arg_open(1, "targetfd", side);
 	printf("\"type\": \"decimal\", \"raw\": \"-1\"");
 	jsonl_arg_close(side);
-	jsonl_flags(side);
+	jsonl_arg_flags(side);
 	jsonl_close();
 	jsonl_return("fd", rc);
 	printf("}\n");
@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 	jsonl_arg_open(1, "targetfd", side);
 	jsonl_fd_dev(fd, "/dev/null", &st);
 	jsonl_arg_close(side);
-	jsonl_flags(side);
+	jsonl_arg_flags(side);
 	jsonl_close();
 	printf("\"return\": {");
 	jsonl_fd_dev(rc, "/dev/null", &st);
