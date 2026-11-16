@@ -165,6 +165,7 @@ print_inet_addr(const int af,
 
 	if (var_name)
 		tprints_field_name(var_name);
+	tprints_object_type("bytes");
 	print_quoted_string(addr, len, QUOTE_FORCE_HEX);
 	return false;
 }
