@@ -414,12 +414,23 @@ tprints_sysret_string(const char *name, const char *str)
 void
 tprint_negated_begin(long long raw)
 {
-	tprints_string("-");
+	if (structured_output) {
+		tprints_object_type("negated");
+		tprintf_object_field_string("raw", "%lld", raw);
+		tprints_object_field_begin("value");
+		tprint_object_begin();
+	} else {
+		tprints_string("-");
+	}
 }
 
 void
 tprint_negated_end(void)
 {
+	if (structured_output) {
+		tprint_object_end();
+		tprint_object_field_end();
+	}
 }
 
 void
