@@ -1655,38 +1655,77 @@ tprint_reserved_bits(unsigned long long val, unsigned int from,
 void
 tprint_sigmask_begin(const uint32_t *mask, unsigned int nwords, bool inverted)
 {
-	if (inverted)
-		STRACE_PRINTS("~");
-	STRACE_PRINTS("[");
+	if (structured_output) {
+		char raw[sizeof("0x") + 2 * sizeof(uint32_t) * 8];
+		char *p = raw;
+
+		while (nwords > 0 && !mask[nwords - 1])
+			--nwords;
+		if (nwords > 8)
+			nwords = 8;
+
+		tprints_object_type("bitset");
+		if (nwords) {
+			p = xappendstr(raw, p, "%#x", mask[nwords - 1]);
+			for (unsigned int i = nwords - 1; i > 0; --i)
+				p = xappendstr(raw, p, "%08x", mask[i - 1]);
+			tprints_object_field_string("raw", raw);
+		} else {
+			tprints_object_field_string("raw", "0");
+		}
+		if (inverted)
+			tprints_object_field_bool("inverted", true);
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else {
+		if (inverted)
+			STRACE_PRINTS("~");
+		STRACE_PRINTS("[");
+	}
 }
 
 void
 tprint_sigmask_next(void)
 {
-	STRACE_PRINTS(" ");
+	if (!structured_output)
+		STRACE_PRINTS(" ");
 }
 
 void
 tprint_sigmask_end(void)
 {
-	STRACE_PRINTS("]");
+	if (structured_output) {
+		tprint_list_end();
+		tprint_object_field_end();
+	} else {
+		STRACE_PRINTS("]");
+	}
 }
 
 void
 tprint_sigmask_member(unsigned int sig, const char *name)
 {
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		STRACE_PRINTF("%u", sig);
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		STRACE_PRINTS(" /* ");
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		if (name)
-			STRACE_PRINTS(name + 3);
-		else if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+	if (structured_output) {
+		tprint_list_element_begin();
+		tprint_object_begin();
+		tprint_signal(sig, name);
+		tprint_object_end();
+		tprint_list_element_end();
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
 			STRACE_PRINTF("%u", sig);
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			STRACE_PRINTS(" /* ");
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
+			if (name)
+				STRACE_PRINTS(name + 3);
+			else if (xlat_verbose(xlat_verbosity)
+				 != XLAT_STYLE_ABBREV)
+				STRACE_PRINTF("%u", sig);
+		}
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			STRACE_PRINTS(" */");
 	}
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		STRACE_PRINTS(" */");
 }
 
 void
