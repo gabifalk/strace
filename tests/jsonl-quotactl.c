@@ -1,6 +1,7 @@
 /*
  * Check JSONL output of a composite command: the op argument of quotactl,
- * whose command and quota type are its two named parts.
+ * whose command and quota type are its two named parts, and the position
+ * of addr when the command does not print id.
  *
  * Copyright (c) 2026 The strace developers.
  * All rights reserved.
@@ -18,6 +19,7 @@
 # include <stdio.h>
 # include <string.h>
 # include <unistd.h>
+# include <linux/dqblk_xfs.h>
 # include <linux/quota.h>
 
 # define Q_UNKNOWN	0x123U
@@ -87,6 +89,16 @@ main(int argc, char *argv[])
 	printf(", ");
 	jsonl_arg_open(3, "addr", side);
 	jsonl_path_value(qfile);
+	jsonl_arg_close(side);
+	quotactl_close(rc, err);
+
+	rc = syscall(__NR_quotactl, QCMD(Q_XQUOTAOFF, GRPQUOTA), special, 0, 0);
+	err = errno;
+	quotactl_open();
+	print_op(Q_XQUOTAOFF, "Q_XQUOTAOFF", GRPQUOTA, "GRPQUOTA");
+	printf(", ");
+	jsonl_arg_open(3, "addr", side);
+	jsonl_addr(NULL);
 	jsonl_arg_close(side);
 	quotactl_close(rc, err);
 

@@ -309,6 +309,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-fork-f \
 	jsonl-fsconfig \
 	jsonl-get_mempolicy \
+	jsonl-get_thread_area \
 	jsonl-getcpu \
 	jsonl-getdents64 \
 	jsonl-getdents64-v \
@@ -476,6 +477,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-swapon \
 	jsonl-sysinfo \
 	jsonl-time \
+	jsonl-times \
 	jsonl-timespec \
 	jsonl-timestamps \
 	jsonl-unshare \
@@ -1176,6 +1178,7 @@ EXTRA_DIST = \
 	jsonl-fork-f.c \
 	jsonl-fsconfig.c \
 	jsonl-get_mempolicy.c \
+	jsonl-get_thread_area.c \
 	jsonl-getcpu.c \
 	jsonl-getdents64-v.c \
 	jsonl-getdents64.c \
@@ -1342,6 +1345,7 @@ EXTRA_DIST = \
 	jsonl-swapon.c \
 	jsonl-sysinfo.c \
 	jsonl-time.c \
+	jsonl-times.c \
 	jsonl-timespec.c \
 	jsonl-timestamps.c \
 	jsonl-unshare.c \

@@ -584,6 +584,7 @@ jsonl-merged-file_setattr	-e trace=file_setattr
 jsonl-merged-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-merged-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-merged-get_mempolicy	-s3 -e trace=get_mempolicy
+jsonl-merged-get_thread_area	-e trace=get_thread_area
 jsonl-merged-getcpu	-e trace=getcpu
 jsonl-merged-getdents64	-e trace=getdents64
 jsonl-merged-getdents64-v	-v -e trace=getdents64
@@ -745,6 +746,7 @@ jsonl-merged-superseded	-qq -f -e trace=none
 jsonl-merged-swapon	-e trace=swapon
 jsonl-merged-sysinfo	-e trace=sysinfo
 jsonl-merged-time	-e trace=time
+jsonl-merged-times	-e trace=times
 jsonl-merged-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
 jsonl-merged-timestamps	+jsonl-timestamps.sh -tt -r -e trace=chdir
 jsonl-merged-unshare	--namespace=new -e trace=unshare -e inject=unshare:retval=0
@@ -792,6 +794,7 @@ jsonl-split-file_setattr	-e trace=file_setattr
 jsonl-split-fork-f	-qq -f -e signal=none -e trace=chdir
 jsonl-split-fsconfig	-s300 -y -e trace=fsconfig
 jsonl-split-get_mempolicy	-s3 -e trace=get_mempolicy
+jsonl-split-get_thread_area	-e trace=get_thread_area
 jsonl-split-getcpu	-e trace=getcpu
 jsonl-split-getdents64	-e trace=getdents64
 jsonl-split-getdents64-v	-v -e trace=getdents64
@@ -953,6 +956,7 @@ jsonl-split-superseded	-qq -f -e trace=none
 jsonl-split-swapon	-e trace=swapon
 jsonl-split-sysinfo	-e trace=sysinfo
 jsonl-split-time	-e trace=time
+jsonl-split-times	-e trace=times
 jsonl-split-timespec	-e trace=utimensat,futimesat,nanosleep,io_uring_register
 jsonl-split-timestamps	+jsonl-timestamps.sh -tt -r -e trace=chdir
 jsonl-split-unshare	--namespace=new -e trace=unshare -e inject=unshare:retval=0

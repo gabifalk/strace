@@ -566,6 +566,7 @@ jsonl-file_setattr
 jsonl-fork-f
 jsonl-fsconfig
 jsonl-get_mempolicy
+jsonl-get_thread_area
 jsonl-getcpu
 jsonl-getdents64
 jsonl-getdents64-v
@@ -733,6 +734,7 @@ jsonl-superseded
 jsonl-swapon
 jsonl-sysinfo
 jsonl-time
+jsonl-times
 jsonl-timespec
 jsonl-timestamps
 jsonl-unshare
