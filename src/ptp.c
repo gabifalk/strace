@@ -48,11 +48,13 @@ print_ptp_clock_time3_am(struct tcb *tcp, void *elem_buf, size_t elem_size,
 	const struct ptp_clock_time *const p = elem_buf;
 
 	tprint_array_begin();
+	tprint_object_begin();
 	print_ptp_clock_time(p, true);
-	tprint_array_next();
+	tprint_array_element_next();
 	print_ptp_clock_time(p + 1, true);
-	tprint_array_next();
+	tprint_array_element_next();
 	print_ptp_clock_time(p + 2, true);
+	tprint_object_end();
 	tprint_array_end();
 
 	return true;
