@@ -30,7 +30,7 @@ print_ptp_clock_time(const struct ptp_clock_time *const p, bool rtc)
 	tprint_struct_end();
 
 	if (rtc && xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW)
-		tprints_comment(sprinttime_nsec(p->sec, p->nsec));
+		tprints_timestamp_comment(sprinttime_nsec(p->sec, p->nsec));
 }
 
 static bool
