@@ -2696,8 +2696,15 @@ void
 tprint_unused_bits(unsigned long long val, unsigned int first,
 		   unsigned int last)
 {
-	PRINT_VAL_X(val);
-	tprintf_comment("bits %u..%u", first, last);
+	if (structured_output) {
+		tprints_object_type("reserved_bits");
+		tprintf_object_field_string("raw", "%#llx", val);
+		tprintf_object_field_string("first_bit", "%u", first);
+		tprintf_object_field_string("last_bit", "%u", last);
+	} else {
+		PRINT_VAL_X(val);
+		tprintf_comment("bits %u..%u", first, last);
+	}
 }
 
 void
