@@ -7,6 +7,7 @@
  */
 
 #include "defs.h"
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include "hyperlink.h"
 #include "print_fields.h"
@@ -2104,6 +2105,60 @@ tprint_ifindex(unsigned int ifindex, const char *name)
 
 		print_xlat_ex(ifindex, str, XLAT_STYLE_FMT_U);
 		free(str);
+	}
+}
+
+void
+tprint_ip_addr(const char *var_name, bool v6, const void *addr,
+	       unsigned int len, const char *str)
+{
+	if (!v6) {
+		if (var_name)
+			tprints_field_name(var_name);
+
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
+			print_quoted_string(addr, len, QUOTE_FORCE_HEX);
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return;
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+
+		tprints_fn_begin("inet_addr");
+		print_quoted_string(str, strlen(str) + 1, QUOTE_0_TERMINATED);
+		tprint_fn_end();
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
+	} else {
+		if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
+			if (var_name)
+				tprints_field_name(var_name);
+			print_quoted_string(addr, len, QUOTE_FORCE_HEX);
+		}
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+			return;
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_begin();
+
+		tprints_fn_begin("inet_pton");
+		print_xlat_ex(AF_INET6, "AF_INET6", XLAT_STYLE_ABBREV);
+
+		tprint_fn_next();
+		print_quoted_string(str, strlen(str) + 1, QUOTE_0_TERMINATED);
+
+		if (var_name &&
+		    (xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV)) {
+			tprint_fn_next();
+			tprintf_string("&%s", var_name);
+		}
+		tprint_fn_end();
+
+		if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+			tprint_comment_end();
 	}
 }
 

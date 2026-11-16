@@ -154,60 +154,10 @@ print_inet_addr(const int af,
 
 	switch (af) {
 	case AF_INET:
-		if (inet_ntop(af, addr, buf, sizeof(buf))) {
-			if (var_name)
-				tprints_field_name(var_name);
-
-			if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-				print_quoted_string((const char*) addr,
-						    len, QUOTE_FORCE_HEX);
-
-			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-				return true;
-
-			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-				tprint_comment_begin();
-
-			tprints_fn_begin("inet_addr");
-			print_quoted_string(buf, sizeof(buf), QUOTE_0_TERMINATED);
-			tprint_fn_end();
-
-			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-				tprint_comment_end();
-
-			return true;
-		}
-		break;
 	case AF_INET6:
 		if (inet_ntop(af, addr, buf, sizeof(buf))) {
-			if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
-				if (var_name)
-					tprints_field_name(var_name);
-				print_quoted_string(addr, len, QUOTE_FORCE_HEX);
-			}
-
-			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-				return true;
-
-			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-				tprint_comment_begin();
-
-			tprints_fn_begin("inet_pton");
-			print_xlat_ex(AF_INET6, "AF_INET6", XLAT_STYLE_ABBREV);
-
-			tprint_fn_next();
-			print_quoted_string(buf, sizeof(buf), QUOTE_0_TERMINATED);
-
-			if (var_name &&
-			    (xlat_verbose(xlat_verbosity) == XLAT_STYLE_ABBREV)) {
-				tprint_fn_next();
-				tprintf_string("&%s", var_name);
-			}
-			tprint_fn_end();
-
-			if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-				tprint_comment_end();
-
+			tprint_ip_addr(var_name, af == AF_INET6, addr, len,
+				       buf);
 			return true;
 		}
 		break;
