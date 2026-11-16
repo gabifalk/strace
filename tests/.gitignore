@@ -592,6 +592,7 @@ jsonl-ustat
 jsonl-utime
 jsonl-v4l2
 jsonl-vfork-f
+jsonl-xattr
 kcmp
 kcmp-y
 kcmp-y--pidns-translation

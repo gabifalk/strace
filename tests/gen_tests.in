@@ -611,6 +611,7 @@ jsonl-merged-ustat	-e trace=ustat
 jsonl-merged-utime	-e trace=utime
 jsonl-merged-v4l2	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-merged-vfork-f	-qq -f -e signal=none -e trace=chdir
+jsonl-merged-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 jsonl-split-accept-f	-qq -f -e signal=none -e trace=accept,getresuid
 jsonl-split-access	-e trace=access --trace-path=strace_enoent_xyz
 jsonl-split-adjtimex	-e trace=adjtimex
@@ -665,6 +666,7 @@ jsonl-split-ustat	-e trace=ustat
 jsonl-split-utime	-e trace=utime
 jsonl-split-v4l2	+jsonl-ioctl.sh -e trace=ioctl
 jsonl-split-vfork-f	-qq -f -e signal=none -e trace=chdir
+jsonl-split-xattr	-e trace=getxattr,fgetxattr,lgetxattr,setxattr,fsetxattr,lsetxattr,listxattr,flistxattr,llistxattr,removexattr,fremovexattr,lremovexattr
 kcmp	-a22
 kcmp-y	-a22 -y -e trace=kcmp
 kcmp-y--pidns-translation	test_pidns -a22 -y -e trace=kcmp
