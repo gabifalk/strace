@@ -248,7 +248,7 @@ printxvals_ex(const uint64_t val, const char *dflt, enum xlat_style style,
 				print_xlat_val(val, style);
 				tprints_xlat_sym(str);
 			} else {
-				tprints_xlat_const(str);
+				tprints_xlat_const(val, style, str);
 			}
 
 			goto printxvals_ex_end;
@@ -487,7 +487,7 @@ print_xlat_ex(const uint64_t val, const char *str, uint32_t style)
 				print_xlat_val(val, style);
 				tprints_comment(str);
 			} else {
-				tprints_xlat_const(str);
+				tprints_xlat_const(val, style, str);
 			}
 			break;
 		}

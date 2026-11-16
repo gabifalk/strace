@@ -31,7 +31,8 @@
 
 extern void tprint_xlat_flags_begin(uint64_t flags, const char *dflt,
 				    enum xlat_style style);
-extern void tprints_xlat_const(const char *str);
+extern void tprints_xlat_const(uint64_t val, enum xlat_style style,
+			       const char *str);
 extern void tprints_xlat_flags_sym(const char *sym, uint64_t val,
 				   uint64_t flags, unsigned int n,
 				   enum xlat_style style);

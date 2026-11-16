@@ -842,7 +842,7 @@ tprints_xlat_dflt(const char *dflt)
 }
 
 void
-tprints_xlat_const(const char *str)
+tprints_xlat_const(uint64_t val, enum xlat_style style, const char *str)
 {
 	if (!str || !*str)
 		return;
@@ -911,7 +911,7 @@ tprints_xlat_flags_sym(const char *sym, uint64_t val, uint64_t flags,
 		if (need_comment)
 			tprints_string(sym);
 		else
-			tprints_xlat_const(sym);
+			tprints_xlat_const(val, style, sym);
 	}
 }
 
