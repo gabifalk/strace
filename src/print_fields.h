@@ -410,6 +410,11 @@ extern void tprint_io_dump_iov_begin(void);
 extern void tprint_io_dump_iov_buffer(unsigned long long size,
 				      unsigned int index);
 extern void tprint_io_dump_iov_end(void);
+extern void tprint_io_dump_mmsg_begin(void);
+extern void tprint_io_dump_mmsg_vector_begin(unsigned long long iovlen,
+					     unsigned int index);
+extern void tprint_io_dump_mmsg_vector_end(void);
+extern void tprint_io_dump_mmsg_end(void);
 
 static inline void
 tprint_array_index_end(void)

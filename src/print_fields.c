@@ -2883,3 +2883,24 @@ tprint_io_dump_iov_end(void)
 		tprint_object_field_end();
 	}
 }
+
+void
+tprint_io_dump_mmsg_begin(void)
+{
+}
+
+void
+tprint_io_dump_mmsg_vector_begin(unsigned long long iovlen, unsigned int index)
+{
+	tprintf_string(" = %llu buffers in vector %u\n", iovlen, index);
+}
+
+void
+tprint_io_dump_mmsg_vector_end(void)
+{
+}
+
+void
+tprint_io_dump_mmsg_end(void)
+{
+}

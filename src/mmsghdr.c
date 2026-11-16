@@ -132,18 +132,23 @@ dumpiov_in_mmsghdr(struct tcb *const tcp, kernel_ulong_t addr)
 {
 	unsigned int len = tcp->u_rval;
 	unsigned int fetched;
+	unsigned int i;
 
-	for (unsigned int i = 0; i < len; ++i, addr += fetched) {
+	for (i = 0; i < len; ++i, addr += fetched) {
 		struct mmsghdr mmsg;
 		fetched = fetch_struct_mmsghdr(tcp, addr, &mmsg);
 		if (!fetched)
 			break;
-		tprintf_string(" = %" PRI_klu " buffers in vector %u\n",
-			       (kernel_ulong_t) mmsg.msg_hdr.msg_iovlen, i);
+		if (!i)
+			tprint_io_dump_mmsg_begin();
+		tprint_io_dump_mmsg_vector_begin(mmsg.msg_hdr.msg_iovlen, i);
 		dumpiov_upto(tcp, mmsg.msg_hdr.msg_iovlen,
 			     ptr_to_kulong(mmsg.msg_hdr.msg_iov),
 			     mmsg.msg_len);
+		tprint_io_dump_mmsg_vector_end();
 	}
+	if (i)
+		tprint_io_dump_mmsg_end();
 }
 
 SYS_FUNC(sendmmsg)
