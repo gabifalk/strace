@@ -112,8 +112,10 @@ decode_fslabel(struct tcb *const tcp, const kernel_ulong_t arg)
 {
 	char label[FSLABEL_MAX];
 
-	if (!umove_or_printaddr(tcp, arg, &label))
+	if (!umove_or_printaddr(tcp, arg, &label)) {
+		tprints_object_type("string");
 		print_quoted_cstring(label, sizeof(label));
+	}
 }
 
 int
