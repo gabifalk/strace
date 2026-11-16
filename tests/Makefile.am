@@ -409,6 +409,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-personality \
 	jsonl-pidfd_getfd-yy \
 	jsonl-pidfd_send_signal \
+	jsonl-poke \
 	jsonl-ppoll \
 	jsonl-prctl \
 	jsonl-seccomp-filter \
@@ -1236,6 +1237,7 @@ EXTRA_DIST = \
 	jsonl-personality.c \
 	jsonl-pidfd_getfd-yy.c \
 	jsonl-pidfd_send_signal.c \
+	jsonl-poke.c \
 	jsonl-ppoll.c \
 	jsonl-prctl.c \
 	jsonl-seccomp-filter.c \

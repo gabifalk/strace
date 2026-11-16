@@ -666,6 +666,7 @@ jsonl-pause
 jsonl-personality
 jsonl-pidfd_getfd-yy
 jsonl-pidfd_send_signal
+jsonl-poke
 jsonl-ppoll
 jsonl-prctl
 jsonl-seccomp-filter

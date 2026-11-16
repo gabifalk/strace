@@ -685,6 +685,7 @@ jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-personality	-e trace=personality
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-merged-pidfd_send_signal	-e trace=pidfd_send_signal
+jsonl-merged-poke	-e trace=dup,dup2 -e inject=dup:poke_enter=arg1=100 -e inject=dup2:poke_enter=arg2=101:retval=42
 jsonl-merged-ppoll	-e trace=ppoll
 jsonl-merged-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-merged-seccomp-filter	-e trace=seccomp -v
@@ -860,6 +861,7 @@ jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-personality	-e trace=personality
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
 jsonl-split-pidfd_send_signal	-e trace=pidfd_send_signal
+jsonl-split-poke	-e trace=dup,dup2 -e inject=dup:poke_enter=arg1=100 -e inject=dup2:poke_enter=arg2=101:retval=42
 jsonl-split-ppoll	-e trace=ppoll
 jsonl-split-prctl	-e trace=prctl -e inject=prctl:retval=0x20005
 jsonl-split-seccomp-filter	-e trace=seccomp -v
