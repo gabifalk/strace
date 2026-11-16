@@ -4147,67 +4147,146 @@ void
 tprint_uring_restriction_op_begin(const struct xlat *xlat, unsigned int opcode,
 				  const char *dflt)
 {
-	printxval(xlat, opcode, dflt);
+	if (structured_output) {
+		const char *sym = xlookup(xlat, opcode);
+
+		tprints_object_type("uring_restriction_op");
+		tprintf_object_field_string("raw", "%#x", opcode);
+		if (sym)
+			tprints_object_field_string("sym", sym);
+		else
+			tprints_object_field_string("sym_pattern", dflt);
+	} else {
+		printxval(xlat, opcode, dflt);
+	}
 }
+
+static bool uring_restriction_op_fields;
 
 void
 tprint_uring_restriction_op_next(void)
 {
-	tprint_struct_next();
+	if (structured_output) {
+		tprints_object_field_begin("fields");
+		tprint_object_begin();
+		uring_restriction_op_fields = true;
+	} else {
+		tprint_struct_next();
+	}
 }
 
 void
 tprint_uring_restriction_op_unknown(unsigned int op)
 {
-	tprintf_comment("op: %#x", op);
+	if (structured_output)
+		tprintf_object_field_string("op", "%#x", op);
+	else
+		tprintf_comment("op: %#x", op);
 }
 
 void
 tprint_uring_restriction_op_end(void)
 {
+	if (structured_output && uring_restriction_op_fields) {
+		tprint_union_field_value_end();
+		tprint_object_end();
+		tprint_object_field_end();
+		uring_restriction_op_fields = false;
+	}
 }
+
+static bool query_list_truncated;
+static unsigned long long query_list_truncated_addr;
 
 void
 tprint_query_list_begin(void)
 {
+	if (structured_output) {
+		query_list_truncated = false;
+		tprints_object_type("query_list");
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	}
 }
 
 void
 tprint_query_list_addr(unsigned long long addr)
 {
-	printaddr64(addr);
+	if (structured_output) {
+		if (addr) {
+			tprint_list_element_begin();
+			tprint_object_begin();
+			printaddr64(addr);
+			tprint_object_end();
+			tprint_list_element_end();
+		}
+	} else {
+		printaddr64(addr);
+	}
 }
 
 void
 tprint_query_list_truncated(unsigned long long addr)
 {
-	printaddr64(addr);
-	tprints_comment("...");
+	if (structured_output) {
+		query_list_truncated = true;
+		query_list_truncated_addr = addr;
+	} else {
+		printaddr64(addr);
+		tprints_comment("...");
+	}
 }
 
 void
 tprint_query_list_entry_begin(void)
 {
+	if (structured_output) {
+		tprint_list_element_begin();
+		tprint_object_begin();
+	}
 }
 
 void
 tprint_query_list_entry_next(const char *next_name)
 {
-	tprint_struct_next();
-	tprints_field_name(next_name);
+	if (structured_output) {
+		tprint_struct_end();
+		tprint_object_end();
+		tprint_list_element_end();
+	} else {
+		tprint_struct_next();
+		tprints_field_name(next_name);
+	}
 }
 
 void
 tprint_query_list_end(unsigned int count)
 {
-	for (; count > 0; --count)
-		tprint_struct_end();
+	if (structured_output) {
+		tprint_list_end();
+		tprint_object_field_end();
+		if (query_list_truncated) {
+			tprints_object_field_bool("truncated", true);
+			tprintf_object_field_string("truncated_addr", "%#llx",
+						    query_list_truncated_addr);
+		}
+	} else {
+		for (; count > 0; --count)
+			tprint_struct_end();
+	}
 }
 
 void
 tprints_field_decoded_name(const char *name)
 {
-	tprints_field_name(name);
+	if (structured_output) {
+		char *decoded_name = xasprintf("%s_decoded", name);
+
+		tprints_field_name(decoded_name);
+		free(decoded_name);
+	} else {
+		tprints_field_name(name);
+	}
 }
 
 void

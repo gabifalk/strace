@@ -203,6 +203,11 @@ tprint_arg_skip(void)
 }
 
 static inline void
+tprint_union_field_value_end(void)
+{
+}
+
+static inline void
 tprint_object_end(void)
 {
 }
