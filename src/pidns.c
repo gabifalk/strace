@@ -599,7 +599,8 @@ printpid(struct tcb *tcp, int pid, enum pid_type type)
 void
 printpid_tgid_pgid(struct tcb *tcp, int pid)
 {
-	PRINT_VAL_D(pid);
+	PRINT_VAL_D_AS(pid_type_name(pid > 0 ? PT_TGID
+				     : pid < -1 ? PT_PGID : PT_NONE), pid);
 	if (pid > 0)
 		printpid_translation(tcp,  pid, PT_TGID);
 	else if (pid < -1)
