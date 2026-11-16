@@ -516,6 +516,12 @@ tprint_char(unsigned char c)
 	}
 }
 
+void
+tprint_extra_data_unavailable(void)
+{
+	tprint_unavailable();
+}
+
 static bool extra_data_field;
 
 void

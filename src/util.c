@@ -1637,7 +1637,7 @@ print_nonzero_bytes(struct tcb *const tcp,
 		error_func_msg("memory exhausted when tried to allocate"
                                " %u bytes", len);
 		prefix_fun();
-		tprint_unavailable();
+		tprint_extra_data_unavailable();
 		return true;
 	}
 
@@ -1645,7 +1645,7 @@ print_nonzero_bytes(struct tcb *const tcp,
 
 	if (umoven(tcp, addr, len, str)) {
 		prefix_fun();
-		tprint_unavailable();
+		tprint_extra_data_unavailable();
 	} else if (is_filled(str, 0, len)) {
 		ret = false;
 	} else {
