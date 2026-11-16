@@ -1255,17 +1255,25 @@ void
 tprint_flags_with_value_begin(uint64_t raw, uint64_t flags,
 			      const struct xlat *xlat, const char *dflt)
 {
-	tprint_flags_begin();
-	if (flags) {
-		printflags64_in(xlat, flags, dflt);
-		tprint_flags_or();
+	if (!structured_output || flags) {
+		tprint_flags_groups_begin(raw);
+		if (flags) {
+			tprint_flags_group_begin(flags);
+			printflags64_in(xlat, flags, dflt);
+			tprint_flags_group_end();
+			tprint_flags_groups_next();
+		}
+		tprint_flags_group_begin(raw & ~flags);
 	}
 }
 
 void
 tprint_flags_with_value_end(uint64_t flags)
 {
-	tprint_flags_end();
+	if (!structured_output || flags) {
+		tprint_flags_group_end();
+		tprint_flags_groups_end();
+	}
 }
 
 /*
