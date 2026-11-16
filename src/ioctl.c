@@ -328,16 +328,23 @@ ioctl_decode_unknown_type(struct tcb *const tcp, const unsigned int code,
 	}
 
 	if (entering(tcp)) {
-		tprints_arg_next_name("argp");
-		if (print_before)
+		if (print_before) {
+			tprints_arg_next_name("argp");
 			ret = printstr_ex(tcp, arg, _IOC_SIZE(code),
 			                  QUOTE_FORCE_HEX);
+			if (print_after && !ret)
+				tprint_arg_inout();
+		} else {
+			tprints_arg_next_name_deferred("argp");
+		}
 
 		if (!print_after || ret)
 			ret = RVAL_IOCTL_DECODED;
 	} else {
 		if (print_before && print_after)
-			tprint_value_changed();
+			tprint_arg_exiting_changed_begin(2, "argp");
+		else
+			tprints_arg_exiting_name(2, "argp");
 
 		if (print_after)
 			printstr_ex(tcp, arg, _IOC_SIZE(code), QUOTE_FORCE_HEX);
