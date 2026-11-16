@@ -642,11 +642,15 @@ extern kernel_ulong_t get_rt_sigframe_addr(struct tcb *);
  *               is to be stored at the address pointed by the argument.
  *               If arch corresponds to a different personality, or syscall
  *               name has not been found, NULL is stored.
+ * @param pers   If the argument is non-NULL, the personality the syscall
+ *               name has been found in is stored at the address pointed
+ *               by the argument; if the name has not been found,
+ *               current_personality is stored.
  * @return       String literal corresponding to the syscall number in case
  *               the latter is valid;  NULL otherwise.
  */
 extern const char *syscall_name_arch(unsigned long long nr, unsigned int arch,
-				     const char **prefix);
+				     const char **prefix, unsigned int *pers);
 /**
  * Convert a syscall name to the corresponding (shuffled) syscall number.
  *

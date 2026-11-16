@@ -2144,11 +2144,12 @@ tprint_flags_with_value_end(uint64_t flags)
 
 /*
  * Print a syscall number `nr' followed by its `name', if known,
- * prefixed with `nr_prefix', if any.
+ * prefixed with `nr_prefix', if any; `pers' is the personality
+ * of the number, or -1U when it is not known.
  */
 void
 tprint_syscall_nr(unsigned long long nr, const char *name,
-		  const char *nr_prefix)
+		  const char *nr_prefix, unsigned int pers)
 {
 	const enum xlat_style style = xlat_verbose(xlat_verbosity);
 
@@ -2157,6 +2158,11 @@ tprint_syscall_nr(unsigned long long nr, const char *name,
 		if (name)
 			tprints_object_field_string("name", name);
 		tprintf_object_field_string("scno", "%llu", nr);
+		if (pers != -1U) {
+			tprints_object_field_begin("personality");
+			STRACE_PRINTF("%u", pers);
+			tprint_object_field_end();
+		}
 	} else {
 		if (style != XLAT_STYLE_ABBREV || !nr_prefix)
 			PRINT_VAL_U(nr);

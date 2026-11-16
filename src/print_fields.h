@@ -627,7 +627,7 @@ extern bool tprint_qcmd_begin(unsigned int qcmd);
 extern void tprint_rlim(unsigned long long lim, const char *str,
 			bool infinity);
 extern void tprint_syscall_nr(unsigned long long nr, const char *name,
-			      const char *nr_prefix);
+			      const char *nr_prefix, unsigned int pers);
 extern void tprint_clockid_fd(int clockid, unsigned int fd);
 extern bool tprint_clockid_cpu_begin(int clockid, int pid, bool per_thread);
 extern void tprint_clockid_cpu_end(void);
@@ -1225,11 +1225,13 @@ tprint_sysret_interrupted(void)
 	do {								\
 		tprints_field_name(#field_);				\
 		const char *nr_prefix_ = NULL;				\
+		unsigned int pers_ = current_personality;		\
 		const unsigned long long ull_nr =			\
 			zero_extend_signed_to_ull((where_).field_);	\
 		const char *name = syscall_name_arch(ull_nr,		\
-					(audit_arch_), &nr_prefix_);	\
-		tprint_syscall_nr(ull_nr, name, nr_prefix_);		\
+					(audit_arch_), &nr_prefix_,	\
+					&pers_);			\
+		tprint_syscall_nr(ull_nr, name, nr_prefix_, pers_);	\
 	} while (0)
 
 # define PRINT_FIELD_MAC(where_, field_)				\

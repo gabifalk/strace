@@ -37,7 +37,7 @@ const struct audit_arch_t audit_arch_vec[SUPPORTED_PERSONALITIES] = {
 
 const char *
 syscall_name_arch(unsigned long long ull_nr, unsigned int arch,
-		  const char **prefix)
+		  const char **prefix, unsigned int *pers)
 {
 	const kernel_ulong_t nr = (kernel_ulong_t) ull_nr;
 
@@ -54,11 +54,23 @@ syscall_name_arch(unsigned long long ull_nr, unsigned int arch,
 				*prefix = (i == current_personality)
 					  ? nr_prefix(nr) : NULL;
 			}
+			if (pers)
+				*pers = i;
 			return sysent_vec[i][scno].sys_name;
 		}
 	}
 
 	if (prefix)
 		*prefix = NULL;
+	if (pers) {
+		*pers = -1U;
+		for (size_t i = SUPPORTED_PERSONALITIES; i-- > 0; ) {
+			if (arch == audit_arch_vec[i].arch &&
+			    ull_nr >= audit_arch_vec[i].flag) {
+				*pers = i;
+				break;
+			}
+		}
+	}
 	return NULL;
 }
