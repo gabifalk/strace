@@ -251,6 +251,7 @@ extern void tprint_extra_data_begin(unsigned int offset, unsigned int size);
 extern void tprint_extra_data_end(bool truncated);
 extern void tprint_ticks(unsigned long long val, long freq,
 			 unsigned int precision);
+extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
 extern void tprint_signal(int nr, const char *name);
 extern void tprint_syscall_duration(long long sec, long nsec);
 extern void tprint_sysret_end(void);

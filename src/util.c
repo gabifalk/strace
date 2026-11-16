@@ -257,13 +257,7 @@ print_ticks(uint64_t val, long freq, unsigned int precision)
 void
 print_ticks_d(int64_t val, long freq, unsigned int precision)
 {
-	PRINT_VAL_D(val);
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW
-	    && freq > 1 && val != 0) {
-		const uint64_t magnitude = val < 0 ? -(uint64_t) val : (uint64_t) val;
-
-		print_ticks_comment(magnitude, freq, precision, val < 0);
-	}
+	tprint_ticks_d(val, freq, precision);
 }
 
 void
