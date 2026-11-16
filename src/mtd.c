@@ -352,19 +352,24 @@ MPERS_PRINTER_DECL(int, mtd_ioctl, struct tcb *const tcp,
 			if (umove_or_printaddr(tcp, arg, &rinfo))
 				break;
 			tprint_struct_begin();
+			tprint_struct_mark_split();
 			PRINT_FIELD_X(rinfo, regionindex);
+			tprint_struct_entering_end();
 			return 0;
 		} else {
 			struct region_info_user rinfo;
 
-			if (!syserror(tcp) && !umove(tcp, arg, &rinfo)) {
-				tprint_struct_next();
-				PRINT_FIELD_X(rinfo, offset);
-				tprint_struct_next();
-				PRINT_FIELD_X(rinfo, erasesize);
-				tprint_struct_next();
-				PRINT_FIELD_X(rinfo, numblocks);
+			if (syserror(tcp) || umove(tcp, arg, &rinfo)) {
+				tprint_struct_exiting_abandon();
+				break;
 			}
+			tprint_struct_exiting_begin(2, "argp");
+			tprint_struct_exiting_next();
+			PRINT_FIELD_X(rinfo, offset);
+			tprint_struct_next();
+			PRINT_FIELD_X(rinfo, erasesize);
+			tprint_struct_next();
+			PRINT_FIELD_X(rinfo, numblocks);
 			tprint_struct_end();
 			break;
 		}
