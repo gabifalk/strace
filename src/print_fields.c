@@ -318,6 +318,44 @@ tprint_bitset_end(void)
 	STRACE_PRINT_COLOR_SEQ(COLOR_ARGVAL);
 }
 
+bool
+tprint_bitset_mask_begin(void)
+{
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
+		return false;
+
+	tprint_bitset_begin();
+	return true;
+}
+
+void
+tprint_bitset_mask_next(void)
+{
+	tprint_bitset_next();
+}
+
+void
+tprint_bitset_mask_end(void)
+{
+	tprint_bitset_end();
+}
+
+bool
+tprint_bitset_words_begin(void)
+{
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_begin();
+
+	return xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV;
+}
+
+void
+tprint_bitset_words_end(void)
+{
+	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
+		tprint_comment_end();
+}
+
 void
 tprint_comment_begin(void)
 {

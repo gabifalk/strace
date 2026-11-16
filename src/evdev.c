@@ -169,41 +169,38 @@ decode_bitset(struct tcb *const tcp, const kernel_ulong_t arg,
 	if (umove_or_printaddr(tcp, arg, &decoded_arg))
 		return RVAL_IOCTL_DECODED;
 
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_RAW) {
-		tprint_bitset_begin();
-
+	if (tprint_bitset_mask_begin()) {
 		int bit_displayed = 0;
 		int i = next_set_bit(decoded_arg, 0, size_bits);
 		if (i >= 0) {
+			tprint_object_begin();
 			printxval(decode_nr, i, dflt);
+			tprint_object_end();
 
 			while ((i = next_set_bit(decoded_arg, i + 1,
 						 size_bits)) > 0) {
 				if (abbrev(tcp) && bit_displayed >= 3) {
-					tprint_bitset_next();
+					tprint_bitset_mask_next();
 					tprint_more_data_follows();
 					break;
 				}
-				tprint_bitset_next();
+				tprint_bitset_mask_next();
+				tprint_object_begin();
 				printxval(decode_nr, i, dflt);
+				tprint_object_end();
 				bit_displayed++;
 			}
 		}
 
-		tprint_bitset_end();
+		tprint_bitset_mask_end();
 	}
 
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_begin();
-
-	if (xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV) {
+	if (tprint_bitset_words_begin()) {
 		print_local_array_ex(tcp, decoded_arg, size / current_wordsize,
 				     current_wordsize, print_xint_array_member,
 				     NULL, 0, NULL, NULL);
+		tprint_bitset_words_end();
 	}
-
-	if (xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE)
-		tprint_comment_end();
 
 	return RVAL_IOCTL_DECODED;
 }
