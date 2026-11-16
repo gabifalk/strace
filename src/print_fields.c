@@ -836,7 +836,8 @@ tprint_extra_data_end(bool truncated)
 void
 tprints_timestamp_comment(const char *str)
 {
-	tprints_comment(str);
+	if (!structured_output)
+		tprints_comment(str);
 }
 
 void
