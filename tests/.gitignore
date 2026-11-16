@@ -564,6 +564,7 @@ jsonl-mseal
 jsonl-netlink_kobject_uevent
 jsonl-netlink_netfilter
 jsonl-netlink_protocol
+jsonl-netlink_route
 jsonl-nlattr
 jsonl-pause
 jsonl-pidfd_getfd-yy

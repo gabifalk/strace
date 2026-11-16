@@ -583,6 +583,7 @@ jsonl-merged-mseal	-e trace=mseal
 jsonl-merged-netlink_kobject_uevent	-e trace=sendto
 jsonl-merged-netlink_netfilter	-e trace=sendto
 jsonl-merged-netlink_protocol	-e trace=sendto
+jsonl-merged-netlink_route	-e trace=sendto
 jsonl-merged-nlattr	-e trace=sendto
 jsonl-merged-pause	-e trace=pause -e signal=none
 jsonl-merged-pidfd_getfd-yy	-yy -e trace=pidfd_getfd
@@ -631,6 +632,7 @@ jsonl-split-mseal	-e trace=mseal
 jsonl-split-netlink_kobject_uevent	-e trace=sendto
 jsonl-split-netlink_netfilter	-e trace=sendto
 jsonl-split-netlink_protocol	-e trace=sendto
+jsonl-split-netlink_route	-e trace=sendto
 jsonl-split-nlattr	-e trace=sendto
 jsonl-split-pause	-e trace=pause -e signal=none
 jsonl-split-pidfd_getfd-yy	-yy -e trace=pidfd_getfd

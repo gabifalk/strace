@@ -307,6 +307,7 @@ check_PROGRAMS = $(PURE_EXECUTABLES) \
 	jsonl-netlink_kobject_uevent \
 	jsonl-netlink_netfilter \
 	jsonl-netlink_protocol \
+	jsonl-netlink_route \
 	jsonl-nlattr \
 	jsonl-pause \
 	jsonl-pidfd_getfd-yy \
@@ -1003,6 +1004,7 @@ EXTRA_DIST = \
 	jsonl-netlink_kobject_uevent.c \
 	jsonl-netlink_netfilter.c \
 	jsonl-netlink_protocol.c \
+	jsonl-netlink_route.c \
 	jsonl-nlattr.c \
 	jsonl-pause.c \
 	jsonl-pidfd_getfd-yy.c \
