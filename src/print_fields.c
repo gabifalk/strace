@@ -696,6 +696,20 @@ timescale_to_unit(int scale)
 	}
 }
 
+/* Print a resource limit `lim' followed by its symbolic form `str', if any. */
+void
+tprint_rlim(unsigned long long lim, const char *str)
+{
+	const enum xlat_style style = xlat_verbose(xlat_verbosity);
+
+	if (!str || style != XLAT_STYLE_ABBREV)
+		PRINT_VAL_U(lim);
+	if (str && style == XLAT_STYLE_VERBOSE)
+		tprints_comment(str);
+	else if (str && style == XLAT_STYLE_ABBREV)
+		tprints_string(str);
+}
+
 void
 tprint_clockid_fd(int clockid, unsigned int fd)
 {

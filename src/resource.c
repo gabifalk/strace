@@ -29,14 +29,7 @@ print_rlim64_t(uint64_t lim) {
 		str = buf;
 	}
 
-	if (!str || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_U(lim);
-
-	if (!str || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-                ? tprints_comment : tprints_string)(str);
+	tprint_rlim(lim, str);
 }
 
 static void
@@ -71,14 +64,7 @@ print_rlim32_t(uint32_t lim) {
 		str = buf;
 	}
 
-	if (!str || xlat_verbose(xlat_verbosity) != XLAT_STYLE_ABBREV)
-		PRINT_VAL_U(lim);
-
-	if (!str || xlat_verbose(xlat_verbosity) == XLAT_STYLE_RAW)
-		return;
-
-	(xlat_verbose(xlat_verbosity) == XLAT_STYLE_VERBOSE
-                ? tprints_comment : tprints_string)(str);
+	tprint_rlim(lim, str);
 }
 
 static void

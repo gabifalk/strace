@@ -267,6 +267,7 @@ extern void tprint_ticks(unsigned long long val, long freq,
 			 unsigned int precision);
 extern void tprint_ticks_d(long long val, long freq, unsigned int precision);
 extern bool tprint_qcmd_begin(unsigned int qcmd);
+extern void tprint_rlim(unsigned long long lim, const char *str);
 extern void tprint_clockid_fd(int clockid, unsigned int fd);
 extern bool tprint_clockid_cpu_begin(int clockid, int pid, bool per_thread);
 extern void tprint_clockid_cpu_end(void);
