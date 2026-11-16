@@ -256,9 +256,13 @@ tprint_sysret_interrupted(void)
 # define PRINT_VAL_0X(val_)						\
 	do {								\
 		tprints_object_type("hex");				\
-		tprintf_object_field_string("raw", "%#0*llx",		\
-			(int) sizeof(val_) * 2,				\
-			zero_extend_signed_to_ull(val_));		\
+		if (structured_output)					\
+			tprintf_object_field_string("raw", "%#llx",	\
+				zero_extend_signed_to_ull(val_));	\
+		else							\
+			tprintf_object_field_string("raw", "%#0*llx",	\
+				(int) sizeof(val_) * 2,			\
+				zero_extend_signed_to_ull(val_));	\
 	} while (0)
 
 # define PRINT_VAL_ADDR(val_)						\
