@@ -30,7 +30,7 @@ print_ns_id_req(struct tcb *const tcp, const kernel_ulong_t addr)
 
 	if (umoven(tcp, addr, MIN(sizeof(req), req.size), &req)) {
 		tprint_struct_next();
-		tprint_unavailable();
+		tprint_extra_data_unavailable();
 		tprint_struct_end();
 		return;
 	}
