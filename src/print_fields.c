@@ -252,19 +252,33 @@ tprint_fn_end(void)
 void
 tprint_fd_set_begin(void)
 {
-	tprint_bitset_begin();
+	if (structured_output) {
+		tprints_object_type("fd_set");
+		tprints_object_field_begin("elems");
+		tprint_list_begin();
+	} else {
+		tprint_bitset_begin();
+	}
 }
 
 void
 tprint_fd_set_next(void)
 {
-	tprint_bitset_next();
+	if (structured_output)
+		tprint_array_next();
+	else
+		tprint_bitset_next();
 }
 
 void
 tprint_fd_set_end(void)
 {
-	tprint_bitset_end();
+	if (structured_output) {
+		tprint_list_end();
+		tprint_object_field_end();
+	} else {
+		tprint_bitset_end();
+	}
 }
 
 void
